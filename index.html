@@ -112,7 +112,7 @@
     .logo span{ opacity:.95; }
     .sub{
       text-align:center;
-      margin-top: 8px;
+      margin-top: 5px;
       color: var(--muted);
       font-size: 14px;
     }
@@ -214,8 +214,10 @@
     }
     .pill:hover{ background: rgba(255,255,255,.06); }
     .pill input{ width:auto; margin:0; }
-    .pill small{ color: var(--muted2); }
-
+    .pill small{
+  color: #ffffff;
+  font-weight: 700;
+}
     .hint{
       margin-top: 6px;
       font-size: 12px;
@@ -534,11 +536,10 @@
             <div>
               <label for="name">Name <span style="color: rgba(255,255,255,.55);">(required)</span></label>
               <input id="name" name="name" type="text" required maxlength="40" placeholder="e.g., Luna, Detective Gray, Captain Nova" />
-              <div class="hint">Tip: A short, memorable name works best.</div>
             </div>
 
             <div>
-              <label for="age">Age (18–200)</label>
+              <label for="age">Age</label>
               <select id="age" name="age" required></select>
             </div>
 
@@ -578,19 +579,19 @@
             </div>
 
             <div class="span2">
-              <label for="personality">Personality (up to 300 chars)</label>
+              <label for="personality">Personality</label>
               <textarea id="personality" name="personality" maxlength="300" placeholder="Describe their personality, tone, quirks, and boundaries..."></textarea>
               <div class="hint"><span id="pCount">0</span>/300</div>
             </div>
 
             <div class="span2">
-              <label for="scenario">Place & Situation (up to 300 chars)</label>
+              <label for="scenario">Place & Situation</label>
               <textarea id="scenario" name="scenario" maxlength="300" placeholder="Where are you? What's happening? Set the scene..."></textarea>
               <div class="hint"><span id="sCount">0</span>/300</div>
             </div>
 
             <div class="span2">
-              <label>Font Color (8 options, default black)</label>
+              <label>Font Color</label>
               <div class="colors" id="colorGrid" role="listbox" aria-label="Font color options"></div>
               <div class="hint">This color will be used to display the character name in chat.</div>
             </div>
@@ -608,7 +609,6 @@
                   <input type="radio" name="tier" value="general" checked />
                   <div>
                     <div><b>General</b> <small>(free)</small></div>
-                    <div class="hint" style="margin:4px 0 0;">Uses DeepSeek model.</div>
                   </div>
                 </label>
 
@@ -616,7 +616,6 @@
                   <input type="radio" name="tier" value="uncensored" />
                   <div>
                     <div><b>+18 Uncensored</b> <small>($2)</small></div>
-                    <div class="hint" style="margin:4px 0 0;">Pay once, then uses Venice Uncensored.</div>
                   </div>
                 </label>
               </div>
@@ -1139,6 +1138,7 @@
   </script>
 </body>
 </html>
+
 
 
 
