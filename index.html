@@ -4,20 +4,20 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>roleplAi.com | No-login AI Roleplay</title>
+  <title>roleplay-chat.com | No-login AI Roleplay</title>
   <meta name="description" content="Create a character and start a no-login AI roleplay chat instantly. General and +18 Uncensored options available." />
   <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#000000" />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="roleplAi.com | No-login AI Roleplay" />
+  <meta property="og:title" content="roleplay-chat.com | No-login AI Roleplay" />
   <meta property="og:description" content="Create a character and start a no-login AI roleplay chat instantly." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://roleplai.com/" />
+  <meta property="og:url" content="https://roleplay-chat.com/" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="roleplAi.com | No-login AI Roleplay" />
+  <meta name="twitter:title" content="roleplay-chat.com | No-login AI Roleplay" />
   <meta name="twitter:description" content="Create a character and start a no-login AI roleplay chat instantly." />
 
   <!-- Favicon (placeholder paths - replace with your real assets when ready) -->
@@ -493,7 +493,7 @@
     <div class="shell">
 
       <header>
-        <div class="logo"><span>roleplAi.com</span></div>
+        <div class="logo"><span>roleplay-chat.com</span></div>
       </header>
       <div class="sub">No-login AI roleplay. Create a character, then chat instantly.</div>
 
@@ -664,7 +664,7 @@
         </div>
       </section>
 
-      <footer>© <span id="year"></span> roleplAi.com</footer>
+      <footer>© <span id="year"></span> roleplay-chat.com</footer>
     </div>
   </div>
 
@@ -722,7 +722,7 @@
     const chatAvatar = $("#chatAvatar");
     const resetBtn = $("#resetBtn");
 
-    const STORAGE_KEY = "roleplai_session_v1";
+    const STORAGE_KEY = "roleplay-chat_session_v1";
 
     // Colors: bright & readable colors
 const colorOptions = [
@@ -894,7 +894,7 @@ const colorOptions = [
           // Demo purchase: $2
           return actions.order.create({
             purchase_units: [{
-              description: "roleplAi.com +18 Uncensored",
+              description: "roleplay-chat.com +18 Uncensored",
               amount: { value: "2.00", currency_code: "USD" }
             }]
           });
@@ -934,7 +934,7 @@ const colorOptions = [
     const sendBtn = $("#sendBtn");
 
     let chatHistory = []; // {role:"user"|"assistant", content:string}
-    const PAYMENT_KEY = "roleplai_paid_v1";
+    const PAYMENT_KEY = "roleplay-chat_paid_v1";
 let paymentStatus = sessionStorage.getItem(PAYMENT_KEY) || "unpaid"; // refresh-safe within this tab
 
 
@@ -1103,3 +1103,4 @@ resetBtn.addEventListener("click", () => {
   </script>
 </body>
 </html>
+
