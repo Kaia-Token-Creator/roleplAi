@@ -164,11 +164,12 @@
     }
 
     label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      margin: 0 0 6px;
-    }
+  display:block;
+  font-size: 12px;
+  color: #ffcc00; /* ← 여기 */
+  margin: 0 0 6px;
+  font-weight: 700; /* 선택: 더 잘 보이게 */
+}
 
     input, select, textarea{
       width:100%;
@@ -519,14 +520,14 @@
 </div>
 
       </header>
-      <div class="sub">No-login AI roleplay. Create a character, then chat instantly.</div>
+      <div class="sub">Enjoy AI roleplay. Create a character, then chat instantly.</div>
+      <div class="sub">no-login. Safe. Anonymous.</div>
 
       <!-- VIEW 1: Character setup -->
       <section id="viewSetup" class="card view active" aria-label="Character creation">
         <div class="cardHead">
           <h2>Character Setup</h2>
-          <div class="badge">Mobile-first • Dark UI</div>
-        </div>
+          </div>
 
         <div class="cardBody">
           <form id="characterForm" class="grid" autocomplete="off">
@@ -1138,4 +1139,5 @@
   </script>
 </body>
 </html>
+
 
