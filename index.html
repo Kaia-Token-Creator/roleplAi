@@ -576,6 +576,26 @@ padding: 8px 12px;
               <input id="name" name="name" type="text" required maxlength="40" placeholder="e.g., Luna, Detective Gray, Captain Nova" />
             </div>
 
+            <div class="span2">
+              <label for="avatar">Profile Photo (optional)</label>
+              <input id="avatar" name="avatar" type="file" accept="image/*" />
+              <div class="hint">PNG/JPG/WebP recommended.</div>
+            </div>
+
+            <div class="span2">
+              <div class="preview" aria-label="Preview">
+                <div class="avatar" id="avatarPreview">
+                  <span>🙂</span>
+                </div>
+                <div class="bubble">
+                  <div><b>Preview</b></div>
+                  <div style="margin-top:6px;">
+                    <span class="accent" id="namePreview" style="--chatColor: var(--chatColor);">Your character</span>
+                    <span style="color: var(--muted2);"> will appear like this in chat.</span>
+                  </div>
+                </div>
+              </div>
+
             <div>
   <label for="nickname">What should the character call you?</label>
   <input id="nickname" name="nickname" type="text" maxlength="30" placeholder="e.g., babe, buddy, captain, darling" />
@@ -701,11 +721,6 @@ padding: 8px 12px;
               <div class="hint">This color will be used to display the character name in chat.</div>
             </div>
 
-            <div class="span2">
-              <label for="avatar">Profile Photo (optional)</label>
-              <input id="avatar" name="avatar" type="file" accept="image/*" />
-              <div class="hint">PNG/JPG/WebP recommended.</div>
-            </div>
 
             <div class="span2">
               <label>Chat Option</label>
@@ -733,19 +748,6 @@ padding: 8px 12px;
   </span>
 </div>
 
-            <div class="span2">
-              <div class="preview" aria-label="Preview">
-                <div class="avatar" id="avatarPreview">
-                  <span>🙂</span>
-                </div>
-                <div class="bubble">
-                  <div><b>Preview</b></div>
-                  <div style="margin-top:6px;">
-                    <span class="accent" id="namePreview" style="--chatColor: var(--chatColor);">Your character</span>
-                    <span style="color: var(--muted2);"> will appear like this in chat.</span>
-                  </div>
-                </div>
-              </div>
 
               <div class="actions">
                 <button id="createBtn" class="btn btnPrimary" type="submit">Create</button>
@@ -1306,6 +1308,7 @@ weight: {
   </script>
 </body>
 </html>
+
 
 
 
