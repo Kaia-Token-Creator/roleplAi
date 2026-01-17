@@ -16,6 +16,11 @@ export const onRequestPost: PagesFunction<{
   try {
     type Tier = "general" | "uncensored";
     type Msg = { role: "system" | "user" | "assistant"; content: string };
+
+    // ✅ ADDED: new character fields
+    type HeightUnit = "cm" | "ft";
+    type WeightUnit = "kg" | "lb";
+
     type Character = {
       name: string;
       age: number;
@@ -23,6 +28,12 @@ export const onRequestPost: PagesFunction<{
       language: string;
       personality: string;
       scenario: string; // Place & Situation
+
+      // NEW:
+      userCall?: string; // the nickname / term the character uses for the user
+      mbti?: string; // e.g., INFP
+      height?: { unit: HeightUnit; value: number };
+      weight?: { unit: WeightUnit; value: number };
     };
 
     const body = await request.json<{
@@ -92,20 +103,82 @@ function json(data: unknown, status = 200, headers: Record<string, string> = {})
   });
 }
 
+type HeightUnit = "cm" | "ft";
+type WeightUnit = "kg" | "lb";
+
 function sanitizeCharacter(ch: any) {
   const name = safeStr(ch.name, 40).trim() || "Character";
 
   const ageNum = Number(ch.age);
   const age = Number.isFinite(ageNum) ? clamp(Math.floor(ageNum), 18, 200) : 18;
 
+  const gender = safeStr(ch.gender, 30);
+  const language = safeStr(ch.language, 30) || "English";
+  const personality = safeStr(ch.personality, 300);
+  const scenario = safeStr(ch.scenario, 300);
+
+  // ✅ ADDED
+  const userCall = safeStr(ch.userCall, 40).trim(); // optional
+  const mbti = normalizeMBTI(safeStr(ch.mbti, 8));
+
+  const height = sanitizeMeasure(ch.height, "height");
+  const weight = sanitizeMeasure(ch.weight, "weight");
+
   return {
     name,
     age,
-    gender: safeStr(ch.gender, 30),
-    language: safeStr(ch.language, 30) || "English",
-    personality: safeStr(ch.personality, 300),
-    scenario: safeStr(ch.scenario, 300),
+    gender,
+    language,
+    personality,
+    scenario,
+
+    userCall: userCall || "",
+    mbti: mbti || "",
+    height,
+    weight,
   };
+}
+
+function sanitizeMeasure(v: any, kind: "height" | "weight"):
+  | { unit: HeightUnit | WeightUnit; value: number }
+  | null {
+  if (!v || typeof v !== "object") return null;
+
+  const unitRaw = typeof v.unit === "string" ? v.unit.toLowerCase() : "";
+  const valueNum = Number(v.value);
+
+  if (!Number.isFinite(valueNum)) return null;
+
+  if (kind === "height") {
+    const unit: HeightUnit | "" =
+      unitRaw === "cm" ? "cm" : unitRaw === "ft" || unitRaw === "feet" ? "ft" : "";
+    if (!unit) return null;
+
+    // reasonable limits
+    const value = unit === "cm"
+      ? clamp(valueNum, 50, 260)
+      : clamp(valueNum, 1.5, 9.0);
+
+    return { unit, value: round(value, 2) };
+  }
+
+  // weight
+  const unit: WeightUnit | "" =
+    unitRaw === "kg" ? "kg" : unitRaw === "lb" || unitRaw === "lbs" || unitRaw === "pound" || unitRaw === "pounds" ? "lb" : "";
+  if (!unit) return null;
+
+  const value = unit === "kg"
+    ? clamp(valueNum, 10, 400)
+    : clamp(valueNum, 22, 880);
+
+  return { unit, value: round(value, 2) };
+}
+
+function normalizeMBTI(s: string) {
+  const t = s.trim().toUpperCase();
+  // MBTI should be exactly 4 letters of I/E, N/S, F/T, P/J (order)
+  if (!/^[IE][NS][FT][PJ]$/.test(t)) return "";
+  return t;
 }
 
 function safeStr(v: any, maxLen: number) {
@@ -117,6 +190,11 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
+function round(n: number, digits: number) {
+  const p = Math.pow(10, digits);
+  return Math.round(n * p) / p;
+}
+
 function isValidMsg(m: any): m is { role: "system" | "user" | "assistant"; content: string } {
   return (
     m &&
@@ -126,6 +204,21 @@ function isValidMsg(m: any): m is { role: "system" | "user" | "assistant"; conte
   );
 }
 
+function formatMeasure(
+  m: { unit: string; value: number } | null,
+  kind: "height" | "weight"
+) {
+  if (!m) return "Not specified";
+  const unit = m.unit;
+  const value = m.value;
+
+  if (kind === "height") {
+    // show "ft" nicely as "ft" (your UI may treat ft as decimal feet; keep as-is)
+    return unit === "cm" ? `${value} cm` : `${value} ft`;
+  }
+  return unit === "kg" ? `${value} kg` : `${value} lb`;
+}
+
 function buildSystemPrompt(ch: {
   name: string;
   age: number;
@@ -133,7 +226,16 @@ function buildSystemPrompt(ch: {
   language: string;
   personality: string;
   scenario: string;
+
+  userCall?: string;
+  mbti?: string;
+  height?: { unit: HeightUnit; value: number } | null;
+  weight?: { unit: WeightUnit; value: number } | null;
 }) {
+  const userCallLine = ch.userCall?.trim()
+    ? `- What you call the user: ${ch.userCall.trim()} (use this as the user's nickname/term of address)`
+    : `- What you call the user: Not specified`;
+
   return [
     "You are an AI roleplay partner. Stay in-character and write immersive, story-forward replies.",
     `Always respond in: ${ch.language}.`,
@@ -142,6 +244,10 @@ function buildSystemPrompt(ch: {
     `- Name: ${ch.name}`,
     `- Age: ${ch.age}`,
     `- Gender: ${ch.gender || "Unspecified"}`,
+    `- MBTI: ${ch.mbti || "Not specified"}`,
+    userCallLine,
+    `- Height: ${formatMeasure(ch.height ?? null, "height")}`,
+    `- Weight: ${formatMeasure(ch.weight ?? null, "weight")}`,
     `- Personality: ${ch.personality || "Not specified"}`,
     `- Place & Situation: ${ch.scenario || "Not specified"}`,
     "",
