@@ -1364,7 +1364,7 @@ const assistantName =
 
       if (role === "assistant"){
         // (2) CHANGED: assistant content color uses --chatColor too
-        bubble.innerHTML = `<div class="name" style="color: var(--chatColor);">${chatName ? chatName.textContent : session.name}</div>
+        bubble.innerHTML = `<div class="name" style="color: var(--chatColor);">${assistantName}</div>
                             <div style="margin-top:6px; color: var(--chatColor); white-space:pre-wrap;"></div>`;
       } else {
         bubble.innerHTML = `<div style="font-weight:800; margin-bottom:6px;">You</div>
@@ -1660,6 +1660,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
