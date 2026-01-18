@@ -149,7 +149,12 @@ padding: 8px 12px;
       white-space:nowrap;
     }
 
-    .cardBody{ padding: 14px 16px 16px; }
+    .cardBody{
+  padding: 14px 16px 16px;
+  display:flex;
+  flex-direction:column;
+  min-height: 0; /* 중요 */
+}
 
     .grid{
       display:grid;
@@ -345,9 +350,11 @@ padding: 8px 12px;
 
     /* Chat placeholder */
     .chatShell{
-      display:grid;
-      gap: 12px;
-    }
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+  min-height: 0; /* 중요: flex 안에서 overflow가 제대로 동작 */
+}
     .chatTop{
       display:flex;
       align-items:center;
@@ -368,13 +375,16 @@ padding: 8px 12px;
       white-space:nowrap;
     }
     .chatBox{
-      height: min(62vh, 520px);
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.35);
-      padding: 14px;
-      overflow:auto;
-    }
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.35);
+  padding: 14px;
+  overflow:auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
     .chatMsg{
       display:flex;
       gap: 10px;
@@ -419,10 +429,13 @@ padding: 8px 12px;
       color: var(--chatColor);
     }
     .chatControls{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-    }
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(8px);
+}
     .chatInput{
       flex:1;
       padding: 14px 12px;
@@ -1286,6 +1299,52 @@ chatHistory.push({ role: "assistant", content: reply });
     // END chat.ts connection
     // =========================
 
+    function setupMobileKeyboardUX(){
+  const viewChat = document.getElementById("viewChat");
+  const chatBox = document.getElementById("chatBox");
+  const chatInput = document.getElementById("chatInput");
+
+  function applyViewportHeight(){
+    // iOS에서 visualViewport가 실제 화면(키보드 제외)을 반영
+    const vv = window.visualViewport;
+    const h = vv ? vv.height : window.innerHeight;
+
+    // viewChat 카드가 화면을 꽉 채우도록 (헤더/푸터는 wrap에 이미 있으니 필요 시 조정)
+    viewChat.style.maxHeight = h + "px";
+  }
+
+  // 스크롤을 바닥으로 보내는 함수 (마지막 메시지가 항상 보이게)
+  function scrollToBottom(){
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  // 키보드 등장/회전/주소창 변화 대응
+  if (window.visualViewport){
+    window.visualViewport.addEventListener("resize", () => {
+      applyViewportHeight();
+      // 키보드 올라오면 바닥 유지
+      requestAnimationFrame(scrollToBottom);
+    });
+    window.visualViewport.addEventListener("scroll", () => {
+      applyViewportHeight();
+    });
+  }
+
+  window.addEventListener("resize", () => {
+    applyViewportHeight();
+    requestAnimationFrame(scrollToBottom);
+  });
+
+  // 입력창 포커스 시도 바닥 유지
+  chatInput.addEventListener("focus", () => {
+    setTimeout(scrollToBottom, 50);
+    setTimeout(scrollToBottom, 250);
+  });
+
+  applyViewportHeight();
+}
+
+
     // --------- Submit flow
     form.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -1373,9 +1432,13 @@ weight: {
 
     // Footer year
     $("#year").textContent = String(new Date().getFullYear());
+
+    setupMobileKeyboardUX();
+
   </script>
 </body>
 </html>
+
 
 
 
