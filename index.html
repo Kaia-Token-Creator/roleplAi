@@ -274,6 +274,40 @@ padding: 8px 12px;
       border: 1px dashed rgba(255,255,255,.18);
       background: rgba(0,0,0,.25);
     }
+
+    /* avatar X (clear) button */
+.avatar{
+  position: relative; /* 버튼 포지셔닝을 위해 */
+}
+
+.avatarClear{
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.55);
+  color: rgba(255,255,255,.9);
+  font-size: 16px;
+  line-height: 1;
+  display: none;        /* 기본 숨김 */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.avatarClear:hover{
+  background: rgba(0,0,0,.75);
+}
+
+/* 모바일 탭하기 편하게 */
+.avatarClear:active{
+  transform: scale(0.96);
+}
+    
     .avatar{
       width: 52px; height: 52px;
       border-radius: 14px;
@@ -625,8 +659,9 @@ padding: 8px 12px;
             <div class="span2">
               <div class="preview" aria-label="Preview">
                 <div class="avatar" id="avatarPreview">
-                  <span>🙂</span>
-                </div>
+  <button type="button" class="avatarClear" id="avatarClearBtn" aria-label="Remove photo" title="Remove">×</button>
+  <span>🙂</span>
+</div>
                 <div class="bubble">
                   <div><b>Preview</b></div>
                   <div style="margin-top:6px;">
@@ -871,6 +906,7 @@ padding: 8px 12px;
     const ageSelect = $("#age");
     const avatarInput = $("#avatar");
     const avatarPreview = $("#avatarPreview");
+    const avatarClearBtn = $("#avatarClearBtn");
     const namePreview = $("#namePreview");
 
     const payModal = $("#payModal");
@@ -1047,30 +1083,110 @@ heightUnit.addEventListener("change", () => {
     // --------- Avatar preview
     let avatarDataUrl = "";
 
+    function clearAvatar(){
+  avatarDataUrl = "";
+  avatarInput.value = ""; // 파일 인풋 비우기
+
+  avatarPreview.innerHTML = `
+    <button type="button"
+            class="avatarClear"
+            id="avatarClearBtn"
+            aria-label="Remove photo"
+            title="Remove">×</button>
+    <span>🙂</span>
+  `;
+
+  const b = document.getElementById("avatarClearBtn");
+  if (b) b.style.display = "none";
+}
+
 avatarInput.addEventListener("change", async () => {
   const file = avatarInput.files && avatarInput.files[0];
 
   if (!file){
     avatarDataUrl = "";
-    avatarPreview.innerHTML = "<span>🙂</span>";
+    avatarPreview.innerHTML = `
+      <button type="button"
+              class="avatarClear"
+              id="avatarClearBtn"
+              aria-label="Remove photo"
+              title="Remove">×</button>
+      <span>🙂</span>
+    `;
+    const b = document.getElementById("avatarClearBtn");
+    if (b) b.style.display = "none";
     return;
   }
 
-  // 파일이 너무 크면 처리 시간이 길 수 있으니 UX 방어(선택)
+  // 파일이 있을 때만 여기로 내려옴
   avatarPreview.innerHTML = "<span>⏳</span>";
 
   try{
-    // 512px 썸네일 + JPEG 압축
     avatarDataUrl = await resizeImageToDataURL(file, { maxSize: 512, quality: 0.78 });
 
-    avatarPreview.innerHTML = `<img alt="Profile preview" src="${avatarDataUrl}">`;
+    avatarPreview.innerHTML = `
+      <button type="button"
+              class="avatarClear"
+              id="avatarClearBtn"
+              aria-label="Remove photo"
+              title="Remove">×</button>
+      <img alt="Profile preview" src="${avatarDataUrl}">
+    `;
+
+    const btn = document.getElementById("avatarClearBtn");
+    if (btn){
+      btn.style.display = "flex";
+      btn.addEventListener("click", clearAvatar);
+    }
+
+  } catch (e){
+    console.error(e);
+    clearAvatar();
+    alert("Couldn’t load this image.");
+  }
+});
+
+  if (!file){
+    avatarDataUrl = "";
+    avatarPreview.innerHTML = `
+      <button type="button" class="avatarClear" id="avatarClearBtn" aria-label="Remove photo">×</button>
+      <span>🙂</span>
+    `;
+    const b = document.getElementById("avatarClearBtn");
+    if (b) b.style.display = "none";
+    return;
+  }
+
+  avatarPreview.innerHTML = "<span>⏳</span>";
+
+  try{
+    avatarDataUrl = await resizeImageToDataURL(file, { maxSize: 512, quality: 0.78 });
+
+    // ✅ 바로 여기
+    avatarPreview.innerHTML = `
+      <button type="button" class="avatarClear" id="avatarClearBtn" aria-label="Remove photo">×</button>
+      <img alt="Profile preview" src="${avatarDataUrl}">
+    `;
+
+    const avatarClearBtn2 = document.getElementById("avatarClearBtn");
+    if (avatarClearBtn2){
+      avatarClearBtn2.style.display = "flex";
+      avatarClearBtn2.addEventListener("click", clearAvatar);
+    }
+
   } catch (e){
     console.error(e);
     avatarDataUrl = "";
-    avatarPreview.innerHTML = "<span>🙂</span>";
+    avatarPreview.innerHTML = `
+      <button type="button" class="avatarClear" id="avatarClearBtn" aria-label="Remove photo">×</button>
+      <span>🙂</span>
+    `;
+    const b = document.getElementById("avatarClearBtn");
+    if (b) b.style.display = "none";
     alert("Couldn’t load this image. Please try a different photo.");
   }
 });
+
 
     // --------- View switching
     function show(view){
@@ -1547,6 +1663,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
