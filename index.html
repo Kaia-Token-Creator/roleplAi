@@ -401,19 +401,18 @@ padding: 8px 12px;
     /* In-page "Next page" view (no full page load) */
     .view{ display:none; }
     .view.active{ display:block; }
-    #viewChat.active{ display:flex; }
 
     /* Chat placeholder */
     .chatShell{
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+  min-height: 0; /* 중요: flex 안에서 overflow가 제대로 동작 */
 }
 
-    /* ✅ chat view는 active일 때만 flex */
-#viewChat{ display:none; }           /* 기본 숨김 */
-
+    #viewChat{
+  min-height: calc(100vh - 140px); /* 헤더+서브+패딩 대충 제외 */
+}
 
     .chatTop{
       display:flex;
@@ -441,7 +440,7 @@ padding: 8px 12px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(0,0,0,.35);
   padding: 14px;
-  padding-bottom: calc(14px + 72px + 20px + env(safe-area-inset-bottom));
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
   overflow:auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -489,7 +488,24 @@ padding: 8px 12px;
       font-family: "Baloo 2", Inter, sans-serif;
       color: var(--chatColor);
     }
-   
+   .chatControls{
+  position: sticky;   /* fixed → sticky */
+  bottom: 0;
+
+  transform: none;    /* 키보드용 transform 제거 */
+  z-index: 10;
+
+  display:flex;
+  gap: 10px;
+  align-items: center;
+
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(10px);
+
+  flex-wrap: nowrap;
+}
+
     .chatInput{
   flex: 1 1 auto;
   min-width: 0;          /* 중요: 작은 화면에서 버튼 밀리지 않게 */
@@ -621,212 +637,6 @@ padding: 8px 12px;
       color: rgba(255,255,255,.45);
       padding: 10px 0 4px;
     }
-
-   
-
-
-/* ✅ chatShell이 정확히 남은 높이를 먹고 */
-#viewChat .chatShell{
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* ✅ chatBox만 스크롤 */
-
-/* ✅ 입력창: fixed 대신 sticky로 바꿔서 카드 안에서 하단 고정 */
-
-
-   /* =========================
-   CHAT LAYOUT FIX (REPLACE ALL CHAT CSS WITH THIS)
-   ========================= */
-
-
-
-/* 본문(채팅) 영역만 남은 공간 먹기 */
-#viewChat .chatShell{
-  flex: 1 1 auto;
-  min-height: 0;
-  display:flex;
-  flex-direction:column;
-}
-
-
-/* ✅ 입력창이 안 보이던 원인 1: 컨테이너 스타일이 없음(=높이/패딩/정렬 불안정)
-      ✅ 원인 2: overflow hidden 조합으로 잘림
-   그래서 chatControls를 확실히 “바닥에 붙는 flex 바”로 정의 */
-
-
-/* =========================
-   FINAL CHAT LAYOUT OVERRIDE
-   (PASTE AT VERY BOTTOM OF <style>)
-   ========================= */
-
-:root{
-  --headH: 48px;      /* cardHead 높이 */
-  --menuH: 44px;      /* chatTop 대략 높이(패딩 포함) */
-  --controlsH: 62px;  /* JS가 실제 값으로 갱신함 */
-  --kb: 0px;          /* JS(visualViewport)로 갱신 */
-}
-
-
-
-/* 상단 헤더: 높이 고정 + sticky */
-#viewChat .cardHead{
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  height: var(--headH);
-  display:flex;
-  align-items:center;
-  padding: 0 14px !important;
-  background: rgba(10,10,10,.92);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid rgba(255,255,255,.10);
-}
-
-
-/* 본문: 남은 공간 */
-#viewChat .chatShell{
-  flex: 1 1 auto;
-  min-height: 0;
-  display:flex;
-  flex-direction:column;
-}
-
-/* chatBox만 스크롤. 하단은 입력창(controlsH) + 키보드(kb)만큼 패딩 확보 */
-    /* =========================
-   CHAT MODE: SHOW TOP BAR + TIGHT STICKY STACK
-   (PASTE AT VERY BOTTOM)
-   ========================= */
-
-:root{
-  --headH: 48px;
-  --menuH: 44px;
-  --controlsH: 62px;
-  --kb: 0px;
-}
-
-/* ✅ chatMode에서도 상단 로고/서브텍스트 보이게 + sticky */
-body.chatMode .shell{
-  min-height: 100dvh;
-  display:flex;
-  flex-direction:column;
-}
-
-body.chatMode .shell > header{
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  background: rgba(0,0,0,.92);
-  backdrop-filter: blur(6px);
-  padding: 10px 6px 0; /* 기존 header 패딩 유지 */
-}
-
-body.chatMode .sub{
-  position: sticky;
-  top: 64px; /* header 대략 높이 아래 */
-  z-index: 190;
-  background: rgba(0,0,0,.70);
-  backdrop-filter: blur(6px);
-  margin: 0;
-  padding: 6px 0 10px;
-}
-
-/* ✅ viewChat이 남은 공간만 차지하도록 */
-body.chatMode #viewChat.active{
-  display:flex !important;
-  flex: 1 1 auto;
-  min-height: 0;
-  height: auto !important;       /* 기존 100dvh 덮어쓰기 */
-}
-
-/* ✅ cardBody column */
-#viewChat .cardBody{
-  padding: 0 !important;
-  flex: 1 1 auto;
-  display:flex;
-  flex-direction:column;
-  min-height: 0;
-}
-
-/* ✅ cardHead(=Chat with ~~) 높이 고정 + 아래 경계선 */
-#viewChat .cardHead{
-  position: sticky;
-  top: 0;                 /* viewChat 내부 기준 sticky */
-  z-index: 120;
-  height: var(--headH);
-  display:flex;
-  align-items:center;
-  padding: 0 14px !important;
-  background: rgba(10,10,10,.92);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid rgba(255,255,255,.10);
-}
-
-/* h2 기본 마진이 미세한 “떠보임” 만들 수 있어서 제거 */
-#viewChat .cardHead h2{
-  margin: 0;
-  line-height: 1;
-}
-
-/* ✅ 메뉴(chatTop): cardHead 바로 아래에 딱 붙게 */
-#viewChat .chatTop{
-  position: sticky;
-  top: var(--headH);
-  z-index: 110;
-
-  margin: 0 !important;
-  padding: 6px 14px !important;
-
-  border-radius: 0 !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(255,255,255,.10) !important;
-
-  background: rgba(0,0,0,.88);
-  backdrop-filter: blur(6px);
-}
-
-/* ✅ 채팅 본문 */
-#viewChat .chatShell{
-  flex: 1 1 auto;
-  min-height: 0;
-  display:flex;
-  flex-direction:column;
-}
-
-#viewChat .chatBox{
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow:auto;
-
-  padding: 14px !important;
-  padding-bottom: calc(
-    14px + var(--controlsH) + var(--kb) + env(safe-area-inset-bottom)
-  ) !important;
-}
-
-/* ✅ 입력창 fixed 유지 */
-#viewChat .chatControls{
-  position: fixed !important;
-  left: 0;
-  right: 0;
-  bottom: var(--kb);
-  z-index: 9999;
-
-  display:flex;
-  align-items:center;
-  gap: 10px;
-
-  max-width: 860px;
-  margin: 0 auto;
-
-  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-  background: rgba(0,0,0,.92);
-  border-top: 1px solid rgba(255,255,255,.10);
-}
-
-
   </style>
 </head>
 
@@ -1073,7 +883,10 @@ body.chatMode #viewChat.active{
               <button class="sendBtn" id="sendBtn" type="button" title="Send">➤</button>
             </div>
 
-            
+            <div class="chatFooter">
+  Convos available while this tab is open
+</div>
+
           </div>
         </div>
       </section>
@@ -1366,30 +1179,15 @@ clearAvatar();
 
 
     // --------- View switching
-function show(view){
-  viewSetup.classList.remove("active");
-  viewChat.classList.remove("active");
-  view.classList.add("active");
+    function show(view){
+      viewSetup.classList.remove("active");
+      viewChat.classList.remove("active");
+      view.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
-
-  // 채팅 모드 토글
-  document.body.classList.toggle("chatMode", view === viewChat);
-
-  // 채팅 뷰로 전환될 때 키보드/입력창 보정 재측정
-  if (view === viewChat){
-    setupKeyboardBar();
-    requestAnimationFrame(() => {
-      const box = document.getElementById("chatBox");
-      if (box) box.scrollTop = box.scrollHeight;
-    });
-  }
-
-  // 셋업 화면으로 돌아오면 타이틀 원복
-  if (view === viewSetup){
-    document.title = DEFAULT_TITLE;
-  }
-}
+      // (3) ADDED: when returning to setup, restore default title
+      if (view === viewSetup) document.title = DEFAULT_TITLE;
+    }
 
     // --------- Save & load (tab-scoped)
     function saveSession(data){
@@ -1911,79 +1709,3 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
