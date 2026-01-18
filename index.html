@@ -507,6 +507,22 @@ padding: 8px 12px;
       cursor:pointer;
       border: 1px solid rgba(255,255,255,.14);
     }
+    /* New 버튼만 진한 노란색 */
+#resetBtn{
+  background: #e0b400;
+  border: 1px solid #c9a200;
+  color: #000;
+  font-weight: 800;
+}
+
+#resetBtn:hover{
+  background: #f0c800;
+}
+
+#resetBtn:active{
+  background: #cfa600;
+}
+
     .modalBody{ padding: 14px 16px 16px; }
     .warn{
       font-size: 12px;
@@ -786,11 +802,6 @@ padding: 8px 12px;
         <div class="cardBody">
           <div class="chatShell">
             <div class="chatTop">
-              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <div class="chip" id="chipName">Name: —</div>
-                <div class="chip" id="chipLang">Language: —</div>
-                <div class="chip" id="chipTier">Tier: —</div>
-              </div>
               <button class="xBtn" id="resetBtn" type="button" title="Create new character">New character</button>
             </div>
 
@@ -1537,6 +1548,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
