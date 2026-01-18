@@ -381,6 +381,7 @@ padding: 8px 12px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(0,0,0,.35);
   padding: 14px;
+  padding-bottom: calc(14px + var(--controlsH, 76px) + env(safe-area-inset-bottom));
   overflow:auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -428,34 +429,41 @@ padding: 8px 12px;
       font-family: "Baloo 2", Inter, sans-serif;
       color: var(--chatColor);
     }
-    .chatControls{
-  position: sticky;
+   .chatControls{
+  position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
-  z-index: 5;
-  padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-  background: rgba(0,0,0,.35);
-  backdrop-filter: blur(8px);
+
+  /* 키보드가 올라오면 JS가 이 값을 늘려서 위로 올림 */
+  transform: translateY(calc(-1 * var(--kb, 0px)));
+
+  z-index: 9999;
+
+  display:flex;
+  gap: 10px;
+  align-items: center;
+
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(10px);
+
+  /* 줄바꿈 방지 */
+  flex-wrap: nowrap;
 }
     .chatInput{
-      flex:1;
-      padding: 14px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.45);
-      color: var(--fg);
-      font-size: 14px;
-    }
-    .sendBtn{
-      width: 52px;
-      height: 52px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.12);
-      color: var(--fg);
-      cursor:pointer;
-      font-weight: 900;
-      font-size: 18px;
-    }
+  flex: 1 1 auto;
+  min-width: 0;          /* 중요: 작은 화면에서 버튼 밀리지 않게 */
+  height: 52px;          /* sendBtn과 동일 */
+  padding: 0 12px;       /* 세로 패딩 제거, 높이로 관리 */
+  border-radius: 16px;
+}
+
+.sendBtn{
+  flex: 0 0 52px;        /* 줄바꿈 방지 */
+  height: 52px;
+  border-radius: 16px;
+}
 
     /* Paywall modal */
     .modalOverlay{
@@ -1331,6 +1339,12 @@ saveHistory(chatHistory);
         handleSend();
       }
     });
+    chatInput.addEventListener("focus", () => {
+  setTimeout(() => {
+    const box = document.getElementById("chatBox");
+    box.scrollTop = box.scrollHeight;
+  }, 50);
+});
     // =========================
     // END chat.ts connection
     // =========================
@@ -1473,11 +1487,57 @@ if (params.get("new") === "1"){
     // Footer year
     $("#year").textContent = String(new Date().getFullYear());
 
-    setupMobileKeyboardUX();
+function setupKeyboardBar(){
+  const controls = document.querySelector(".chatControls");
+  const chatBox = document.getElementById("chatBox");
 
+  function measureControlsH(){
+    if (!controls) return;
+    const h = controls.getBoundingClientRect().height || 76;
+    document.documentElement.style.setProperty("--controlsH", h + "px");
+  }
+
+  function updateKeyboardOffset(){
+    // iOS Safari에서 키보드가 올라오면 visualViewport.height가 줄어듦
+    const vv = window.visualViewport;
+    if (!vv){
+      document.documentElement.style.setProperty("--kb", "0px");
+      measureControlsH();
+      return;
+    }
+
+    // 키보드로 가려진 높이(대략)
+    const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+
+    document.documentElement.style.setProperty("--kb", kb + "px");
+    measureControlsH();
+
+    // 바닥 유지
+    if (chatBox){
+      requestAnimationFrame(() => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    }
+  }
+
+  // 초기
+  measureControlsH();
+  updateKeyboardOffset();
+
+  // 키보드/주소창 변화 대응
+  if (window.visualViewport){
+    window.visualViewport.addEventListener("resize", updateKeyboardOffset);
+    window.visualViewport.addEventListener("scroll", updateKeyboardOffset);
+  }
+  window.addEventListener("resize", updateKeyboardOffset);
+}
+
+    setupKeyboardBar();
+    
   </script>
 </body>
 </html>
+
 
 
 
