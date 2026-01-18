@@ -964,22 +964,84 @@ heightUnit.addEventListener("change", () => {
     // --------- Name preview
     nameInput.addEventListener("input", applyPreviewColor);
 
+    async function resizeImageToDataURL(file, {
+  maxSize = 512,      // 가로/세로 최대 픽셀
+  quality = 0.78,     // JPEG 품질 (0~1)
+  mime = "image/jpeg" // 저장 포맷
+} = {}){
+  // 이미지 디코드 (iOS 호환 위해 createImageBitmap 대신 Image 사용)
+  const img = new Image();
+  const objectUrl = URL.createObjectURL(file);
+
+  try{
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = objectUrl;
+    });
+
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+
+    // 비율 유지 리사이즈
+    let nw = w;
+    let nh = h;
+    if (w > h && w > maxSize){
+      nw = maxSize;
+      nh = Math.round(h * (maxSize / w));
+    } else if (h >= w && h > maxSize){
+      nh = maxSize;
+      nw = Math.round(w * (maxSize / h));
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = nw;
+    canvas.height = nh;
+    const ctx = canvas.getContext("2d", { alpha: false });
+
+    // 크기 줄일 때 품질 개선(지원되는 브라우저에서만)
+    if (ctx && "imageSmoothingEnabled" in ctx){
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+    }
+
+    ctx.drawImage(img, 0, 0, nw, nh);
+
+    // JPEG로 변환 (용량 크게 줄어듦)
+    return canvas.toDataURL(mime, quality);
+  } finally{
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+
     // --------- Avatar preview
     let avatarDataUrl = "";
-    avatarInput.addEventListener("change", () => {
-      const file = avatarInput.files && avatarInput.files[0];
-      if (!file){
-        avatarDataUrl = "";
-        avatarPreview.innerHTML = "<span>🙂</span>";
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        avatarDataUrl = reader.result;
-        avatarPreview.innerHTML = `<img alt="Profile preview" src="${avatarDataUrl}">`;
-      };
-      reader.readAsDataURL(file);
-    });
+
+avatarInput.addEventListener("change", async () => {
+  const file = avatarInput.files && avatarInput.files[0];
+
+  if (!file){
+    avatarDataUrl = "";
+    avatarPreview.innerHTML = "<span>🙂</span>";
+    return;
+  }
+
+  // 파일이 너무 크면 처리 시간이 길 수 있으니 UX 방어(선택)
+  avatarPreview.innerHTML = "<span>⏳</span>";
+
+  try{
+    // 512px 썸네일 + JPEG 압축
+    avatarDataUrl = await resizeImageToDataURL(file, { maxSize: 512, quality: 0.78 });
+
+    avatarPreview.innerHTML = `<img alt="Profile preview" src="${avatarDataUrl}">`;
+  } catch (e){
+    console.error(e);
+    avatarDataUrl = "";
+    avatarPreview.innerHTML = "<span>🙂</span>";
+    alert("Couldn’t load this image. Please try a different photo.");
+  }
+});
 
     // --------- View switching
     function show(view){
@@ -1262,7 +1324,14 @@ weight: {
         createdAt: Date.now()
       };
 
-      saveSession(session);
+      try{
+  saveSession(session);
+}catch(e){
+  console.error(e);
+  // 저장소가 터지면(거의 없겠지만) 아바타만 빼고 저장 시도
+  session.avatarDataUrl = "";
+  try{ saveSession(session); }catch(_){}
+}
 
       if (tier === "general"){
         enterChat(session);
@@ -1307,6 +1376,7 @@ weight: {
   </script>
 </body>
 </html>
+
 
 
 
