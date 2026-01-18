@@ -806,15 +806,6 @@ padding: 8px 12px;
             </div>
 
             <div class="chatBox" id="chatBox">
-              <div class="chatMsg">
-                <div class="who" id="chatAvatar">🙂</div>
-                <div class="text">
-                  <div class="name" id="chatName">Character</div>
-                  <div style="margin-top:6px; color: rgba(255,255,255,.78);">
-                    hi
-                  </div>
-                </div>
-              </div>
             </div>
 
             <div class="chatControls">
@@ -1154,11 +1145,6 @@ box.innerHTML = "";
 // history를 화면에 다시 그림
 for (const m of chatHistory){
   appendMsg(m.role, m.content);
-}
-
-// 아무 대화도 없으면 기본 인삿말(원하면)
-if (chatHistory.length === 0){
-  appendMsg("assistant", "hi");
 }
     }
 
@@ -1548,6 +1534,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
