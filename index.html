@@ -413,19 +413,8 @@ padding: 8px 12px;
 
     /* ✅ chat view는 active일 때만 flex */
 #viewChat{ display:none; }           /* 기본 숨김 */
-#viewChat.active{
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
-}
 
-   #viewChat .cardBody{
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
+   
     #viewChat .cardHead{
   position: sticky;
   top: 0;
@@ -649,16 +638,7 @@ padding: 8px 12px;
       padding: 10px 0 4px;
     }
 
-    /* ✅ 채팅 모드에서는 페이지(body) 스크롤 금지 */
-body.chatMode{
-  overflow: hidden;
-}
-
-/* ✅ 채팅 카드가 화면을 꽉 채우게 */
-#viewChat.active{
-  height: 100dvh;          /* 모바일 주소창 대응 */
-  min-height: 100dvh;
-}
+   
 
 
 /* ✅ chatShell이 정확히 남은 높이를 먹고 */
@@ -669,12 +649,6 @@ body.chatMode{
 }
 
 /* ✅ chatBox만 스크롤 */
-#viewChat .chatBox{
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  padding-bottom: 14px;    /* 아래에서 입력창이 따로 고정될 거라 과한 패딩 제거 */
-}
 
 /* ✅ 입력창: fixed 대신 sticky로 바꿔서 카드 안에서 하단 고정 */
 .chatControls{
@@ -695,23 +669,6 @@ body.chatMode{
    CHAT LAYOUT FIX (REPLACE ALL CHAT CSS WITH THIS)
    ========================= */
 
-/* 채팅 뷰는 화면 꽉 */
-#viewChat.active{
-  display:flex;
-  flex-direction:column;
-  height: 100dvh;
-  min-height: 100dvh;
-}
-
-/* 카드 바디가 column flex 컨테이너 */
-#viewChat .cardBody{
-  padding: 0;
-  flex: 1 1 auto;
-  display:flex;
-  flex-direction:column;
-  min-height: 0;
-  overflow: visible; /* ✅ 여기서 hidden 쓰면 입력창 잘릴 수 있음 */
-}
 
 /* 상단 헤더 고정 + 높이 고정(메뉴 간격 문제의 뿌리 제거) */
 #viewChat .cardHead{
@@ -766,20 +723,117 @@ body.chatMode{
 /* ✅ 입력창이 안 보이던 원인 1: 컨테이너 스타일이 없음(=높이/패딩/정렬 불안정)
       ✅ 원인 2: overflow hidden 조합으로 잘림
    그래서 chatControls를 확실히 “바닥에 붙는 flex 바”로 정의 */
-#viewChat .chatControls{
+
+
+/* =========================
+   FINAL CHAT LAYOUT OVERRIDE
+   (PASTE AT VERY BOTTOM OF <style>)
+   ========================= */
+
+:root{
+  --headH: 48px;      /* cardHead 높이 */
+  --menuH: 44px;      /* chatTop 대략 높이(패딩 포함) */
+  --controlsH: 62px;  /* JS가 실제 값으로 갱신함 */
+  --kb: 0px;          /* JS(visualViewport)로 갱신 */
+}
+
+/* 채팅 들어가면 "바깥" 헤더/서브는 숨겨서 화면을 확보 (입력창이 밀려나던 주범) */
+body.chatMode .shell > header,
+body.chatMode .sub{
+  display:none !important;
+}
+
+/* 채팅 카드는 화면 꽉 */
+#viewChat.active{
+  display:flex !important;
+  flex-direction:column;
+  height: 100dvh;
+  min-height: 100dvh;
+}
+
+/* cardBody는 column 컨테이너 */
+#viewChat .cardBody{
+  padding: 0 !important;
+  flex: 1 1 auto;
+  display:flex;
+  flex-direction:column;
+  min-height: 0;
+  overflow: visible !important;
+}
+
+/* 상단 헤더: 높이 고정 + sticky */
+#viewChat .cardHead{
   position: sticky;
-  bottom: 0;
-  z-index: 999;
+  top: 0;
+  z-index: 50;
+  height: var(--headH);
+  display:flex;
+  align-items:center;
+  padding: 0 14px !important;
+  background: rgba(10,10,10,.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+/* 메뉴(chatTop): 헤더 바로 아래에 "딱 붙게" sticky */
+#viewChat .chatTop{
+  position: sticky;
+  top: var(--headH);
+  z-index: 40;
+
+  margin: 0 !important;
+  padding: 6px 14px !important;
+
+  border-radius: 0 !important;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+
+  background: rgba(0,0,0,.88);
+  backdrop-filter: blur(6px);
+}
+
+/* 본문: 남은 공간 */
+#viewChat .chatShell{
+  flex: 1 1 auto;
+  min-height: 0;
+  display:flex;
+  flex-direction:column;
+}
+
+/* chatBox만 스크롤. 하단은 입력창(controlsH) + 키보드(kb)만큼 패딩 확보 */
+#viewChat .chatBox{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 14px !important;
+  padding-bottom: calc(
+    14px + var(--controlsH) + var(--kb) + env(safe-area-inset-bottom)
+  ) !important;
+}
+
+/* 입력창: sticky 말고 fixed로 (키보드 대응은 --kb로) */
+#viewChat .chatControls{
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  bottom: var(--kb);
+  z-index: 9999;
 
   display:flex;
   align-items:center;
   gap: 10px;
 
+  /* 가운데 정렬(카드 폭에 맞추기) */
+  max-width: 860px;
+  margin: 0 auto;
+
   padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
   background: rgba(0,0,0,.92);
   border-top: 1px solid rgba(255,255,255,.10);
 }
-
 
 
   </style>
@@ -1331,6 +1385,18 @@ function show(view){
   // ✅ 채팅 모드면 페이지 스크롤 막기
   document.body.classList.toggle("chatMode", view === viewChat);
 
+  // ✅ 추가: 채팅 뷰로 전환될 때 입력창 높이/키보드 보정 재측정
+  if (view === viewChat){
+    setupKeyboardBar();
+    requestAnimationFrame(() => {
+      const box = document.getElementById("chatBox");
+      if (box) box.scrollTop = box.scrollHeight;
+    });
+  }
+
+  if (view === viewSetup) document.title = DEFAULT_TITLE;
+}
+
   // ✅ 셋업 화면으로 돌아오면 타이틀 원복
   if (view === viewSetup) document.title = DEFAULT_TITLE;
 }
@@ -1856,6 +1922,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
