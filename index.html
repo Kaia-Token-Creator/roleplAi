@@ -1159,28 +1159,6 @@ function enterChat(session){
 }
 
 
-      // (3) ADDED: tab title uses character name
-      document.title = session.name + " | roleplay-chat.com";
-
-      if (session.avatarDataUrl){
-        chatAvatar.innerHTML = `<img alt="Profile" src="${session.avatarDataUrl}">`;
-      } else {
-        chatAvatar.textContent = "🙂";
-      }
-
-      show(viewChat);
-
-      // ✅ history restore
-chatHistory = loadHistory();
-
-// 채팅 UI 비우고(초기 메시지 포함이라면 지우는 게 깔끔)
-const box = document.getElementById("chatBox");
-box.innerHTML = "";
-
-// history를 화면에 다시 그림
-for (const m of chatHistory){
-  appendMsg(m.role, m.content);
-}
     }
 
     // --------- Paywall modal controls
@@ -1569,6 +1547,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
