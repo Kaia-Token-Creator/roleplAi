@@ -381,7 +381,7 @@ padding: 8px 12px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(0,0,0,.35);
   padding: 14px;
-  padding-bottom: calc(14px + var(--controlsH, 76px) + env(safe-area-inset-bottom));
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
   overflow:auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -430,15 +430,11 @@ padding: 8px 12px;
       color: var(--chatColor);
     }
    .chatControls{
-  position: fixed;
-  left: 0;
-  right: 0;
+  position: sticky;   /* fixed → sticky */
   bottom: 0;
 
-  /* 키보드가 올라오면 JS가 이 값을 늘려서 위로 올림 */
-  transform: translateY(calc(-1 * var(--kb, 0px)));
-
-  z-index: 9999;
+  transform: none;    /* 키보드용 transform 제거 */
+  z-index: 10;
 
   display:flex;
   gap: 10px;
@@ -448,9 +444,9 @@ padding: 8px 12px;
   background: rgba(0,0,0,.65);
   backdrop-filter: blur(10px);
 
-  /* 줄바꿈 방지 */
   flex-wrap: nowrap;
 }
+
     .chatInput{
   flex: 1 1 auto;
   min-width: 0;          /* 중요: 작은 화면에서 버튼 밀리지 않게 */
@@ -569,6 +565,13 @@ padding: 8px 12px;
   stroke-linejoin: round;
 }
 
+    .chatFooter{
+  text-align:center;
+  font-size: 12px;
+  color: rgba(255,255,255,.45);
+  padding: 10px 0 4px;
+}
+    
     footer{
       text-align:center;
       font-size: 12px;
@@ -817,11 +820,12 @@ padding: 8px 12px;
             <div class="note">
               Note: Payment is simulated until you connect a server-side PayPal order flow (recommended) or a safer client flow.
             </div>
+
+            <div class="chatFooter">© <span id="year"></span> roleplay-chat.com</div>
           </div>
         </div>
       </section>
 
-      <footer>© <span id="year"></span> roleplay-chat.com</footer>
     </div>
   </div>
 
@@ -1535,6 +1539,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
