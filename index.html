@@ -426,6 +426,22 @@ padding: 8px 12px;
   min-height: 0;
 }
 
+    #viewChat .cardHead{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(10,10,10,.92); /* 배경을 줘야 안 비침 */
+  backdrop-filter: blur(6px);
+}
+
+    #viewChat .chatTop{
+  position: sticky;
+  top: 56px;        /* ✅ cardHead 아래에 붙도록 */
+  z-index: 40;
+  background: rgba(0,0,0,.88);
+  backdrop-filter: blur(6px);
+}
+
     .chatTop{
       display:flex;
       align-items:center;
@@ -452,7 +468,7 @@ padding: 8px 12px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(0,0,0,.35);
   padding: 14px;
-  padding-bottom: calc(14px + 72px + env(safe-area-inset-bottom));
+  padding-bottom: calc(14px + 72px + 20px + env(safe-area-inset-bottom));
   overflow:auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -1726,6 +1742,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
