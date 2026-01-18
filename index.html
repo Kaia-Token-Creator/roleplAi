@@ -404,14 +404,23 @@ padding: 8px 12px;
 
     /* Chat placeholder */
     .chatShell{
-  display:flex;
-  flex-direction:column;
-  gap: 8px;
-  min-height: 0; /* 중요: flex 안에서 overflow가 제대로 동작 */
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
     #viewChat{
-  min-height: calc(100vh - 140px); /* 헤더+서브+패딩 대충 제외 */
+  height: calc(100vh - 120px); /* header + sub 대략 */
+  display: flex;
+  flex-direction: column;
+}
+
+   #viewChat .cardBody{
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
     .chatTop{
@@ -500,8 +509,8 @@ padding: 8px 12px;
   align-items: center;
 
   padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
-  background: rgba(0,0,0,.65);
-  backdrop-filter: blur(10px);
+  background: rgba(0,0,0,.85);
+  backdrop-filter: none;
 
   flex-wrap: nowrap;
 }
@@ -1709,6 +1718,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
