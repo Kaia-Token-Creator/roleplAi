@@ -1141,47 +1141,6 @@ avatarInput.addEventListener("change", async () => {
 clearAvatar();
 
 
-  if (!file){
-    avatarDataUrl = "";
-    avatarPreview.innerHTML = `
-      <button type="button" class="avatarClear" id="avatarClearBtn" aria-label="Remove photo">×</button>
-      <span>🙂</span>
-    `;
-    const b = document.getElementById("avatarClearBtn");
-    if (b) b.style.display = "none";
-    return;
-  }
-
-  avatarPreview.innerHTML = "<span>⏳</span>";
-
-  try{
-    avatarDataUrl = await resizeImageToDataURL(file, { maxSize: 512, quality: 0.78 });
-
-    // ✅ 바로 여기
-    avatarPreview.innerHTML = `
-      <button type="button" class="avatarClear" id="avatarClearBtn" aria-label="Remove photo">×</button>
-      <img alt="Profile preview" src="${avatarDataUrl}">
-    `;
-
-    const avatarClearBtn2 = document.getElementById("avatarClearBtn");
-    if (avatarClearBtn2){
-      avatarClearBtn2.style.display = "flex";
-      avatarClearBtn2.addEventListener("click", clearAvatar);
-    }
-
-  } catch (e){
-    console.error(e);
-    avatarDataUrl = "";
-    avatarPreview.innerHTML = `
-      <button type="button" class="avatarClear" id="avatarClearBtn" aria-label="Remove photo">×</button>
-      <span>🙂</span>
-    `;
-    const b = document.getElementById("avatarClearBtn");
-    if (b) b.style.display = "none";
-    alert("Couldn’t load this image. Please try a different photo.");
-  }
-});
-
 
     // --------- View switching
     function show(view){
@@ -1662,6 +1621,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
