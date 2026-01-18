@@ -401,6 +401,7 @@ padding: 8px 12px;
     /* In-page "Next page" view (no full page load) */
     .view{ display:none; }
     .view.active{ display:block; }
+    #viewChat.active{ display:flex; }
 
     /* Chat placeholder */
     .chatShell{
@@ -410,10 +411,12 @@ padding: 8px 12px;
   min-height: 0;
 }
 
-    #viewChat{
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+    /* ✅ chat view는 active일 때만 flex */
+#viewChat{ display:none; }           /* 기본 숨김 */
+#viewChat.active{
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
 }
 
    #viewChat .cardBody{
@@ -513,22 +516,13 @@ padding: 8px 12px;
 
   max-width: 860px;
   margin: 0 auto;
-}
 
-  transform: none;    /* 키보드용 transform 제거 */
-  z-index: 10;
-
-  display:flex;
-  gap: 10px;
-  align-items: center;
-
-  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
-  background: rgba(0,0,0,.85);
+  transform: none;        /* ✅ 여기로 넣기 (떠돌이 말고) */
   backdrop-filter: none;
-
   flex-wrap: nowrap;
 }
 
+ 
     .chatInput{
   flex: 1 1 auto;
   min-width: 0;          /* 중요: 작은 화면에서 버튼 밀리지 않게 */
@@ -1732,6 +1726,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
