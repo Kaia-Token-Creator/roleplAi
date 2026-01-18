@@ -1382,10 +1382,10 @@ function show(view){
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // ✅ 채팅 모드면 페이지 스크롤 막기
+  // 채팅 모드 토글
   document.body.classList.toggle("chatMode", view === viewChat);
 
-  // ✅ 추가: 채팅 뷰로 전환될 때 입력창 높이/키보드 보정 재측정
+  // 채팅 뷰로 전환될 때 키보드/입력창 보정 재측정
   if (view === viewChat){
     setupKeyboardBar();
     requestAnimationFrame(() => {
@@ -1394,13 +1394,11 @@ function show(view){
     });
   }
 
-  if (view === viewSetup) document.title = DEFAULT_TITLE;
+  // 셋업 화면으로 돌아오면 타이틀 원복
+  if (view === viewSetup){
+    document.title = DEFAULT_TITLE;
+  }
 }
-
-  // ✅ 셋업 화면으로 돌아오면 타이틀 원복
-  if (view === viewSetup) document.title = DEFAULT_TITLE;
-}
-
 
     // --------- Save & load (tab-scoped)
     function saveSession(data){
@@ -1922,6 +1920,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
