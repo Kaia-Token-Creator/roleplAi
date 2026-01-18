@@ -1351,7 +1351,6 @@ const assistantName = (currentSession && currentSession.name) || "Character";
 
       const who = document.createElement("div");
       who.className = "who";
-      const currentSession = loadSession();
 
 who.innerHTML = (role === "assistant")
   ? (currentSession && currentSession.avatarDataUrl
@@ -1660,6 +1659,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
