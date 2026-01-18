@@ -855,8 +855,14 @@ padding: 8px 12px;
         <div class="cardBody">
           <div class="chatShell">
             <div class="chatTop">
-              <button class="xBtn" id="resetBtn" type="button" title="Create new character">New character</button>
-            </div>
+  <div class="row" style="gap:10px;">
+    <button class="xBtn" id="resetBtn" type="button" title="Create new character">New character</button>
+
+    <button class="xBtn" id="gameBtn" type="button" title="Open 2048 Game">Game</button>
+    <button class="xBtn" id="vpnBtn" type="button" title="Open VPN page">VPN</button>
+  </div>
+</div>
+
 
             <div class="chatBox" id="chatBox">
             </div>
@@ -936,6 +942,8 @@ const chatName = $("#chatName");
 const chatAvatar = $("#chatAvatar");
     
     const resetBtn = $("#resetBtn");
+    const gameBtn = $("#gameBtn");
+    const vpnBtn = $("#vpnBtn");
 
     const STORAGE_KEY = "roleplay-chat_session_v1";
     const HISTORY_KEY = "roleplay-chat_history_v1";
@@ -1602,6 +1610,18 @@ weight: {
       window.open("/?new=1", "_blank");
     });
 
+    if (gameBtn){
+  gameBtn.addEventListener("click", () => {
+    window.open("https://2048global.com", "_blank", "noopener,noreferrer");
+  });
+}
+
+if (vpnBtn){
+  vpnBtn.addEventListener("click", () => {
+    window.open("https://www.2048global.com/vpn", "_blank", "noopener,noreferrer");
+  });
+}
+
     // (1) ADDED: if opened as /?new=1, clear this tab's session and payment state
     const params = new URLSearchParams(window.location.search);
 if (params.get("new") === "1"){
@@ -1674,6 +1694,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
