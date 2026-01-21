@@ -1060,6 +1060,7 @@ const chatAvatar = $("#chatAvatar");
 
     const STORAGE_KEY = "roleplay-chat_session_v1";
     const HISTORY_KEY = "roleplay-chat_history_v1";
+    const PENDING_KEY = "roleplay-chat_pending_session_v1";
 
     // Share button
 const shareBtn = document.querySelector("#shareBtn");
@@ -1311,6 +1312,22 @@ function show(view){
       sessionStorage.removeItem(STORAGE_KEY);
     }
 
+    function savePending(session){
+  sessionStorage.setItem(PENDING_KEY, JSON.stringify(session));
+}
+function loadPending(){
+  try{
+    const raw = sessionStorage.getItem(PENDING_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){
+    return null;
+  }
+}
+function clearPending(){
+  sessionStorage.removeItem(PENDING_KEY);
+}
+
+
     // --------- Save & load (chat history, tab-scoped)
 function saveHistory(history){
   sessionStorage.setItem(HISTORY_KEY, JSON.stringify(history));
@@ -1418,6 +1435,7 @@ function enterChat(session){
     }
     function closePayModal(){
       payModal.classList.remove("active");
+      clearPending();
     }
     closePay.addEventListener("click", closePayModal);
     payModal.addEventListener("click", (e) => {
@@ -1650,30 +1668,40 @@ weight: {
         createdAt: Date.now()
       };
 
-      try{
-  saveSession(session);
-}catch(e){
-  console.error(e);
-  // 저장소가 터지면(거의 없겠지만) 아바타만 빼고 저장 시도
-  session.avatarDataUrl = "";
-  try{ saveSession(session); }catch(_){}
-}
-
       if (tier === "general"){
-        enterChat(session);
-      } else {
-        openPayModal();
-        mountPayPalButtons(() => {
-          paymentStatus = "paid";
-          sessionStorage.setItem(PAYMENT_KEY, "paid"); // refresh-safe
+  // ✅ 무료는 즉시 확정 저장
+  try{
+    saveSession(session);
+  }catch(e){
+    console.error(e);
+    session.avatarDataUrl = "";
+    try{ saveSession(session); }catch(_){}
+  }
+  enterChat(session);
 
-          const latest = loadSession();
-          if (latest){
-            latest.tier = "uncensored";
-            saveSession(latest);
-            enterChat(latest);
-          }
-        });
+} else {
+  // ✅ 유료는 결제 전까지 저장 금지 (pending)
+  savePending(session);
+
+  openPayModal();
+  mountPayPalButtons(() => {
+    paymentStatus = "paid";
+    sessionStorage.setItem(PAYMENT_KEY, "paid");
+
+    // ✅ 결제 성공 시점에만 저장
+    session.tier = "uncensored";
+    try{
+      saveSession(session);
+    }catch(e){
+      console.error(e);
+      session.avatarDataUrl = "";
+      try{ saveSession(session); }catch(_){}
+    }
+
+    clearPending();
+    enterChat(session);
+  });
+}
       }
     });
 
@@ -1709,9 +1737,19 @@ if (params.get("new") === "1"){
 
     // --------- Restore session if exists
     const existing = loadSession();
-    if (existing && existing.name){
-      enterChat(existing);
-    }
+const pending = loadPending();
+
+// ✅ 결제 진행하다 닫았던 상태면: 셋업 화면 유지
+if (pending){
+  show(viewSetup);
+} else if (existing && existing.name){
+  // ✅ 혹시 예전 데이터에 "uncensored"가 저장돼 있는데 결제키가 없으면 막기
+  if (existing.tier === "uncensored" && sessionStorage.getItem(PAYMENT_KEY) !== "paid"){
+    show(viewSetup);
+  } else {
+    enterChat(existing);
+  }
+}
 
     // Footer year
     $("#year").textContent = String(new Date().getFullYear());
@@ -1765,6 +1803,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
