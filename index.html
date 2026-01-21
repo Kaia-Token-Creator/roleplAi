@@ -1340,9 +1340,9 @@ function enterChat(session){
   if (box){
     box.innerHTML = "";
     for (const m of chatHistory){
-      appendMsg(m.role, m.content);
-    }
-    box.scrollTop = box.scrollHeight;
+  appendMsg(m.role, m.content);
+}
+scrollChatToBottom();
   }
   // ✅ 처음 입장 & 히스토리 없을 때만: TS에 첫 인사 요청
   if (!chatHistory || chatHistory.length === 0){
@@ -1454,6 +1454,18 @@ function enterChat(session){
     const PAYMENT_KEY = "roleplay-chat_paid_v1";
     let paymentStatus = sessionStorage.getItem(PAYMENT_KEY) || "unpaid"; // refresh-safe within this tab
 
+    function scrollChatToBottom(){
+  const box = document.getElementById("chatBox");
+  if (!box) return;
+
+  // padding-bottom 값을 숫자로 가져오기 (px)
+  const pb = parseFloat(getComputedStyle(box).paddingBottom) || 0;
+
+  // 맨 아래로 가되, padding-bottom만큼 위에서 멈추게
+  box.scrollTop = box.scrollHeight - box.clientHeight + pb;
+}
+
+
     function appendMsg(role, content){
       const currentSession = loadSession();
 const assistantName = (currentSession && currentSession.name) || "Character";
@@ -1488,19 +1500,19 @@ who.innerHTML = (role === "assistant")
       bubble.querySelector("div:last-child").textContent = content;
 
       msg.appendChild(who);
-      msg.appendChild(bubble);
-      $("#chatBox").appendChild(msg);
-      $("#chatBox").scrollTop = $("#chatBox").scrollHeight;
-      return msg; // ✅ 이 줄 추가
+msg.appendChild(bubble);
+$("#chatBox").appendChild(msg);
+scrollChatToBottom();
+return msg;
     }
 
     async function typeWriter(targetEl, text, speed = 18){
   targetEl.textContent = "";
   for (let i = 0; i < text.length; i++){
-    targetEl.textContent += text[i];
-    $("#chatBox").scrollTop = $("#chatBox").scrollHeight;
-    await new Promise(r => setTimeout(r, speed));
-  }
+  targetEl.textContent += text[i];
+  scrollChatToBottom();
+  await new Promise(r => setTimeout(r, speed));
+}
 }
 
     async function sendToChatApi(text){
@@ -1738,6 +1750,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
