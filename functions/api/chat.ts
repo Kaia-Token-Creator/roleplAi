@@ -450,6 +450,8 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
       messages,
       stream: false,
       temperature: 0.9,
+      presence_penalty: 0.3,
+      frequency_penalty: 0.4,
       max_tokens: maxTokens, // ✅ 출력 토큰 제한
     }),
   });
@@ -464,6 +466,7 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
   if (!content) throw new Error("Venice: empty response");
   return String(content);
 }
+
 
 
 
