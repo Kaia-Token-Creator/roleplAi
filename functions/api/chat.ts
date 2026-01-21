@@ -42,8 +42,8 @@ export const onRequestPost: PagesFunction<{
 
     // 모델 출력 토큰 제한 (토큰은 언어/문장에 따라 흔들리므로 낮게 잡고,
     // 마지막에 MAX_REPLY_CHARS로 한 번 더 컷)
-    const MAX_TOKENS_DEEPSEEK = 160;
-    const MAX_TOKENS_VENICE = 160;
+    const MAX_TOKENS_DEEPSEEK = 200;
+    const MAX_TOKENS_VENICE = 200;
     // ---------------------------------------------------------
 
     const body = await request.json<{
@@ -462,6 +462,7 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
   if (!content) throw new Error("Venice: empty response");
   return String(content);
 }
+
 
 
 
