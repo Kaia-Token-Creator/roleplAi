@@ -671,14 +671,23 @@ body.chatMode #viewChat .chatShell{
   flex-direction: column;
 }
 
-/* ✅ 스크롤은 오직 chatBox만 */
+/* ✅ 기본(키보드 내려감): 아래 여백 넉넉하게 */
 body.chatMode #viewChat .chatBox{
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
 
-  /* ✅ 아래 고정 입력창에 가리지 않게 공간 확보 */
-  padding-bottom: calc(var(--controlsH) + 10px + env(safe-area-inset-bottom));
+  /* 기본은 넉넉하게: 마지막 말풍선 하단 테두리까지 확실히 보이게 */
+  padding-bottom: calc(var(--controlsH) + 20px + env(safe-area-inset-bottom));
+
+  /* 스크롤이 "마지막 요소"를 어디까지 올려줄지 힌트 (체감 좋아짐) */
+  scroll-padding-bottom: calc(var(--controlsH) + 20px + env(safe-area-inset-bottom));
+}
+
+    /* ✅ 키보드 올라옴: 여백 조금 줄이기 */
+body.chatMode.kbUp #viewChat .chatBox{
+  padding-bottom: calc(var(--controlsH) + 8px + env(safe-area-inset-bottom));
+  scroll-padding-bottom: calc(var(--controlsH) + 8px + env(safe-area-inset-bottom));
 }
 
 /* ✅ 입력창: 진짜 하단 고정 + 키보드 올라오면 같이 상승 */
@@ -1715,8 +1724,8 @@ function setupKeyboardBar(){
 
     // 키보드로 가려진 높이(대략)
     const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-
     document.documentElement.style.setProperty("--kb", kb + "px");
+    document.body.classList.toggle("kbUp", kb > 0);
     measureControlsH();
 
     // 바닥 유지
@@ -1743,4 +1752,5 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
