@@ -410,10 +410,6 @@ padding: 8px 12px;
   min-height: 0; /* 중요: flex 안에서 overflow가 제대로 동작 */
 }
 
-    #viewChat{
-  min-height: calc(100vh - 140px); /* 헤더+서브+패딩 대충 제외 */
-}
-
     .chatTop{
       display:flex;
       align-items:center;
@@ -488,24 +484,7 @@ padding: 8px 12px;
       font-family: "Baloo 2", Inter, sans-serif;
       color: var(--chatColor);
     }
-   .chatControls{
-  position: sticky;   /* fixed → sticky */
-  bottom: 0;
-
-  transform: none;    /* 키보드용 transform 제거 */
-  z-index: 10;
-
-  display:flex;
-  gap: 10px;
-  align-items: center;
-
-  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
-  background: rgba(0,0,0,.65);
-  backdrop-filter: blur(10px);
-
-  flex-wrap: nowrap;
-}
-
+   
     .chatInput{
   flex: 1 1 auto;
   min-width: 0;          /* 중요: 작은 화면에서 버튼 밀리지 않게 */
@@ -637,6 +616,99 @@ padding: 8px 12px;
       color: rgba(255,255,255,.45);
       padding: 10px 0 4px;
     }
+
+    /* =========================
+   CHAT MODE: TOP FIXED + INPUT FIXED + ONLY chatBox scroll
+   (PASTE AT VERY BOTTOM)
+   ========================= */
+
+/* 채팅 화면에서는 페이지 스크롤 자체를 막아버림 */
+body.chatMode{
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* chatHead(타이틀+메뉴) 세로 스택 유지 */
+#viewChat .cardHead.chatHead{
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+/* 채팅 화면은 남은 높이를 꽉 먹는 flex 레이아웃 */
+body.chatMode .wrap{
+  height: 100dvh;
+}
+
+body.chatMode .shell{
+  height: 100%;
+}
+
+/* viewChat 카드가 화면 남은 높이를 먹고 */
+body.chatMode #viewChat.active{
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* cardBody도 column flex로 */
+body.chatMode #viewChat.active .cardBody{
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px 12px; /* 기존 느낌 유지 */
+}
+
+/* chatShell: 채팅박스(스크롤) + 입력창(고정) 구조 */
+body.chatMode #viewChat .chatShell{
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ 스크롤은 오직 chatBox만 */
+body.chatMode #viewChat .chatBox{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+
+  /* ✅ 아래 고정 입력창에 가리지 않게 공간 확보 */
+  padding-bottom: calc(var(--controlsH) + 10px + env(safe-area-inset-bottom));
+}
+
+/* ✅ 입력창: 진짜 하단 고정 + 키보드 올라오면 같이 상승 */
+body.chatMode #viewChat .chatControls{
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--kb);
+  z-index: 999;
+
+  max-width: 860px;
+  margin: 0 auto;
+
+  /* 기존 스타일 유지 */
+  display:flex;
+  gap: 10px;
+  align-items: center;
+
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(10px);
+
+  transform: none;
+}
+
+/* chatFooter는 입력창 아래로 내려가면 안 보일 수 있으니,
+   채팅 모드에서는 살짝만 아래 여백 줄이기(텍스트는 유지) */
+body.chatMode #viewChat .chatFooter{
+  padding: 2px 0 0;
+}
+
   </style>
 </head>
 
@@ -858,38 +930,39 @@ padding: 8px 12px;
       </section>
 
       <!-- VIEW 2: Chat (placeholder) -->
-      <section id="viewChat" class="card view" aria-label="Chat">
-        <div class="cardHead">
-          <h2 id="chatTitle">Chat</h2>
-        </div>
+     <section id="viewChat" class="card view" aria-label="Chat">
+  <div class="cardHead chatHead">
+    <h2 id="chatTitle">Chat</h2>
 
-        <div class="cardBody">
-          <div class="chatShell">
-            <div class="chatTop">
-  <div class="row" style="gap:10px;">
-    <button class="xBtn" id="resetBtn" type="button" title="Create new character">New character</button>
+    <!-- ✅ 메뉴를 여기로 올림 (Chat with SB 아래) -->
+    <div class="chatTop">
+      <div class="row" style="gap:10px;">
+        <button class="xBtn" id="resetBtn" type="button" title="Create new character">New character</button>
 
-    <button class="xBtn" id="gameBtn" type="button" title="Open 2048 Game">Game</button>
-    <button class="xBtn" id="vpnBtn" type="button" title="Open VPN page">VPN</button>
+        <button class="xBtn" id="gameBtn" type="button" title="Open 2048 Game">Game</button>
+        <button class="xBtn" id="vpnBtn" type="button" title="Open VPN page">VPN</button>
+      </div>
+    </div>
   </div>
-</div>
 
+  <div class="cardBody">
+    <div class="chatShell">
+      <!-- ❌ 여기 있던 chatTop 블록은 제거됨 -->
 
-            <div class="chatBox" id="chatBox">
-            </div>
+      <div class="chatBox" id="chatBox"></div>
 
-            <div class="chatControls">
-              <input class="chatInput" id="chatInput" type="text" placeholder="Type a message ..." />
-              <button class="sendBtn" id="sendBtn" type="button" title="Send">➤</button>
-            </div>
+      <div class="chatControls">
+        <input class="chatInput" id="chatInput" type="text" placeholder="Type a message ..." />
+        <button class="sendBtn" id="sendBtn" type="button" title="Send">➤</button>
+      </div>
 
-            <div class="chatFooter">
-  Convos available while this tab is open
-</div>
+      <div class="chatFooter">
+        Convos available while this tab is open
+      </div>
+    </div>
+  </div>
+</section>
 
-          </div>
-        </div>
-      </section>
 
     </div>
   </div>
@@ -1184,6 +1257,7 @@ clearAvatar();
       viewChat.classList.remove("active");
       view.classList.add("active");
       window.scrollTo({ top: 0, behavior: "smooth" });
+      document.body.classList.toggle("chatMode", view === viewChat);
 
       // (3) ADDED: when returning to setup, restore default title
       if (view === viewSetup) document.title = DEFAULT_TITLE;
@@ -1505,54 +1579,6 @@ saveHistory(chatHistory);
     box.scrollTop = box.scrollHeight;
   }, 50);
 });
-    // =========================
-    // END chat.ts connection
-    // =========================
-
-    function setupMobileKeyboardUX(){
-  const viewChat = document.getElementById("viewChat");
-  const chatBox = document.getElementById("chatBox");
-  const chatInput = document.getElementById("chatInput");
-
-  function applyViewportHeight(){
-    // iOS에서 visualViewport가 실제 화면(키보드 제외)을 반영
-    const vv = window.visualViewport;
-    const h = vv ? vv.height : window.innerHeight;
-
-    // viewChat 카드가 화면을 꽉 채우도록 (헤더/푸터는 wrap에 이미 있으니 필요 시 조정)
-    viewChat.style.maxHeight = h + "px";
-  }
-
-  // 스크롤을 바닥으로 보내는 함수 (마지막 메시지가 항상 보이게)
-  function scrollToBottom(){
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  // 키보드 등장/회전/주소창 변화 대응
-  if (window.visualViewport){
-    window.visualViewport.addEventListener("resize", () => {
-      applyViewportHeight();
-      // 키보드 올라오면 바닥 유지
-      requestAnimationFrame(scrollToBottom);
-    });
-    window.visualViewport.addEventListener("scroll", () => {
-      applyViewportHeight();
-    });
-  }
-
-  window.addEventListener("resize", () => {
-    applyViewportHeight();
-    requestAnimationFrame(scrollToBottom);
-  });
-
-  // 입력창 포커스 시도 바닥 유지
-  chatInput.addEventListener("focus", () => {
-    setTimeout(scrollToBottom, 50);
-    setTimeout(scrollToBottom, 250);
-  });
-
-  applyViewportHeight();
-}
 
 
     // --------- Submit flow
@@ -1709,3 +1735,4 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
