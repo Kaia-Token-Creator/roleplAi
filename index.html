@@ -683,15 +683,13 @@ body.chatMode #viewChat .chatBox{
 /* ✅ 입력창: 진짜 하단 고정 + 키보드 올라오면 같이 상승 */
 body.chatMode #viewChat .chatControls{
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: var(--kb);
+  left: 50%;
+  transform: translateX(-50%); /* ✅ 가운데 정렬(고정요소에서 margin auto 안 믿기) */
+  width: min(860px, 100%);
+  bottom: 0;                  /* ✅ 무조건 최하단 */
+
   z-index: 999;
 
-  max-width: 860px;
-  margin: 0 auto;
-
-  /* 기존 스타일 유지 */
   display:flex;
   gap: 10px;
   align-items: center;
@@ -699,9 +697,8 @@ body.chatMode #viewChat .chatControls{
   padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
   background: rgba(0,0,0,.65);
   backdrop-filter: blur(10px);
-
-  transform: none;
 }
+
 
 /* chatFooter는 입력창 아래로 내려가면 안 보일 수 있으니,
    채팅 모드에서는 살짝만 아래 여백 줄이기(텍스트는 유지) */
@@ -1735,4 +1732,5 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
