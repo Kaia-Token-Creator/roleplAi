@@ -411,8 +411,6 @@ padding: 8px 12px;
 }
 
     #viewChat{
-  min-height: calc(100vh - 140px); /* 헤더+서브+패딩 대충 제외 */
-}
 
     .chatTop{
       display:flex;
@@ -667,12 +665,6 @@ body.chatMode .sub{
   padding: 6px 0 10px;
 }
 
-/* ✅ 메뉴바(chatTop) 고정: 헤더+서브 아래에 딱 붙게 */
-body.chatMode #viewChat .chatTop{
-  position: sticky;
-  top: calc(var(--headH, 64px) + var(--subH, 44px));
-  z-index: 280;
-}
 
     /* ✅ Chat title(cardHead) ↔ 메뉴(chatTop) 간격만 붙이기 */
 body.chatMode #viewChat .cardBody{
@@ -687,6 +679,63 @@ body.chatMode #viewChat .chatShell{
 body.chatMode #viewChat .cardHead{
   padding-bottom: 4px;       /* 기본 8px에서 살짝만 압축 */
 }
+
+      /* =========================
+   CHAT MODE: FIX STACK + SCROLL BOX (FINAL)
+   ========================= */
+
+/* ✅ chat 모드에서 화면 전체 높이 체인 고정 */
+body.chatMode .wrap{
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.chatMode .shell{
+  height: 100%;
+  grid-template-rows: auto auto 1fr; /* header, sub, viewChat */
+  align-content: stretch;
+}
+
+/* ✅ 채팅 카드가 남은 높이를 다 먹도록 */
+body.chatMode #viewChat.active{
+  height: 100%;
+  min-height: 0;
+}
+
+/* ✅ 카드 내부도 flex로 “남은 높이” 전달 */
+body.chatMode #viewChat.active .cardBody{
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 0; /* 이미 넣어둔 것 유지 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ Chat with ~~(cardHead)와 메뉴(chatTop) 완전 밀착 */
+body.chatMode #viewChat .cardHead{
+  padding-bottom: 0;
+  border-bottom: 0;          /* 경계선 때문에 떠보이는 현상 제거 */
+}
+
+body.chatMode #viewChat .chatTop{
+  margin-top: 0;
+  border-top: 0;
+  border-radius: 0 0 16px 16px; /* 위쪽만 각 없애서 '붙은' 느낌 */
+}
+
+/* ✅ chatShell이 남은 높이 먹고 */
+body.chatMode #viewChat .chatShell{
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0; /* 이미 넣어둔 것 유지 */
+}
+
+/* ✅ 말풍선 영역만 스크롤 */
+body.chatMode #viewChat .chatBox{
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 
 
     
@@ -1779,5 +1828,6 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
