@@ -186,6 +186,34 @@
       color: rgba(255,255,255,.45);
       padding: 6px 0 4px;
     }
+
+    .infoMenu{
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: rgba(10,10,10,.92);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: none;
+  z-index: 99999;
+}
+.infoMenu.active{ display:block; }
+
+.infoMenu a{
+  display:block;
+  padding: 10px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: rgba(255,255,255,.92);
+  font-size: 13px;
+}
+.infoMenu a:hover{
+  background: rgba(255,255,255,.08);
+}
+
   </style>
 </head>
 
@@ -275,8 +303,32 @@
         }catch(e){}
       });
     }
+
+    // Info button dropdown
+const infoBtn = document.querySelector("#infoBtn");
+const infoMenu = document.querySelector("#infoMenu");
+
+function closeInfoMenu(){
+  if (infoMenu) infoMenu.classList.remove("active");
+}
+
+if (infoBtn && infoMenu){
+  infoBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    infoMenu.classList.toggle("active");
+  });
+
+  infoMenu.addEventListener("click", (e) => e.stopPropagation());
+
+  document.addEventListener("click", closeInfoMenu);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeInfoMenu();
+  });
+}
+
   </script>
 </body>
 </html>
+
 
 
