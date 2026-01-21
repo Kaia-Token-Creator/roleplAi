@@ -775,6 +775,24 @@ body.chatMode #viewChat .chatFooter{
   font-weight: 800;
 }
 
+    /* ✅ Info 버튼에 은은한 노란 불(글로우) */
+#infoBtn{
+  border-color: rgba(255, 204, 0, .28);
+  box-shadow:
+    0 0 0 1px rgba(255, 204, 0, .10),
+    0 0 14px rgba(255, 204, 0, .16),
+    var(--shadow);
+}
+
+#infoBtn:hover{
+  border-color: rgba(255, 204, 0, .40);
+  box-shadow:
+    0 0 0 1px rgba(255, 204, 0, .16),
+    0 0 18px rgba(255, 204, 0, .22),
+    var(--shadow);
+}
+
+
   </style>
 </head>
 
@@ -1893,6 +1911,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
