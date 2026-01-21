@@ -1255,16 +1255,22 @@ clearAvatar();
 
 
     // --------- View switching
-    function show(view){
-      viewSetup.classList.remove("active");
-      viewChat.classList.remove("active");
-      view.classList.add("active");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      document.body.classList.toggle("chatMode", view === viewChat);
+function show(view){
+  viewSetup.classList.remove("active");
+  viewChat.classList.remove("active");
+  view.classList.add("active");
 
-      // (3) ADDED: when returning to setup, restore default title
-      if (view === viewSetup) document.title = DEFAULT_TITLE;
-    }
+  document.body.classList.toggle("chatMode", view === viewChat);
+
+  if (view === viewSetup) document.title = DEFAULT_TITLE;
+
+  // ✅ 채팅뷰로 들어갈 때마다 controlsH 재측정 (핵심)
+  if (view === viewChat){
+    requestAnimationFrame(() => {
+      setupKeyboardBar(); // 재호출
+    });
+  }
+}
 
     // --------- Save & load (tab-scoped)
     function saveSession(data){
@@ -1733,8 +1739,8 @@ function setupKeyboardBar(){
   window.addEventListener("resize", updateKeyboardOffset);
 }
 
-    setupKeyboardBar();
     
   </script>
 </body>
 </html>
+
