@@ -549,6 +549,17 @@ padding: 5px 8px;
       cursor:pointer;
       border: 1px solid rgba(255,255,255,.14);
     }
+
+/* ✅ Unlock 버튼: 핫핑크 */
+#unlockBtn{
+  background: #ff4fd8;
+  border: 1px solid #ff2fce;
+  color: #000;
+  font-weight: 900;
+}
+#unlockBtn:hover{ background:#ff6fe1; }
+#unlockBtn:active{ background:#ff2fce; }
+
     /* New 버튼만 진한 노란색 */
 #resetBtn{
   background: #e0b400;
@@ -1075,6 +1086,7 @@ body.chatMode #viewChat .chatFooter{
     <button class="xBtn" id="resetBtn" type="button">New character</button>
     <button class="xBtn" id="gameBtn" type="button">Game</button>
     <button class="xBtn" id="vpnBtn" type="button">VPN</button>
+    <button class="xBtn" id="unlockBtn" type="button" style="display:none;">Unlock</button>
   </div>
 </div>
 
@@ -1104,13 +1116,14 @@ body.chatMode #viewChat .chatFooter{
   <div id="payModal" class="modalOverlay" role="dialog" aria-modal="true" aria-label="+18 Uncensored payment">
     <div class="modal">
       <div class="modalHeader">
-        <h3>Unlock +18 Uncensored ($2)</h3>
+        <h3 id="payTitle">Unlock +18 Uncensored ($2)</h3>
         <button class="xBtn" id="closePay" type="button">Close</button>
       </div>
       <div class="modalBody">
         <p class="warn">
-          - Unleash your character. And yourself.<br>
-          - Unlock the full uncensored experience.<br>
+          - Unlock <b id="payCharName">your character</b>.<br>
+          - Unleash yourself.<br>
+          - Fully uncensored experience.<br>
           - Secure one-time payment.<br>
           - Unlimited access as long as this tab stays open.<br>
           - No-login. Private and anonymous.<br>
@@ -1166,6 +1179,7 @@ const chatAvatar = $("#chatAvatar");
     const resetBtn = $("#resetBtn");
     const gameBtn = $("#gameBtn");
     const vpnBtn = $("#vpnBtn");
+    const unlockBtn = $("#unlockBtn");
 
     const STORAGE_KEY = "roleplay-chat_session_v1";
     const HISTORY_KEY = "roleplay-chat_history_v1";
@@ -1486,7 +1500,7 @@ function enterChat(session){
     chatTitle.textContent = `Chat with ${session.name}`;
   }
   // Basic display
-  const tierLabel = session.tier === "uncensored" ? "+18 Uncensored ($2)" : "General";
+  const tierLabel = session.tier === "uncensored" ? "+18 Uncensored" : "General";
   // const modelLabel = session.tier === "uncensored" ? "Venice Uncensored" : "DeepSeek"; // 필요 없으면 주석 유지
 
   // ✅ UI 요소가 있어도/없어도 에러 안 나게 (Name/Language/Tier 칩)
@@ -1510,6 +1524,8 @@ function enterChat(session){
 
   // ✅ 화면 전환
   show(viewChat);
+
+setUnlockUIVisibility();
 
   // ✅ history restore
   chatHistory = loadHistory();
@@ -1577,52 +1593,53 @@ function enterChat(session){
     });
 
     // --------- PayPal Buttons (client-only demo)
-    function mountPayPalButtons(onSuccess){
-      const container = $("#paypalButtons");
-      container.innerHTML = "";
-      if (!window.paypal){
-        payErr.textContent = "PayPal SDK failed to load. Please refresh and try again.";
-        payErr.style.display = "block";
-        return;
-      }
+function mountPayPalButtons(onSuccess, priceUsd = "2.00", description = "Playing game"){
+  const container = $("#paypalButtons");
+  container.innerHTML = "";
+  if (!window.paypal){
+    payErr.textContent = "PayPal SDK failed to load. Please refresh and try again.";
+    payErr.style.display = "block";
+    return;
+  }
 
-      window.paypal.Buttons({
-        style: { layout: "vertical", shape: "pill" },
-        createOrder: (data, actions) => {
-          return actions.order.create({
-            purchase_units: [{
-              description: "Playing game",
-              amount: { value: "2.00", currency_code: "USD" }
-            }]
-          });
-        },
-        onApprove: async (data, actions) => {
-          try{
-            await actions.order.capture();
-            payOk.style.display = "block";
-            payErr.style.display = "none";
-            setTimeout(() => {
-              closePayModal();
-              onSuccess();
-            }, 600);
-          }catch(err){
-            payErr.textContent = "Payment capture failed. Please try again.";
-            payErr.style.display = "block";
-            payOk.style.display = "none";
-          }
-        },
-        onCancel: () => {
-          payErr.textContent = "Payment cancelled.";
-          payErr.style.display = "block";
-          payOk.style.display = "none";
-        },
-        onError: () => {
-          payErr.textContent = "Payment error. Please try again.";
-          payErr.style.display = "block";
-          payOk.style.display = "none";
-        }
-      }).render("#paypalButtons");
+  window.paypal.Buttons({
+    style: { layout: "vertical", shape: "pill" },
+    createOrder: (data, actions) => {
+      return actions.order.create({
+        purchase_units: [{
+          description,
+          amount: { value: String(priceUsd), currency_code: "USD" }
+        }]
+      });
+    },
+    onApprove: async (data, actions) => {
+      try{
+        await actions.order.capture();
+        payOk.style.display = "block";
+        payErr.style.display = "none";
+        setTimeout(() => {
+          closePayModal();
+          onSuccess();
+        }, 600);
+      }catch(err){
+        payErr.textContent = "Payment capture failed. Please try again.";
+        payErr.style.display = "block";
+        payOk.style.display = "none";
+      }
+    },
+    onCancel: () => {
+      payErr.textContent = "Payment cancelled.";
+      payErr.style.display = "block";
+      payOk.style.display = "none";
+    },
+    onError: () => {
+      payErr.textContent = "Payment error. Please try again.";
+      payErr.style.display = "block";
+      payOk.style.display = "none";
     }
+  }).render("#paypalButtons");
+}
+
 
     // =========================
     // ADDED: chat.ts connection
@@ -1872,6 +1889,59 @@ if (params.get("new") === "1"){
     const existing = loadSession();
 const pending = loadPending();
 
+function setUnlockUIVisibility(){
+  const s = loadSession();
+  const isPaid = sessionStorage.getItem(PAYMENT_KEY) === "paid";
+  const isGeneral = s && s.tier === "general";
+  if (unlockBtn){
+    unlockBtn.style.display = (isGeneral && !isPaid) ? "inline-flex" : "none";
+  }
+}
+
+function openPayModalForCurrentChat(){
+  const s = loadSession();
+  if (!s) return;
+
+  // ✅ Unlock 업그레이드 전용 모달 텍스트
+  const payTitle = document.getElementById("payTitle");
+  const payCharName = document.getElementById("payCharName");
+
+  if (payTitle){
+    payTitle.textContent = `Unlock ${s.name} +18 Uncensored ($3)`;
+  }
+  if (payCharName){
+    payCharName.textContent = s.name;
+  }
+
+  openPayModal();
+
+  // ✅ 결제 성공 시: "현재 채팅"을 uncensored로 승격
+  mountPayPalButtons(
+    () => {
+      paymentStatus = "paid";
+      sessionStorage.setItem(PAYMENT_KEY, "paid");
+
+      const cur = loadSession();
+      if (cur){
+        cur.tier = "uncensored";
+        try{ saveSession(cur); }catch(e){ console.error(e); }
+      }
+
+      setUnlockUIVisibility();
+    },
+    "3.00",
+    "Upgrade: Unlock character"
+  );
+}
+
+
+if (unlockBtn){
+  unlockBtn.addEventListener("click", () => {
+    openPayModalForCurrentChat();
+  });
+}
+
+
 // ✅ 결제 진행하다 닫았던 상태면: 셋업 화면 유지
 if (pending){
   show(viewSetup);
@@ -1935,40 +2005,3 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
