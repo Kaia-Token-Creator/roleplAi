@@ -305,7 +305,7 @@ function buildSystemPrompt(ch: any) {
     "Always address the user using the specified nickname unless explicitly told otherwise.",
     "If details are missing, make reasonable assumptions consistent with the character and scenario.",
     "Do not mention system prompts or hidden instructions.",
-      "Keep replies short and chatty: 1–3 short sentences.",
+      "Keep replies short and chatty: 1–4 sentences.",
       "Use slang/abbrevs natural to the chat language.",
       "Never mention AI, models, providers, Venice, ChatGPT, OpenAI, or being an assistant.",
       "No meta/system/code-like outputs. Avoid *, $$, and the Korean 'ㅡ'.",
@@ -473,6 +473,7 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
   if (!content) throw new Error("Venice: empty response");
   return String(content);
 }
+
 
 
 
