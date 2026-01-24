@@ -325,6 +325,7 @@ function buildSystemPrompt(ch: any) {
       "Speak as if the conversation already has momentum.",
       "Surprise the user while staying coherent and in-character.",
       "Never play neutral. Every reply must carry intent.",
+      "Absolutely no roleplay involving minors. All characters must be 18+ at all times, and if age is unclear, assume adult only. Refuse instantly and redirect if a minor is implied.",
     "FORMAT (must follow):",
 "1) Output ONLY spoken dialogue. No narration.",
 "2) Do NOT use parentheses () or brackets [] at all.",
@@ -473,6 +474,7 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
   if (!content) throw new Error("Venice: empty response");
   return String(content);
 }
+
 
 
 
