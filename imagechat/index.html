@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Image Chat | roleplay-chat.com</title>
+
+  <!-- Fonts (same as main) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.14);
+      --chatColor:#ffffff;
+      --shadow: 0 14px 36px rgba(0,0,0,.55);
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; }
+
+    body{
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Inter, system-ui, sans-serif;
+      overflow:hidden;
+    }
+
+    .wrap{
+      height:100dvh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* ===== Header (same structure) ===== */
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 14px;
+      border-bottom:1px solid var(--border);
+      background: rgba(0,0,0,.6);
+    }
+
+    .logo{
+      font-family:"Baloo 2", sans-serif;
+      font-weight:700;
+      text-decoration:none;
+      color:#ffcc00;
+    }
+
+    /* ===== Chat ===== */
+    .chatShell{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+
+    .chatBox{
+      flex:1;
+      overflow:auto;
+      padding:14px;
+    }
+
+    .chatMsg{
+      display:flex;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .chatMsg.me{ flex-direction:row-reverse; }
+
+    .who{
+      width:38px;height:38px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+
+    .who img{ width:100%;height:100%;object-fit:cover; }
+
+    .bubble{
+      max-width:78%;
+      border-radius:16px;
+      border:1px solid var(--border);
+      padding:10px 12px;
+      background: var(--card);
+    }
+
+    .bubble .name{
+      font-weight:800;
+      color: var(--chatColor);
+      margin-bottom:6px;
+      font-family:"Baloo 2",sans-serif;
+    }
+
+    .bubble img{
+      width:100%;
+      border-radius:12px;
+      margin-top:8px;
+      border:1px solid var(--border);
+    }
+
+    .chatControls{
+      display:flex;
+      gap:10px;
+      padding:12px;
+      border-top:1px solid var(--border);
+      background: rgba(0,0,0,.7);
+    }
+
+    .chatInput{
+      flex:1;
+      height:42px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:#000;
+      color:#fff;
+      padding:0 10px;
+    }
+
+    .sendBtn{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      background:#e0b400;
+      border:none;
+      font-weight:800;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <header>
+    <a class="logo" href="https://roleplay-chat.com" target="_blank">Roleplay-chat.com</a>
+    <span style="font-size:12px;opacity:.7;">Image Chat</span>
+  </header>
+
+  <!-- Chat -->
+  <div class="chatShell">
+    <div class="chatBox" id="chatBox"></div>
+
+    <div class="chatControls">
+      <input id="chatInput" class="chatInput" placeholder="Type a message..." />
+      <button id="sendBtn" class="sendBtn">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================
+   Load character from main
+   ========================= */
+
+const STORAGE_KEY = "roleplay-chat_session_v1";
+const session = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null");
+
+if (!session){
+  alert("No character session found. Please create a character first.");
+}
+
+/* Apply font color */
+if (session?.fontColor){
+  document.documentElement.style.setProperty("--chatColor", session.fontColor);
+}
+
+/* =========================
+   Chat UI helpers
+   ========================= */
+
+const chatBox = document.getElementById("chatBox");
+const input = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
+
+function appendMsg(role, text, imageUrl){
+  const msg = document.createElement("div");
+  msg.className = "chatMsg" + (role === "user" ? " me" : "");
+
+  const who = document.createElement("div");
+  who.className = "who";
+  who.innerHTML = role === "assistant"
+    ? (session.avatarDataUrl ? `<img src="${session.avatarDataUrl}">` : "🙂")
+    : "YOU";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  if (role === "assistant"){
+    bubble.innerHTML = `<div class="name">${session.name}</div><div>${text}</div>`;
+  } else {
+    bubble.innerHTML = `<div><b>You</b></div><div>${text}</div>`;
+  }
+
+  if (imageUrl){
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    bubble.appendChild(img);
+  }
+
+  msg.appendChild(who);
+  msg.appendChild(bubble);
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+/* =========================
+   Send flow (REAL API)
+   ========================= */
+
+let history = []; // { role: "user"|"assistant", content: string }[]  (tab memory only)
+
+function setBusy(isBusy){
+  sendBtn.disabled = isBusy;
+  input.disabled = isBusy;
+  if (!isBusy) input.focus();
+}
+
+async function send(){
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = "";
+  appendMsg("user", text);
+  history.push({ role: "user", content: text });
+
+  // Basic session hardening
+  if (!session || !session.name){
+    appendMsg("assistant", "Error: No character session found. Please create a character first.");
+    return;
+  }
+
+  // We will always use:
+  // - text model: venice-uncensored
+  // - image model: lustify-sdxl
+  const payload = {
+    message: text,
+    session: {
+      name: session.name,
+      nickname: session.nickname || "",
+      age: session.age,
+      gender: session.gender,
+      language: session.language,
+      height: session.height,
+      weight: session.weight,
+      mbti: session.mbti,
+      personality: session.personality || "",
+      scenario: session.scenario || "",
+      fontColor: session.fontColor || "#ffffff",
+      avatarDataUrl: session.avatarDataUrl || "",
+      tier: "uncensored"
+    },
+    history,
+    models: {
+      text: "venice-uncensored",
+      image: "lustify-sdxl"
+    }
+  };
+
+  try{
+    setBusy(true);
+
+    const res = await fetch("/api/imagechat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok){
+      const msg = data?.error || `Request failed (${res.status})`;
+      appendMsg("assistant", `Error: ${msg}`);
+      history.push({ role: "assistant", content: `Error: ${msg}` });
+      return;
+    }
+
+    // Expected server response shape (you’ll implement in /functions/api/imagechat.ts):
+    // {
+    //   reply: "text reply",
+    //   imageUrl?: "https://...." OR "data:image/...",
+    //   imageCaption?: "optional caption"
+    // }
+    const reply = (data && typeof data.reply === "string") ? data.reply : "";
+    const imageUrl = (data && typeof data.imageUrl === "string") ? data.imageUrl : "";
+    const imageCaption = (data && typeof data.imageCaption === "string") ? data.imageCaption : "";
+
+    // If server sends caption and reply is empty, still show something
+    const shownText = reply || imageCaption || "(no text)";
+
+    appendMsg("assistant", shownText, imageUrl || undefined);
+    history.push({ role: "assistant", content: shownText });
+
+  }catch(e){
+    appendMsg("assistant", `Error: ${String(e?.message || e)}`);
+    history.push({ role: "assistant", content: `Error: ${String(e?.message || e)}` });
+  }finally{
+    setBusy(false);
+  }
+}
+
+sendBtn.onclick = send;
+input.onkeydown = (e) => {
+  if (e.key === "Enter") send();
+};
+</script>
+
+</body>
+</html>
