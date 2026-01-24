@@ -1,5 +1,4 @@
 // functions/api/imagechat.ts
-
 export const onRequestPost: PagesFunction<{
   VENICE_API_KEY: string;
 }> = async (ctx) => {
@@ -16,9 +15,6 @@ export const onRequestPost: PagesFunction<{
   try {
     type Msg = { role: "system" | "user" | "assistant"; content: string };
 
-    type HeightUnit = "cm" | "ft";
-    type WeightUnit = "kg" | "lb";
-
     type Character = {
       name: string;
       age: number;
@@ -29,13 +25,11 @@ export const onRequestPost: PagesFunction<{
       nickname?: string;
       mbti?: string;
 
-      // 메인 구조(너가 쓰는 세션 구조) 그대로 받는다고 가정
       height?: { unit: "cm" | "ft"; cm?: number | null; ft?: number | null; in?: number | null } | null;
       weight?: { unit: "kg" | "lb"; value?: number | null } | null;
 
-      // imagechat에서 추가로 쓰는 것들
-      avatarDataUrl?: string; // data:image/jpeg;base64,...
-      fontColor?: string;     // "#ffcc00" 등
+      avatarDataUrl?: string;
+      fontColor?: string;
     };
 
     // ---------------- LIMITS ----------------
@@ -49,9 +43,8 @@ export const onRequestPost: PagesFunction<{
     const MAX_TOKENS_PLAN = 220;
     // ---------------------------------------
 
-    // ✅ IMPORTANT: request.json()은 한 번만!
+    // ✅ body는 딱 1번만 읽어야 함
     const bodyAny = await request.json<any>().catch(() => null);
-
     if (!bodyAny || typeof bodyAny !== "object") {
       return json({ error: "Invalid body." }, 400, CORS);
     }
@@ -59,23 +52,20 @@ export const onRequestPost: PagesFunction<{
     // ✅ character 또는 session 둘 다 허용
     const characterRaw = bodyAny.character || bodyAny.session;
     if (!characterRaw) {
-      return json({ error: "Missing character." }, 400, CORS);
+      return json({ error: "Missing character/session." }, 400, CORS);
     }
 
-    // ✅ message 받기
     const message = typeof bodyAny.message === "string" ? bodyAny.message.trim() : "";
     if (!message) {
       return json({ error: "Missing message." }, 400, CORS);
     }
+    const userMsg = truncateString(message, MAX_MESSAGE_CHARS);
 
-    // (선택) 길이 제한 적용
-    const userMsg = message.slice(0, MAX_MESSAGE_CHARS);
-
-    // ✅ history 받기 (배열 아니면 빈 배열)
+    // history
     const rawHistory = Array.isArray(bodyAny.history) ? bodyAny.history : [];
     const history: Msg[] = rawHistory.filter(isValidMsg).slice(-MAX_HISTORY_MSGS);
 
-    // ✅ 결제 상태 검사
+    // paymentStatus
     const paymentStatus = bodyAny.paymentStatus;
     if (paymentStatus !== "paid") {
       return json(
@@ -85,7 +75,6 @@ export const onRequestPost: PagesFunction<{
       );
     }
 
-    // ✅ 캐릭터 sanitize
     const ch = sanitizeCharacter(characterRaw);
 
     // 1) 텍스트 답변 생성
@@ -98,10 +87,11 @@ export const onRequestPost: PagesFunction<{
     ];
 
     const fitted = fitMessagesToBudget(messagesBeforeFit, MAX_PROMPT_CHARS);
+
     const replyRaw = await callVeniceChat(env.VENICE_API_KEY, fitted, MAX_TOKENS_TEXT);
     const reply = truncateReply(replyRaw, MAX_REPLY_CHARS);
 
-    // 2) 이미지 트리거 판단 (JSON schema로 깔끔하게)
+    // 2) 이미지 트리거 판단 (✅ response_format 제거하고 JSON 강제 파싱)
     const plan = await decideImagePlan(env.VENICE_API_KEY, {
       character: ch,
       userMessage: userMsg,
@@ -110,11 +100,10 @@ export const onRequestPost: PagesFunction<{
       maxTokens: MAX_TOKENS_PLAN,
     });
 
-    // 3) 이미지가 필요하면 생성
+    // 3) 이미지 생성
     let image: null | { mime: "image/webp" | "image/png" | "image/jpeg"; b64: string } = null;
 
     if (plan.generate === true) {
-      // ✅ 서버에서 1차 안전장치 (노골적 성적/미성년/폭력 등 차단)
       if (looksExplicitOrIllegal(plan.prompt)) {
         return json(
           {
@@ -129,7 +118,6 @@ export const onRequestPost: PagesFunction<{
         );
       }
 
-      // avatarDataUrl은 “텍스트 힌트”로만 반영
       const promptWithRef = buildImagePromptWithAvatarHint(plan.prompt, ch);
 
       const imgB64 = await callVeniceImageGenerate(env.VENICE_API_KEY, {
@@ -158,7 +146,12 @@ export const onRequestPost: PagesFunction<{
       CORS
     );
   } catch (err: any) {
-    return json({ error: "Server error.", detail: String(err?.message || err) }, 500, CORS);
+    // ✅ 디버깅 위해 detail은 최대한 살려서 내려줌
+    return json(
+      { error: "Server error.", detail: String(err?.message || err) },
+      500,
+      CORS
+    );
   }
 };
 
@@ -170,7 +163,7 @@ function json(data: unknown, status = 200, headers: Record<string, string> = {})
   });
 }
 
-// ---------------- sanitizers ----------------
+// ---------------- validators/sanitizers ----------------
 function safeStr(v: any, maxLen: number) {
   if (typeof v !== "string") return "";
   return v.slice(0, maxLen);
@@ -186,9 +179,6 @@ function isValidMsg(m: any): m is { role: "system" | "user" | "assistant"; conte
     typeof m.content === "string"
   );
 }
-
-type HeightUnit = "cm" | "ft";
-type WeightUnit = "kg" | "lb";
 
 function normalizeMBTI(s: string) {
   const t = s.trim().toUpperCase();
@@ -305,6 +295,7 @@ function buildSystemPrompt_Text(ch: any) {
   ].join("\n");
 }
 
+// ✅ response_format 없이 JSON만 뽑기
 async function decideImagePlan(
   apiKey: string,
   args: {
@@ -317,21 +308,23 @@ async function decideImagePlan(
 ): Promise<{ generate: boolean; prompt: string; negativePrompt?: string }> {
   const { character: ch, userMessage, lastAssistant, history, maxTokens } = args;
 
-  const plannerSystem: { role: "system"; content: string } = {
+  const plannerSystem = {
     role: "system",
     content: [
       "You are a planner that decides whether to generate a SFW image for a roleplay chat.",
-      "Return ONLY valid JSON that matches the schema.",
+      "Return ONLY valid JSON. No markdown, no extra text.",
+      "",
+      "Schema:",
+      `{ "generate": boolean, "prompt": string, "negativePrompt": string }`,
       "",
       "Rules:",
       "- Only suggest an image if the user explicitly asks for a picture, wants to see something, requests a selfie/photo, or the conversation clearly calls for a visual.",
       "- The image must be SFW. No explicit sex, nudity, pornography, minors, sexual violence, or extreme gore.",
-      "- Make the prompt concise but specific: subject, environment, camera framing, lighting, style.",
-      "- If unsure, set generate=false.",
+      "- If unsure, set generate=false and prompt=\"\".",
     ].join("\n"),
   };
 
-  const plannerUser: { role: "user"; content: string } = {
+  const plannerUser = {
     role: "user",
     content: [
       "Character:",
@@ -348,32 +341,23 @@ async function decideImagePlan(
       "Assistant draft reply (already generated):",
       lastAssistant,
       "",
-      "Decide if we should generate an image.",
+      "Decide if we should generate an image and output JSON only.",
     ].join("\n"),
   };
 
-  const response = await callVeniceChatJsonSchema(apiKey, [plannerSystem, plannerUser], maxTokens, {
-    type: "json_schema",
-    json_schema: {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        generate: { type: "boolean" },
-        prompt: { type: "string" },
-        negativePrompt: { type: "string" },
-      },
-      required: ["generate", "prompt"],
-    },
-  });
+  const raw = await callVeniceChat(apiKey, [plannerSystem, plannerUser], maxTokens);
 
-  const generate = !!response?.generate;
-  const prompt = String(response?.prompt || "").trim();
-  const negativePrompt = String(response?.negativePrompt || "").trim();
-
-  if (!generate) return { generate: false, prompt: "" };
-  if (!prompt) return { generate: false, prompt: "" };
-
-  return { generate: true, prompt, negativePrompt: negativePrompt || undefined };
+  // JSON 파싱 (실패하면 generate=false)
+  try {
+    const parsed = JSON.parse(raw);
+    const generate = !!parsed?.generate;
+    const prompt = String(parsed?.prompt || "").trim();
+    const negativePrompt = String(parsed?.negativePrompt || "").trim();
+    if (!generate || !prompt) return { generate: false, prompt: "" };
+    return { generate: true, prompt, negativePrompt: negativePrompt || undefined };
+  } catch {
+    return { generate: false, prompt: "" };
+  }
 }
 
 // ---------------- budget helpers ----------------
@@ -480,44 +464,6 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
   const content = data?.choices?.[0]?.message?.content;
   if (!content) throw new Error("Venice: empty response");
   return String(content);
-}
-
-// Venice: chat (json_schema)
-async function callVeniceChatJsonSchema(
-  apiKey: string,
-  messages: any[],
-  maxTokens: number,
-  response_format: any
-) {
-  if (!apiKey) throw new Error("Missing VENICE_API_KEY");
-
-  const res = await fetch("https://api.venice.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "venice-uncensored",
-      messages,
-      stream: false,
-      temperature: 0.4,
-      max_tokens: maxTokens,
-      response_format,
-    }),
-  });
-
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`Venice planner error (${res.status}): ${t.slice(0, 800)}`);
-  }
-
-  const data: any = await res.json();
-  const raw = data?.choices?.[0]?.message?.content;
-  if (!raw) throw new Error("Venice planner: empty response");
-
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return { generate: false, prompt: "" };
-  }
 }
 
 // ---------------- Venice: image generate ----------------
