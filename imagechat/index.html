@@ -306,19 +306,17 @@ async function send(){
     setBusy(true);
 
     const res = await fetch("/api/imagechat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+});
 
-    const data = await res.json().catch(() => ({}));
+const data = await res.json().catch(() => ({}));
 
-    if (!res.ok){
-      const msg = data?.error || `Request failed (${res.status})`;
-      appendMsg("assistant", `Error: ${msg}`);
-      history.push({ role: "assistant", content: `Error: ${msg}` });
-      return;
-    }
+if (!res.ok) {
+  // ✅ 서버에서 내려준 진짜 에러 메시지 확인용
+  throw new Error(data.detail || data.error || `HTTP ${res.status}`);
+}
 
     // Expected server response shape (you’ll implement in /functions/api/imagechat.ts):
     // {
@@ -355,6 +353,7 @@ input.onkeydown = (e) => {
 
 </body>
 </html>
+
 
 
 
