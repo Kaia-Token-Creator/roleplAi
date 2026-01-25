@@ -679,6 +679,11 @@ async function send(){
   try{
     setBusy(true);
 
+  // ✅ 입력창 disabled 등 레이아웃 확정된 다음에 한 번 더 바닥 고정
+requestAnimationFrame(() => {
+  chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "auto" });
+});
+
     const res = await fetch("/api/imagechat", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
@@ -775,6 +780,7 @@ if (infoBtn && infoMenu){
 
 </body>
 </html>
+
 
 
 
