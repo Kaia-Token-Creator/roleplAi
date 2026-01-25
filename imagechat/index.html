@@ -338,20 +338,25 @@ padding: 5px 8px;
 }
 
 
-/* 말풍선 공통: 유리 느낌 + 테두리 선명 */
-.chatMsg .text{
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 10px 26px rgba(0,0,0,.35);
-  backdrop-filter: blur(10px);
+/* ===== Image chat bubbles: glass separation ===== */
+.chatMsg .bubble{
+  background: rgba(255,255,255,.12);        /* ✅ 체감 올라감 */
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: 0 12px 28px rgba(0,0,0,.45);  /* ✅ 떠있는 느낌 */
+  backdrop-filter: blur(12px);
 }
 
-.chatMsg.me .text{
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.24);
+/* 유저 말풍선: 더 밝게 */
+.chatMsg.me .bubble{
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
 }
 
-    
+/* 캐릭터 말풍선: 살짝 어둡게 */
+.chatMsg:not(.me) .bubble{
+  background: rgba(255,255,255,.11);
+  border: 1px solid rgba(255,255,255,.20);
+}
 
 
   </style>
@@ -880,6 +885,7 @@ if (infoBtn && infoMenu){
 
 </body>
 </html>
+
 
 
 
