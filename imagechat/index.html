@@ -292,6 +292,50 @@ padding: 5px 8px;
   color: #fff;
 }
 
+/* ===== Image chat top bar ===== */
+.imgChatTop{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(8px);
+}
+
+.imgChatTitle{
+  font-family: "Baloo 2", Inter, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #ffcc00;
+}
+
+ .xBtn{
+      border:none;
+      background: rgba(255,255,255,.08);
+      color: var(--fg);
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor:pointer;
+      border: 1px solid rgba(255,255,255,.14);
+    }
+
+/* 말풍선 공통: 유리 느낌 + 테두리 선명 */
+.chatMsg .text{
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 10px 26px rgba(0,0,0,.35);
+  backdrop-filter: blur(10px);
+}
+
+.chatMsg.me .text{
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.24);
+}
+
+    
+
+
   </style>
 </head>
 
@@ -363,6 +407,12 @@ padding: 5px 8px;
   </div>
 </header>
 
+  <!-- Image chat top bar -->
+<div class="imgChatTop">
+  <div class="imgChatTitle" id="imgChatTitle">Image chat</div>
+  <button class="xBtn" id="imgResetBtn" type="button">New character</button>
+</div>
+
   <!-- Chat -->
   <div class="chatShell">
     <div class="chatBox" id="chatBox"></div>
@@ -392,6 +442,22 @@ function readSession(){
 
 const session = readSession();
 const paid = sessionStorage.getItem(IMAGECHAT_PAID_KEY) === "paid";
+
+  // ✅ Top bar title + New character button
+const titleEl = document.getElementById("imgChatTitle");
+if (titleEl){
+  titleEl.textContent = session?.name
+    ? `Image chat with ${session.name}`
+    : "Image chat";
+}
+
+const imgResetBtn = document.getElementById("imgResetBtn");
+if (imgResetBtn){
+  imgResetBtn.addEventListener("click", () => {
+    window.open("/?new=1", "_blank");
+  });
+}
+
 
 function loadHistory(){
   const raw = sessionStorage.getItem(IMAGECHAT_HISTORY_KEY);
@@ -787,6 +853,7 @@ if (infoBtn && infoMenu){
 
 </body>
 </html>
+
 
 
 
