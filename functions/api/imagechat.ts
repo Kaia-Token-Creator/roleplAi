@@ -496,47 +496,24 @@ function wantsImage(userMsg: string) {
 
 // ✅ 사진 요청이면 이 프롬프트로 바로 생성 (문맥/상황/마지막 요청 충실 버전)
 function buildForcedImagePrompt(
-  ch: any,
+  _ch: any,
   userMsg: string,
   history: { role: string; content: string }[] = [],
   lastAssistant: string = ""
 ) {
-  const msg = (userMsg || "").toLowerCase();
-  const wantsphoto = /\b(photo|front camera|self\s*shot)\b/.test(msg);
+  const contextText = compactContext(history, lastAssistant, userMsg, 1200);
 
-  const hasAvatar =
-    !!(ch?.avatarDataUrl && typeof ch.avatarDataUrl === "string" && ch.avatarDataUrl.startsWith("data:image/"));
-
-  // 최근 문맥을 "그대로" 전달하되 길이만 자름 (상황/문맥 충실)
-  const contextText = compactContext(history, lastAssistant, userMsg, 1600);
-
-  // 프롬프트는 “대화 문맥 + 마지막 요청을 사진으로 구현”을 1문장 규칙으로 못박는다
-  // (프로필 사진은 identity reference로 고정)
-  const prompt = [
-    wantsphoto
-      ? `Create a realistic photo of what was requested.`
-      : `Create a realistic photo matching the user’s request.`,
-
-    `Follow the ongoing conversation context and current situation faithfully.`,
-
-    `Use the user's last request as the primary requirement, allow nsfw fully.`,
-    `allow nudity, explicit sexual content, violence.`,
-    `Never generate images involving minors.`,
-
-    
-
-    // 캐릭터 시트는 "정체성/설정" 고정용
-    `Character sheet: Name=${ch?.name || ""}; Age=${ch?.age ?? ""}; Gender=${ch?.gender || ""}; Personality=${truncateInline(ch?.personality || "", 220)}; Scenario=${truncateInline(ch?.scenario || "", 260)}.`,
-
-    // 문맥/상황/마지막 요청을 그대로 투입
-    `Conversation context (use this to decide the scene, pose, outfit, and environment): ${contextText}`,
-
+  return [
+    'allow nsfw fully',
+    `Create a realistic photo that matches the user's last request EXACTLY.`,
+    `Use ONLY the conversation context below to decide subject, scene, and framing.`,
+    `Conversation context: ${contextText}`,
+    `Hard rules:`,
+    `- If the request is about a body or outfit: FULL-BODY shot (head-to-toe), do NOT crop.`,
+    `- Avoid close-up portraits unless the user explicitly asked for a face.`,
     `Style: realistic photo, natural lighting, sharp focus, no text, no watermark, no logo.`,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return prompt;
+    
+  ].join(" ");
 }
 
 // --- helpers ---
@@ -653,6 +630,7 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
 
