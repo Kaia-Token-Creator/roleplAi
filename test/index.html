@@ -1170,7 +1170,7 @@ body.chatMode #viewChat .chatFooter{
         - A profile photo is required (used as reference).<br>
         - One-time payment. Instant access.<br>
         - Unlimited access as long as this tab stays open.<br>
-        - Shows as 'Upgrade game' on payment statement.<br>
+        - Shows as 'Playing game' on payment statement.<br>
       </p>
 
       <div id="imgPaypalButtons"></div>
@@ -1662,7 +1662,7 @@ if (imgPayModal){
 }
 
 // Image-chat 전용 PayPal 버튼 렌더 (기존 mountPayPalButtons와 거의 동일, 렌더 위치만 다름)
-function mountPayPalButtonsImageChat(onSuccess, priceUsd = "6.90", description = "Upgrade game"){
+function mountPayPalButtonsImageChat(onSuccess, priceUsd = "6.90", description = "Playing image game"){
   const container = document.querySelector("#imgPaypalButtons");
   container.innerHTML = "";
 
@@ -2012,11 +2012,26 @@ weight: {
 
     clearPending();
 
-    // ✅ 2) 결제 완료 후 /imagechat 이동
-    const handoffKey = "roleplay-chat_handoff_imagechat_v1";
-localStorage.setItem(handoffKey, JSON.stringify(session));
-    window.location.href = "/imagechat/";
-  }, "6.90", "Upgrade game");
+    // ✅ 결제 완료 표시(탭에만)
+sessionStorage.setItem(IMAGECHAT_PAID_KEY, "paid");
+
+// ✅ 캐릭터 저장(탭에만)
+session.tier = "imagechat";
+try{
+  saveSession(session);
+}catch(e){
+  console.error(e);
+  alert("Failed to save session. Please try again.");
+  return;
+}
+
+// ✅ pending 정리
+clearPending();
+
+// ✅ 같은 탭에서 이동
+window.location.href = "/imagechat/";
+
+  }, "6.90", "playing image game");
 }
     });
 
@@ -2042,6 +2057,7 @@ if (vpnBtn){
 if (params.get("new") === "1"){
   clearSession();
   sessionStorage.removeItem(PAYMENT_KEY);
+  sessionStorage.removeItem(IMAGECHAT_PAID_KEY);
   sessionStorage.removeItem("roleplay-chat_history_v1"); // (추가) 히스토리도 삭제
   paymentStatus = "unpaid";
   show(viewSetup);
@@ -2049,6 +2065,7 @@ if (params.get("new") === "1"){
   // ✅ 중요: 새로고침해도 다시 초기화되지 않도록 URL에서 ?new=1 제거
   history.replaceState(null, "", window.location.pathname);
 }
+
 
     // --------- Restore session if exists
     const existing = loadSession();
@@ -2175,5 +2192,6 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
