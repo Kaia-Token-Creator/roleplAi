@@ -151,89 +151,136 @@ padding: 5px 8px;
   background: rgba(255,255,255,.08);
 }
 
-    /* ===== Chat ===== */
-    .chatShell{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      min-height:0;
-    }
+   /* ===== Chat ===== */
+.chatShell{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
 
-    .chatBox{
-      flex:1;
-      overflow:auto;
-      padding:14px;
-    }
+/* 전체 채팅 글씨 더 작게 */
+.chatBox{
+  flex:1;
+  overflow:auto;
+  padding:14px;
+  font-size: 11px;        /* ✅ 더 작게 */
+  line-height: 1.25;
+}
 
-    .chatMsg{
-      display:flex;
-      gap:10px;
-      margin-bottom:14px;
-    }
+/* 메시지 간격 살짝 줄임 */
+.chatMsg{
+  display:flex;
+  gap:8px;                /* ✅ 더 촘촘 */
+  margin-bottom:10px;     /* ✅ 더 촘촘 */
+}
 
-    .chatMsg.me{ flex-direction:row-reverse; }
+.chatMsg.me{ flex-direction:row-reverse; }
 
-    .who{
-      width:38px;height:38px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-    }
+/* 아바타/You 영역도 더 작게 */
+.who{
+  width:30px;             /* ✅ 38 -> 30 */
+  height:30px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  font-size:8px;          /* ✅ YOU 글씨 더 작게 */
+  font-weight:700;
+  color: rgba(255,255,255,.55);
+}
 
-    .who img{ width:100%;height:100%;object-fit:cover; }
+.who img{ width:100%;height:100%;object-fit:cover; }
 
-    .bubble{
-      max-width:78%;
-      border-radius:16px;
-      border:1px solid var(--border);
-      padding:10px 12px;
-      background: var(--card);
-    }
+/* JS에서 넣는 You 라벨 */
+.whoLabel{
+  font-size:8px;          /* ✅ 더 작게 */
+  letter-spacing:.1px;
+  opacity:.7;
+}
 
-    .bubble .name{
-      font-weight:800;
-      color: var(--chatColor);
-      margin-bottom:6px;
-      font-family:"Baloo 2",sans-serif;
-    }
+/* 말풍선도 살짝 컴팩트 */
+.bubble{
+  max-width:78%;
+  border-radius:14px;     /* ✅ 16 -> 14 */
+  border:1px solid var(--border);
+  padding:7px 9px;        /* ✅ 더 작게 */
+  background: var(--card);
+}
 
-    .bubble img{
-      width:100%;
-      border-radius:12px;
-      margin-top:8px;
-      border:1px solid var(--border);
-    }
+/* 이름(캐릭터/나) 둘 다 작게 */
+.bubble .name{
+  font-weight:800;
+  color: var(--chatColor);
+  margin-bottom:3px;      /* ✅ 간격 줄임 */
+  font-family:"Baloo 2",sans-serif;
+  font-size:11px;         /* ✅ 이름 더 작게 */
+  line-height: 1.1;
+}
 
-    .chatControls{
-      display:flex;
-      gap:10px;
-      padding:12px;
-      border-top:1px solid var(--border);
-      background: rgba(0,0,0,.7);
-    }
+/* assistant text color should follow character color */
+.bubble .asstText{
+  color: var(--chatColor);
+  font-size:11px;         /* ✅ 내용 더 작게 */
+  line-height: 1.25;
+}
 
-    .chatInput{
-      flex:1;
-      height:42px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background:#000;
-      color:#fff;
-      padding:0 10px;
-    }
+/* user text stays white */
+.bubble .userText{
+  color:#fff;
+  font-size:11px;         /* ✅ 내용 더 작게 */
+  line-height: 1.25;
+}
 
-    .sendBtn{
-      width:42px;
-      height:42px;
-      border-radius:14px;
-      background:#e0b400;
-      border:none;
-      font-weight:800;
-      cursor:pointer;
-    }
+/* 이미지도 살짝 덜 두껍게 */
+.bubble img{
+  width:100%;
+  border-radius:12px;
+  margin-top:6px;         /* ✅ 8 -> 6 */
+  border:1px solid var(--border);
+}
+
+/* 입력 영역 글씨도 줄임 */
+.chatControls{
+  display:flex;
+  gap:10px;
+  padding:10px;           /* ✅ 12 -> 10 */
+  border-top:1px solid var(--border);
+  background: rgba(0,0,0,.7);
+}
+
+.chatInput{
+  flex:1;
+  height:40px;            /* ✅ 42 -> 40 */
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#000;
+  color:#fff;
+  padding:0 10px;
+  font-size:12px;         /* ✅ 입력 글씨 줄임 */
+}
+
+.sendBtn{
+  width:40px;             /* ✅ 42 -> 40 */
+  height:40px;
+  border-radius:14px;
+  background:#e0b400;
+  border:none;
+  font-weight:800;
+  cursor:pointer;
+}
+
+/* ===== Typing cursor (이미 JS에서 쓰고 있으니 CSS만 보강) ===== */
+.typeCursor{
+  display:inline-block;
+  width:8px;
+  opacity:.8;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
 
     /* assistant text color should follow character color */
 .bubble .asstText{
@@ -707,6 +754,7 @@ if (infoBtn && infoMenu){
 
 </body>
 </html>
+
 
 
 
