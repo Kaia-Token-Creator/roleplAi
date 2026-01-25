@@ -43,8 +43,11 @@ export const onRequestPost: PagesFunction<{
     // text reply tokens
     const MAX_TOKENS_TEXT = 650;
 
-    // image prompt planning tokens (same text model, separate call)
+    // image plan tokens (same text model, separate call)
     const MAX_TOKENS_IMAGE_PLAN = 260;
+
+    // if user explicitly asks for an image and plan prompt is empty, generate forced prompt via text model
+    const MAX_TOKENS_IMAGE_FORCED_PROMPT = 220;
     // ---------------------------------------
 
     // ✅ body는 딱 1번만 읽어야 함
@@ -110,9 +113,7 @@ export const onRequestPost: PagesFunction<{
     const replyRaw = await callVeniceChat(env.VENICE_API_KEY, fitted, MAX_TOKENS_TEXT);
     const reply = truncateReply(replyRaw, MAX_REPLY_CHARS);
 
-    // 2) "사진이 필요한 상황" + "사진 프롬프트"는 전부 텍스트 모델이 판단해서 JSON으로 생성
-    //    (정규식 wantsImage / forced prompt 제거, planner도 없애고 동일 텍스트 모델로만 처리)
-    //    - init에서는 기본적으로 이미지 생성 안 함
+    // 2) 사진 판단 + 프롬프트 생성: 텍스트 모델이 JSON으로 내리도록 (강건 파서 적용)
     let plan: { generate: boolean; prompt: string; negativePrompt?: string } = { generate: false, prompt: "" };
 
     if (!isInit) {
@@ -123,13 +124,32 @@ export const onRequestPost: PagesFunction<{
         history,
         maxTokens: MAX_TOKENS_IMAGE_PLAN,
       });
+
+      // ✅ 유저가 명시적으로 사진을 요구하면, planner가 삐끗해도 generate=true로 "안전핀"
+      if (userExplicitlyAsksImage(userMsg)) {
+        if (!plan.prompt) {
+          const forcedPrompt = await makeForcedPromptWithTextModel(env.VENICE_API_KEY, {
+            character: ch,
+            userMessage: userMsg,
+            lastAssistant: reply,
+            history,
+            maxTokens: MAX_TOKENS_IMAGE_FORCED_PROMPT,
+          });
+          plan = {
+            generate: true,
+            prompt: forcedPrompt,
+            negativePrompt: plan?.negativePrompt || "",
+          };
+        } else {
+          plan.generate = true;
+        }
+      }
     }
 
     // 3) 이미지 생성
     let image: null | { mime: "image/webp" | "image/png" | "image/jpeg"; b64: string } = null;
 
     if (plan.generate === true) {
-      // 서버 기본 안전장치 (불법/미성년/강제/고어 등)
       if (looksExplicitOrIllegal(plan.prompt)) {
         return json(
           {
@@ -282,7 +302,7 @@ function formatWeight(w: any) {
 }
 
 // ---------------- prompts ----------------
-// ⚠️ 아래 buildSystemPrompt_Text는 사용자가 "한줄도 빼지마"라고 했으므로 원문 그대로 유지 (수정 금지)
+// ⚠️ 아래 buildSystemPrompt_Text는 "기존 그대로" 유지 (한 줄도 변경 X)
 function buildSystemPrompt_Text(ch: any) {
   const nicknameLine = ch.nickname?.trim()
     ? `- What you call the user: ${ch.nickname.trim()} (always use this when addressing the user)`
@@ -338,7 +358,28 @@ function buildSystemPrompt_Text(ch: any) {
 }
 
 // ---------------- image planning via SAME text model ----------------
-// ✅ 사진을 보내야 할 상황이면: 텍스트 모델이 "이미지 프롬프트"를 직접 작성해서 JSON으로 반환
+// ✅ planner JSON 파싱을 강건하게: JSON.parse 실패 시 {..}만 뽑아서 재파싱
+function extractFirstJsonObject(text: string) {
+  const s = String(text || "").trim();
+  const start = s.indexOf("{");
+  const end = s.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) return null;
+  return s.slice(start, end + 1);
+}
+
+function safeParseJsonObject(raw: string) {
+  try {
+    return JSON.parse(raw);
+  } catch {}
+  const cut = extractFirstJsonObject(raw);
+  if (!cut) return null;
+  try {
+    return JSON.parse(cut);
+  } catch {}
+  return null;
+}
+
+// ✅ 사진 필요 여부 + 프롬프트를 텍스트 모델이 JSON으로 결정
 async function makeImagePlanWithTextModel(
   apiKey: string,
   args: {
@@ -351,7 +392,7 @@ async function makeImagePlanWithTextModel(
 ): Promise<{ generate: boolean; prompt: string; negativePrompt?: string }> {
   const { character: ch, userMessage, lastAssistant, history, maxTokens } = args;
 
-  const plannerSystem: Msg = {
+  const plannerSystem = {
     role: "system",
     content: [
       "You decide whether to generate an image for a roleplay chat.",
@@ -375,7 +416,7 @@ async function makeImagePlanWithTextModel(
     ].join("\n"),
   };
 
-  const plannerUser: Msg = {
+  const plannerUser = {
     role: "user",
     content: [
       "Character:",
@@ -398,18 +439,66 @@ async function makeImagePlanWithTextModel(
 
   const raw = await callVeniceChat(apiKey, [plannerSystem, plannerUser], maxTokens);
 
-  try {
-    const parsed = JSON.parse(raw);
-    const generate = !!parsed?.generate;
-    const prompt = String(parsed?.prompt || "").trim();
-    const negativePrompt = String(parsed?.negativePrompt || "").trim();
+  const parsed = safeParseJsonObject(raw);
+  if (!parsed) return { generate: false, prompt: "" };
 
-    if (!generate || !prompt) return { generate: false, prompt: "" };
-    return { generate: true, prompt, negativePrompt: negativePrompt || undefined };
-  } catch {
-    // 모델이 JSON 깨먹으면 그냥 이미지 안 보냄
-    return { generate: false, prompt: "" };
+  const generate = !!(parsed as any)?.generate;
+  const prompt = String((parsed as any)?.prompt || "").trim();
+  const negativePrompt = String((parsed as any)?.negativePrompt || "").trim();
+
+  if (!generate || !prompt) return { generate: false, prompt: "" };
+  return { generate: true, prompt, negativePrompt: negativePrompt || undefined };
+}
+
+// ✅ 유저가 "사진/이미지"를 명시적으로 요구하는 경우 감지 (안전핀용)
+function userExplicitlyAsksImage(userMsg: string) {
+  const s = (userMsg || "").toLowerCase();
+  return (
+    /\b(photo|picture|pic|image|selfie|snapshot)\b/.test(s) ||
+    /\b(show me|can i see|let me see|send me)\b/.test(s)
+  );
+}
+
+// ✅ 유저가 명시 요구했는데 planner가 prompt를 비워버리면: 텍스트 모델로 prompt만 생성
+async function makeForcedPromptWithTextModel(
+  apiKey: string,
+  args: {
+    character: any;
+    userMessage: string;
+    lastAssistant: string;
+    history: { role: string; content: string }[];
+    maxTokens: number;
   }
+): Promise<string> {
+  const { character: ch, userMessage, lastAssistant, history, maxTokens } = args;
+
+  const sys = {
+    role: "system",
+    content: [
+      "Write a single image-generation prompt for a realistic photo.",
+      "Return ONLY plain text. No JSON. No lists. No markdown.",
+      "The prompt must be detailed: subject, outfit/body if relevant, setting, composition, camera framing, lighting, realism.",
+      "No text/watermark/logo.",
+      "All people must be 18+.",
+    ].join("\n"),
+  };
+
+  const user = {
+    role: "user",
+    content: [
+      `Character: Name=${ch.name}; Age=${ch.age}; Gender=${ch.gender}; Personality=${ch.personality}; Scenario=${ch.scenario}`,
+      "Recent history (latest last):",
+      ...history.slice(-10).map((m) => `${m.role}: ${String(m.content || "").trim()}`),
+      "",
+      `User message: ${userMessage}`,
+      `Assistant reply: ${lastAssistant}`,
+      "",
+      "Generate the best possible image prompt for what the user is asking to see.",
+    ].join("\n"),
+  };
+
+  const raw = await callVeniceChat(apiKey, [sys, user], maxTokens);
+  return String(raw || "").trim();
 }
 
 // ---------------- budget helpers ----------------
@@ -465,13 +554,8 @@ function truncateReply(reply: string, maxChars: number) {
 function looksExplicitOrIllegal(prompt: string) {
   const p = (prompt || "").toLowerCase();
 
-  // minors
   if (/\b(child|kid|minor|underage|teen|loli|shota)\b/.test(p)) return true;
-
-  // non-consensual / forced
   if (/\b(rape|non-consensual|forced)\b/.test(p)) return true;
-
-  // gore
   if (/\b(dismember|decapitat|gore)\b/.test(p)) return true;
 
   return false;
@@ -482,7 +566,6 @@ function defaultNegativePrompt() {
 }
 
 function buildImagePromptWithAvatarHint(basePrompt: string, _ch: any) {
-  // 필요하면 여기서 avatarDataUrl 기반 힌트/ID embedding 같은 걸 붙일 수 있음
   return basePrompt;
 }
 
