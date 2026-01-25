@@ -158,7 +158,7 @@ if (!isInit) {
         width: 1024,
         height: 1024,
         cfg_scale: 7.0,
-        safe_mode: true,
+        safe_mode: false,
         variants: 1,
       });
 
@@ -663,6 +663,7 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
 
