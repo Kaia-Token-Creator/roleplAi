@@ -166,31 +166,17 @@
    ========================= */
 
 const STORAGE_KEY = "roleplay-chat_session_v1";
-const HANDOFF_KEY = "roleplay-chat_handoff_imagechat_v1";
+const IMAGECHAT_PAID_KEY = "roleplay-chat_imagechat_paid_v1";
 
 function readSession(){
-  // 1) 원래 원칙: 탭 저장소
-  let raw = sessionStorage.getItem(STORAGE_KEY);
-
-  // 2) 없으면: handoff(1회용 택배상자)에서 복구
-  if (!raw){
-    const handoff = localStorage.getItem(HANDOFF_KEY);
-    if (handoff){
-      sessionStorage.setItem(STORAGE_KEY, handoff); // 이 탭에 이식
-      localStorage.removeItem(HANDOFF_KEY);         // ✅ 즉시 삭제(탭 공유 방지)
-      raw = handoff;
-    }
-  }
-
-  try{ return raw ? JSON.parse(raw) : null; }
-  catch{ return null; }
+  const raw = sessionStorage.getItem(STORAGE_KEY);
+  try { return raw ? JSON.parse(raw) : null; }
+  catch { return null; }
 }
 
 const session = readSession();
-
-/* 🔒 Image chat paywall gate */
-const IMAGECHAT_PAID_KEY = "roleplay-chat_imagechat_paid_v1";
 const paid = sessionStorage.getItem(IMAGECHAT_PAID_KEY) === "paid";
+
 
 if (!paid){
   alert("Image chat is locked. Please complete payment first.");
@@ -353,6 +339,7 @@ input.onkeydown = (e) => {
 
 </body>
 </html>
+
 
 
 
