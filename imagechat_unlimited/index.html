@@ -452,7 +452,7 @@ padding: 5px 8px;
 
 const STORAGE_KEY = "roleplay-chat_session_v1";
 const IMAGECHAT_HISTORY_KEY = "roleplay-chat_imagechat_history_v1";
-const IMAGECHAT_PAID_KEY = "roleplay-chat_imagechat_paid_v1";
+const IMAGECHAT_UNLIMITED_PAID_KEY = "roleplay-chat_imagechat_unlimited_paid_v1";
 
 function readSession(){
   const raw = sessionStorage.getItem(STORAGE_KEY);
@@ -471,31 +471,37 @@ if (session?.name){
 }
 
   
-function setImagechatPaidForeverLocal(){
-  // ✅ 24h 만료 없음: 탭(sessionStorage) 살아있는 동안 계속 paid
-  const payload = { status:"paid", paidAt: Date.now() };
-  sessionStorage.setItem(IMAGECHAT_PAID_KEY, JSON.stringify(payload));
+function setPaidForever(){
+  const payload = { status: "paid", paidAt: Date.now() };
+  sessionStorage.setItem(
+    IMAGECHAT_UNLIMITED_PAID_KEY,
+    JSON.stringify(payload)
+  );
   return payload;
 }
 
-function readImagechatPaid(){
-  const raw = sessionStorage.getItem(IMAGECHAT_PAID_KEY);
+function readUnlimitedPaid(){
+  const raw = sessionStorage.getItem(IMAGECHAT_UNLIMITED_PAID_KEY);
   if (!raw) return null;
 
-  // ✅ 메인에서 "paid" 문자열만 저장해도: 그냥 영구 paid 처리
-  if (raw === "paid") return setImagechatPaidForeverLocal();
+  // 메인에서 "paid" 문자열만 저장한 경우도 호환
+  if (raw === "paid"){
+    return setPaidForever();
+  }
 
-  try { return JSON.parse(raw); } catch { return null; }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }
 
-function isImagechatPaidValid(){
-  const p = readImagechatPaid();
-  // ✅ expiresAt 체크 제거
+function isUnlimitedPaid(){
+  const p = readUnlimitedPaid();
   return !!(p && p.status === "paid");
 }
 
-
-const paid = isImagechatPaidValid();
+const paid = isUnlimitedPaid();
 
 
   // ✅ Top bar title + New character button
@@ -908,4 +914,5 @@ if (infoBtn && infoMenu){
 
 </body>
 </html>
+
 
