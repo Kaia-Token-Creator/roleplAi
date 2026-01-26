@@ -2144,66 +2144,40 @@ weight: {
   });
 
 } else if (tier === "imagechat") {
- 
-  // ✅ 결제 전 저장 금지: pending에 넣기
+
   savePending(session);
 
-  // ✅ 2) 새 모달로 결제 ($6.9)
   openImgPayModal();
   mountPayPalButtonsImageChat(() => {
+    // ✅ 결제 완료(탭)
     sessionStorage.setItem(IMAGECHAT_PAID_KEY, "paid");
 
-    // ✅ 4) 캐릭터셋업은 STORAGE_KEY로 저장되어 /imagechat에서 그대로 읽음
+    // ✅ 캐릭터 저장(탭)
     session.tier = "imagechat";
     try{
       saveSession(session);
     }catch(e){
       console.error(e);
-      // imagechat은 avatar 필수라 여기서 avatar 지우면 안 됨
-      // 저장 실패면 안내
       alert("Failed to save session. Please try again.");
       return;
     }
 
     clearPending();
 
-    // ✅ 결제 완료 표시(탭에만)
-sessionStorage.setItem(IMAGECHAT_PAID_KEY, "paid");
-
-// ✅ 캐릭터 저장(탭에만)
-session.tier = "imagechat";
-try{
-  saveSession(session);
-}catch(e){
-  console.error(e);
-  alert("Failed to save session. Please try again.");
-  return;
-}
-
-// ✅ pending 정리
-clearPending();
-
-// ✅ 같은 탭에서 이동
-window.location.href = "/imagechat/";
-
+    // ✅ 같은 탭에서 이동
+    window.location.href = "/imagechat/";
   }, "6.90", "playing image game");
-}
-    });
 
 } else if (tier === "imagechat_unlimited") {
 
-  // ✅ 결제 전 저장 금지: pending에 넣기
   savePending(session);
 
-  // ✅ 새 모달 오픈
   openImgUnlimitedPayModal();
-
-  // ✅ 결제 ($25), description = "Upgrade game"
   mountPayPalButtonsImageChatUnlimited(() => {
-    // ✅ 결제 완료 표시(탭에만)
+    // ✅ 결제 완료(탭)
     sessionStorage.setItem(IMAGECHAT_UNLIMITED_PAID_KEY, "paid");
 
-    // ✅ 캐릭터 저장(탭에만)
+    // ✅ 캐릭터 저장(탭)
     session.tier = "imagechat_unlimited";
     try{
       saveSession(session);
@@ -2213,15 +2187,12 @@ window.location.href = "/imagechat/";
       return;
     }
 
-    // ✅ pending 정리
     clearPending();
 
     // ✅ 같은 탭에서 이동
     window.location.href = "/imagechat_unlimited";
   }, "25.00", "Upgrade game");
 }
-  
-
 
     // (1) CHANGED: New opens a fresh setup tab (clears session in that new tab only)
     resetBtn.addEventListener("click", () => {
@@ -2382,6 +2353,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
