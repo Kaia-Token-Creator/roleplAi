@@ -809,12 +809,9 @@ body.chatMode #viewChat .chatFooter{
 
 
     .pill.recommend{
-  border-color: #ffcc00;
-  box-shadow:
-    0 0 0 1px rgba(255,204,0,.35),
-    0 0 18px rgba(255,204,0,.45),
-    0 0 36px rgba(255,204,0,.25);
-  background: rgba(255,204,0,.08);
+  border-color: rgba(255,255,255,.16); /* 또는 그냥 border-color 지워도 됨 */
+  box-shadow: none;                    /* ✅ 글로우 제거 핵심 */
+  background: rgba(0,0,0,.35);         /* 일반 pill 느낌으로 맞추기(선택) */
 }
 
 .pillTag{
@@ -1068,9 +1065,9 @@ body.chatMode #viewChat .chatFooter{
               <label>Chat Option</label>
               <div class="pillGroup" role="radiogroup" aria-label="Chat option">
                 <label class="pill">
-                  <input type="radio" name="tier" value="general" />
+                  <input type="radio" name="tier" value="general" checked/>
                   <div>
-                    <div><b>General</b> <small>(free)</small></div>
+                    <div><b>General text chat</b> <small>(free)</small></div>
                   </div>
                 </label>
 
@@ -1078,23 +1075,35 @@ body.chatMode #viewChat .chatFooter{
                   <input type="radio" name="tier" value="uncensored" />
                   <div>
                     <div>
-      <b>+18 Uncensored</b>
-      <small style="opacity:.65; font-size:10px; margin:0 4px;"> + high performance</small>
+      <b>+18 Uncensored text chat</b>
+      <small style="opacity:.65; font-size:10px; margin:0 4px;"> Lifetime + unlimited + high performance</small>
       <small>($2)</small>
     </div>
                   </div>
                 </label>
 
 <label class="pill recommend">
-  <input type="radio" name="tier" value="imagechat" checked/>
+  <input type="radio" name="tier" value="imagechat" />
   <div>
     <div>
-      <b>🔥 +18 Uncensored <span style="color:#ff3b3b;">Image</span> Chat</b>
+      <b>🔥 +18 Uncensored <span style="color:#ff3b3b;">Image</span> Chat (24hrs limit)</b>
       <small class="pillTag">Most Popular</small>
       <small>($6.9)</small>
     </div>
   </div>
 </label>
+
+ <label class="pill">
+  <input type="radio" name="tier" value="imagechat_unlimited" />
+  <div>
+    <div>
+      <b>🔥 +18 Uncensored <span style="color:#ff3b3b;">Image</span> Chat (Unlimited)</b>
+      <small style="opacity:.65; font-size:10px; margin:0 4px;"> Lifetime</small>
+      <small>($25)</small>
+    </div>
+  </div>
+</label>
+              
 
               </div>
             </div>
@@ -1102,7 +1111,7 @@ body.chatMode #viewChat .chatFooter{
             <div class="note">
   No login. Your character is kept per browser tab.<br />
   <span style="opacity:.8;">
-    The conversation will remain available for the lifetime (image chat for 24hrs) of this browser tab, as long as it stays open. This is an anonymous chat and is not stored on the server.
+    The conversation will remain available for the lifetime of this browser tab (except for image chat for 24hrs option) as long as it stays open. This is an anonymous chat and is not stored on the server.
   </span>
 </div>
 
@@ -1182,7 +1191,7 @@ body.chatMode #viewChat .chatFooter{
 <div id="imgPayModal" class="modalOverlay" role="dialog" aria-modal="true" aria-label="Image chat payment">
   <div class="modal">
     <div class="modalHeader">
-      <h3 id="imgPayTitle">Ucensored Image Chat ($6.9)</h3>
+      <h3 id="imgPayTitle">Ucensored Image Chat 24hrs ($6.9)</h3>
       <button class="xBtn" id="closeImgPay" type="button">Close</button>
     </div>
     <div class="modalBody">
@@ -1211,6 +1220,40 @@ body.chatMode #viewChat .chatFooter{
     </div>
   </div>
 </div>
+
+<!-- Image Chat Unlimited Paywall Modal (NEW, separate) -->
+<div id="imgUnlimitedPayModal" class="modalOverlay" role="dialog" aria-modal="true" aria-label="Image chat unlimited payment">
+  <div class="modal">
+    <div class="modalHeader">
+      <h3 id="imgUnlimitedPayTitle">Uncensored Image Chat Unlimited ($25)</h3>
+      <button class="xBtn" id="closeImgUnlimitedPay" type="button">Close</button>
+    </div>
+    <div class="modalBody">
+      <p class="warn" id="imgUnlimitedPayDesc">
+          - <span class="highlightCTA">Unlimited image chat</span> (no time limit)<br>
+          - <span class="highlightCTA">Real-time Image generating chat.</span><br>
+          - <span class="highlightCTA">Available for lifetime</span><br>
+          - <span class="highlightCTA">Unlimited image generation during chat</span><br>
+          - <span class="highlightCTA">Fully uncensored</span><br>
+          - Unlimited access as long as this tab stays open.<br>
+          - Image Gen matching the roleplay context.<br>
+          - Longer replies. Richer memory.<br>
+          - More detail. More tension.<br>
+          - Secure one-time payment.<br>
+          - No-login. Private and anonymous.<br>
+          - Payment = Auto age verification.<br>
+          - Shows as 'Playing game' on payment statement.<br>
+          - <span class="highlightCTA">Start now. Instant access.</span>
+      </p>
+
+      <div id="imgUnlimitedPaypalButtons"></div>
+
+      <div class="ok" id="imgUnlimitedPayOk">Payment successful. Entering unlimited image chat…</div>
+      <div class="error" id="imgUnlimitedPayErr">Payment failed or cancelled. Please try again.</div>
+    </div>
+  </div>
+</div>
+
 
 
   <script>
@@ -1247,6 +1290,11 @@ body.chatMode #viewChat .chatFooter{
     const imgPayOk = $("#imgPayOk");
     const imgPayErr = $("#imgPayErr");
 
+    const imgUnlimitedPayModal = $("#imgUnlimitedPayModal");
+const closeImgUnlimitedPay = $("#closeImgUnlimitedPay");
+const imgUnlimitedPayOk = $("#imgUnlimitedPayOk");
+const imgUnlimitedPayErr = $("#imgUnlimitedPayErr");
+
     const modelBadge = $("#modelBadge");
 const chipName = $("#chipName");
 const chipLang = $("#chipLang");
@@ -1263,6 +1311,7 @@ const chatAvatar = $("#chatAvatar");
     const HISTORY_KEY = "roleplay-chat_history_v1";
     const PENDING_KEY = "roleplay-chat_pending_session_v1";
     const IMAGECHAT_PAID_KEY = "roleplay-chat_imagechat_paid_v1";
+    const IMAGECHAT_UNLIMITED_PAID_KEY = "roleplay-chat_imagechat_unlimited_paid_v1";
 
     // Share button
 const shareBtn = document.querySelector("#shareBtn");
@@ -1692,6 +1741,27 @@ if (imgPayModal){
   });
 }
 
+function openImgUnlimitedPayModal(){
+  if (imgUnlimitedPayErr) imgUnlimitedPayErr.style.display = "none";
+  if (imgUnlimitedPayOk) imgUnlimitedPayOk.style.display = "none";
+  if (imgUnlimitedPayModal) imgUnlimitedPayModal.classList.add("active");
+}
+
+function closeImgUnlimitedPayModalFn(){
+  if (imgUnlimitedPayModal) imgUnlimitedPayModal.classList.remove("active");
+  clearPending();
+}
+
+if (closeImgUnlimitedPay){
+  closeImgUnlimitedPay.addEventListener("click", closeImgUnlimitedPayModalFn);
+}
+if (imgUnlimitedPayModal){
+  imgUnlimitedPayModal.addEventListener("click", (e) => {
+    if (e.target === imgUnlimitedPayModal) closeImgUnlimitedPayModalFn();
+  });
+}
+    
+
 // Image-chat 전용 PayPal 버튼 렌더 (기존 mountPayPalButtons와 거의 동일, 렌더 위치만 다름)
 function mountPayPalButtonsImageChat(onSuccess, priceUsd = "6.90", description = "Playing image game"){
   const container = document.querySelector("#imgPaypalButtons");
@@ -1751,6 +1821,65 @@ function mountPayPalButtonsImageChat(onSuccess, priceUsd = "6.90", description =
     }
   }).render("#imgPaypalButtons");
 }
+
+
+function mountPayPalButtonsImageChatUnlimited(onSuccess, priceUsd = "25.00", description = "Upgrade game"){
+  const container = document.querySelector("#imgUnlimitedPaypalButtons");
+  container.innerHTML = "";
+
+  if (!window.paypal){
+    if (imgUnlimitedPayErr){
+      imgUnlimitedPayErr.textContent = "PayPal SDK failed to load. Please refresh and try again.";
+      imgUnlimitedPayErr.style.display = "block";
+    }
+    return;
+  }
+
+  window.paypal.Buttons({
+    style: { layout: "vertical", shape: "pill" },
+    createOrder: (data, actions) => {
+      return actions.order.create({
+        purchase_units: [{
+          description,
+          amount: { value: String(priceUsd), currency_code: "USD" }
+        }]
+      });
+    },
+    onApprove: async (data, actions) => {
+      try{
+        await actions.order.capture();
+        if (imgUnlimitedPayOk) imgUnlimitedPayOk.style.display = "block";
+        if (imgUnlimitedPayErr) imgUnlimitedPayErr.style.display = "none";
+
+        setTimeout(() => {
+          closeImgUnlimitedPayModalFn();
+          onSuccess();
+        }, 600);
+      }catch(err){
+        if (imgUnlimitedPayErr){
+          imgUnlimitedPayErr.textContent = "Payment capture failed. Please try again.";
+          imgUnlimitedPayErr.style.display = "block";
+        }
+        if (imgUnlimitedPayOk) imgUnlimitedPayOk.style.display = "none";
+      }
+    },
+    onCancel: () => {
+      if (imgUnlimitedPayErr){
+        imgUnlimitedPayErr.textContent = "Payment cancelled.";
+        imgUnlimitedPayErr.style.display = "block";
+      }
+      if (imgUnlimitedPayOk) imgUnlimitedPayOk.style.display = "none";
+    },
+    onError: () => {
+      if (imgUnlimitedPayErr){
+        imgUnlimitedPayErr.textContent = "Payment error. Please try again.";
+        imgUnlimitedPayErr.style.display = "block";
+      }
+      if (imgUnlimitedPayOk) imgUnlimitedPayOk.style.display = "none";
+    }
+  }).render("#imgUnlimitedPaypalButtons");
+}
+
 
 
     // --------- PayPal Buttons (client-only demo)
@@ -1943,65 +2072,45 @@ saveHistory(chatHistory);
 
 
     // --------- Submit flow
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-      const name = nameInput.value.trim();
-      if (!name){
-        nameInput.focus();
-        return;
-      }
-
-      const tier = (form.querySelector('input[name="tier"]:checked') || {}).value || "general";
-
-      const session = {
-        name,
-        nickname: $("#nickname").value.trim(),
-        age: ageSelect.value,
-        gender: $("#gender").value,
-        language: $("#language").value,
-        height: {
-  unit: $("#heightUnit").value,
-  cm: $("#heightCm").value ? Number($("#heightCm").value) : null,
-  ft: $("#heightFt").value ? Number($("#heightFt").value) : null,
-  in: $("#heightIn").value ? Number($("#heightIn").value) : null
-},
-weight: {
-  unit: $("#weightUnit").value,
-  value: $("#weightValue").value ? Number($("#weightValue").value) : null
-},
-        mbti: $("#mbti").value,
-        personality: personality.value.trim(),
-        scenario: scenario.value.trim(),
-        fontColor: selectedColor,
-        fontColorName: selectedColorName,
-        avatarDataUrl: avatarDataUrl || "",
-        tier,
-        createdAt: Date.now()
-      };
-
-      if (tier === "general"){
-  // ✅ 무료는 즉시 확정 저장
-  try{
-    saveSession(session);
-  }catch(e){
-    console.error(e);
-    session.avatarDataUrl = "";
-    try{ saveSession(session); }catch(_){}
+  const name = nameInput.value.trim();
+  if (!name){
+    nameInput.focus();
+    return;
   }
-  enterChat(session);
 
-} else if (tier === "uncensored") {
-  // ✅ 유료(uncensored)는 결제 전까지 저장 금지 (pending)
-  savePending(session);
+  const tier = (form.querySelector('input[name="tier"]:checked') || {}).value || "general";
 
-  openPayModal();
-  mountPayPalButtons(() => {
-    paymentStatus = "paid";
-    sessionStorage.setItem(PAYMENT_KEY, "paid");
+  const session = {
+    name,
+    nickname: $("#nickname").value.trim(),
+    age: ageSelect.value,
+    gender: $("#gender").value,
+    language: $("#language").value,
+    height: {
+      unit: $("#heightUnit").value,
+      cm: $("#heightCm").value ? Number($("#heightCm").value) : null,
+      ft: $("#heightFt").value ? Number($("#heightFt").value) : null,
+      in: $("#heightIn").value ? Number($("#heightIn").value) : null
+    },
+    weight: {
+      unit: $("#weightUnit").value,
+      value: $("#weightValue").value ? Number($("#weightValue").value) : null
+    },
+    mbti: $("#mbti").value,
+    personality: personality.value.trim(),
+    scenario: scenario.value.trim(),
+    fontColor: selectedColor,
+    fontColorName: selectedColorName,
+    avatarDataUrl: avatarDataUrl || "",
+    tier,
+    createdAt: Date.now()
+  };
 
-    // ✅ 결제 성공 시점에만 저장
-    session.tier = "uncensored";
+  if (tier === "general"){
+    // ✅ 무료는 즉시 확정 저장
     try{
       saveSession(session);
     }catch(e){
@@ -2009,64 +2118,86 @@ weight: {
       session.avatarDataUrl = "";
       try{ saveSession(session); }catch(_){}
     }
-
-    clearPending();
     enterChat(session);
-  });
+    return;
+  }
 
-} else if (tier === "imagechat") {
- 
-  // ✅ 결제 전 저장 금지: pending에 넣기
-  savePending(session);
+  if (tier === "uncensored"){
+    // ✅ 유료(uncensored)는 결제 전까지 저장 금지 (pending)
+    savePending(session);
 
-  // ✅ 2) 새 모달로 결제 ($6.9)
-  openImgPayModal();
-  mountPayPalButtonsImageChat(() => {
-    sessionStorage.setItem(IMAGECHAT_PAID_KEY, "paid");
+    openPayModal();
+    mountPayPalButtons(() => {
+      paymentStatus = "paid";
+      sessionStorage.setItem(PAYMENT_KEY, "paid");
 
-    // ✅ 4) 캐릭터셋업은 STORAGE_KEY로 저장되어 /imagechat에서 그대로 읽음
-    session.tier = "imagechat";
-    try{
-      saveSession(session);
-    }catch(e){
-      console.error(e);
-      // imagechat은 avatar 필수라 여기서 avatar 지우면 안 됨
-      // 저장 실패면 안내
-      alert("Failed to save session. Please try again.");
-      return;
-    }
+      // ✅ 결제 성공 시점에만 저장
+      session.tier = "uncensored";
+      try{
+        saveSession(session);
+      }catch(e){
+        console.error(e);
+        session.avatarDataUrl = "";
+        try{ saveSession(session); }catch(_){}
+      }
 
-    clearPending();
+      clearPending();
+      enterChat(session);
+    }, "2.00", "Playing game");
+    return;
+  }
 
-    // ✅ 결제 완료 표시(탭에만)
-sessionStorage.setItem(IMAGECHAT_PAID_KEY, "paid");
+  if (tier === "imagechat"){
+    savePending(session);
 
-// ✅ 캐릭터 저장(탭에만)
-session.tier = "imagechat";
-try{
-  saveSession(session);
-}catch(e){
-  console.error(e);
-  alert("Failed to save session. Please try again.");
-  return;
-}
+    openImgPayModal();
+    mountPayPalButtonsImageChat(() => {
+      sessionStorage.setItem(IMAGECHAT_PAID_KEY, "paid");
 
-// ✅ pending 정리
-clearPending();
+      session.tier = "imagechat";
+      try{
+        saveSession(session);
+      }catch(e){
+        console.error(e);
+        alert("Failed to save session. Please try again.");
+        return;
+      }
 
-// ✅ 같은 탭에서 이동
-window.location.href = "/imagechat/";
+      clearPending();
+      window.location.href = "/imagechat/";
+    }, "6.90", "playing image game");
+    return;
+  }
 
-  }, "6.90", "playing image game");
-}
-    });
+  if (tier === "imagechat_unlimited"){
+    savePending(session);
 
-    // (1) CHANGED: New opens a fresh setup tab (clears session in that new tab only)
-    resetBtn.addEventListener("click", () => {
-      window.open("/?new=1", "_blank");
-    });
+    openImgUnlimitedPayModal();
+    mountPayPalButtonsImageChatUnlimited(() => {
+      sessionStorage.setItem(IMAGECHAT_UNLIMITED_PAID_KEY, "paid");
 
-    if (gameBtn){
+      session.tier = "imagechat_unlimited";
+      try{
+        saveSession(session);
+      }catch(e){
+        console.error(e);
+        alert("Failed to save session. Please try again.");
+        return;
+      }
+
+      clearPending();
+      window.location.href = "/imagechat_unlimited";
+    }, "25.00", "Upgrade game");
+    return;
+  }
+});
+
+// ✅ submit 밖으로 빼야 정상 동작하는 버튼들
+resetBtn.addEventListener("click", () => {
+  window.open("/?new=1", "_blank");
+});
+
+if (gameBtn){
   gameBtn.addEventListener("click", () => {
     window.open("https://2048global.com", "_blank", "noopener,noreferrer");
   });
@@ -2078,19 +2209,6 @@ if (vpnBtn){
   });
 }
 
-    // (1) ADDED: if opened as /?new=1, clear this tab's session and payment state
-    const params = new URLSearchParams(window.location.search);
-if (params.get("new") === "1"){
-  clearSession();
-  sessionStorage.removeItem(PAYMENT_KEY);
-  sessionStorage.removeItem(IMAGECHAT_PAID_KEY);
-  sessionStorage.removeItem("roleplay-chat_history_v1"); // (추가) 히스토리도 삭제
-  paymentStatus = "unpaid";
-  show(viewSetup);
-
-  // ✅ 중요: 새로고침해도 다시 초기화되지 않도록 URL에서 ?new=1 제거
-  history.replaceState(null, "", window.location.pathname);
-}
 
 
     // --------- Restore session if exists
@@ -2156,14 +2274,15 @@ if (!existing){
   show(viewSetup);
 } else if (
   (existing.tier === "uncensored" && sessionStorage.getItem(PAYMENT_KEY) !== "paid") ||
-  (existing.tier === "imagechat" && sessionStorage.getItem(IMAGECHAT_PAID_KEY) !== "paid")
+  (existing.tier === "imagechat" && sessionStorage.getItem(IMAGECHAT_PAID_KEY) !== "paid") ||
+  (existing.tier === "imagechat_unlimited" && sessionStorage.getItem(IMAGECHAT_UNLIMITED_PAID_KEY) !== "paid")
 ){
-  // 결제 전 상태면 셋업으로
   show(viewSetup);
 } else {
-  // 정상 세션이면 이어서 진입
   if (existing.tier === "imagechat"){
     window.location.href = "/imagechat/";
+  } else if (existing.tier === "imagechat_unlimited"){
+    window.location.href = "/imagechat_unlimited";
   } else {
     enterChat(existing);
   }
@@ -2218,6 +2337,13 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
