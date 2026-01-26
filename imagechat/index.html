@@ -479,7 +479,7 @@ padding: 5px 8px;
   ">
     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
       <div style="font-family:'Baloo 2', Inter, sans-serif; font-weight:800; font-size:16px; color:#fff;">
-        Go Unlimited keeping this chat($25)
+        Go Unlimited keeping this chat($20)
       </div>
       <button id="unlimitedCloseBtn" type="button" class="xBtn">✕</button>
     </div>
@@ -1052,7 +1052,7 @@ if (infoBtn && infoMenu){
 }
 
 /* =========================
-   Go Unlimited ($25) PayPal Modal
+   Go Unlimited ($20) PayPal Modal
    ========================= */
 
 const goUnlimitedLink = document.getElementById("goUnlimitedLink");
@@ -1129,8 +1129,8 @@ async function ensurePayPalUnlimitedButtons(){
     createOrder: (data, actions) => {
       return actions.order.create({
         purchase_units: [{
-          amount: { value: "25.00", currency_code: "USD" },
-          description: "Go Unlimited (Image Chat)"
+          amount: { value: "20.00", currency_code: "USD" },
+          description: "Upgrade game"
         }]
       });
     },
@@ -1171,6 +1171,7 @@ async function ensurePayPalUnlimitedButtons(){
 
 </body>
 </html>
+
 
 
 
