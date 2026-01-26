@@ -347,6 +347,9 @@ padding: 5px 8px;
 }
 
 
+#goUnlimitedLink:hover{ opacity:1; }
+#goUnlimitedLink:active{ opacity:.85; }
+
   </style>
 </head>
 
@@ -405,11 +408,26 @@ padding: 5px 8px;
     </div>
 
 
+
    <div style="display:flex; align-items:flex-start; justify-content:space-between; width:100%;">
-  <!-- ✅ 왼쪽에 딱 붙는 타이머 -->
-  <sup id="paidTimer" style="display:none;">
-    <font size="1" color="#ffcc00"><b></b></font>
-  </sup>
+  <!-- ✅ 왼쪽: 타이머 + Go Unlimited -->
+  <div style="display:flex; align-items:center; gap:10px;">
+    <sup id="paidTimer" style="display:none;">
+      <font size="1" color="#ffcc00"><b></b></font>
+    </sup>
+
+    <!-- ✅ Unlimited 전환 링크 (흰색, 밑줄 없음) -->
+    <a id="goUnlimitedLink" href="javascript:void(0)"
+       style="display:none; font-size:12px; color:#fff; text-decoration:none; opacity:.95;">
+      Go Unlimited
+    </a>
+
+    <!-- ✅ 결제 완료 후 문구 -->
+    <sup id="unlimitedNote" style="display:none;">
+      <font size="1" color="#ffcc00"><b>Unlimited while this tab is open.</b></font>
+    </sup>
+  </div>
+
 
   <!-- ✅ 오른쪽: 기존 Live user chat (위치 유지) -->
   <div align="right">
@@ -446,6 +464,36 @@ padding: 5px 8px;
   </div>
 </div>
 
+<!-- ✅ Go Unlimited PayPal Modal -->
+<div id="unlimitedModal" style="
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.65); z-index:999999;
+">
+  <div style="
+    width:min(420px, calc(100vw - 28px));
+    background:rgba(12,12,12,.96);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:18px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.65);
+    padding:14px;
+  ">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <div style="font-family:'Baloo 2', Inter, sans-serif; font-weight:800; font-size:16px; color:#fff;">
+        Go Unlimited
+      </div>
+      <button id="unlimitedCloseBtn" type="button" class="xBtn">✕</button>
+    </div>
+
+    <div style="margin-top:10px; color:rgba(255,255,255,.75); font-size:13px; line-height:1.35;">
+      One-time payment <b style="color:#ffcc00;">$25</b> to remove the time limit for this tab session.
+    </div>
+
+    <div style="margin-top:12px; padding:10px; border-radius:14px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);">
+      <div id="paypalUnlimitedButtons"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================
    Load character from main
@@ -454,6 +502,7 @@ padding: 5px 8px;
 const STORAGE_KEY = "roleplay-chat_session_v1";
 const IMAGECHAT_HISTORY_KEY = "roleplay-chat_imagechat_history_v1";
 const IMAGECHAT_PAID_KEY = "roleplay-chat_imagechat_paid_v1";
+const IMAGECHAT_UNLIMITED_KEY = "roleplay-chat_imagechat_unlimited_v1";
 
 function readSession(){
   const raw = sessionStorage.getItem(STORAGE_KEY);
@@ -489,9 +538,24 @@ function readImagechatPaid(){
   try { return JSON.parse(raw); } catch { return null; }
 }
 
+function isUnlimited(){
+  return sessionStorage.getItem(IMAGECHAT_UNLIMITED_KEY) === "1";
+}
+
+function setUnlimited(){
+  sessionStorage.setItem(IMAGECHAT_UNLIMITED_KEY, "1");
+  // 24h 티켓은 의미 없어지니 지워도 OK
+  sessionStorage.removeItem(IMAGECHAT_PAID_KEY);
+}
+
+
 function isImagechatPaidValid(){
+  // ✅ Unlimited면 만료 개념 자체가 없음
+  if (isUnlimited()) return true;
+
   const p = readImagechatPaid();
   if (!p || p.status !== "paid" || !p.expiresAt) return false;
+
   if (Date.now() >= p.expiresAt){
     sessionStorage.removeItem(IMAGECHAT_PAID_KEY);
     return false;
@@ -510,15 +574,26 @@ function formatRemaining(ms){
 
 function startHeaderCountdown(){
   const holder = document.getElementById("paidTimer");
-  if (!holder) return;
+  const bold = holder?.querySelector("b");
+  const goLink = document.getElementById("goUnlimitedLink");
+  const note = document.getElementById("unlimitedNote");
 
-  const bold = holder.querySelector("b");
-  if (!bold) return;
+  // ✅ Unlimited면: 카운트 UI/링크 숨기고 문구만 표시
+  if (isUnlimited()){
+    if (holder) holder.style.display = "none";
+    if (goLink) goLink.style.display = "none";
+    if (note) note.style.display = "inline";
+    return;
+  }
+
+  if (!holder || !bold) return;
 
   function tick(){
     const p = readImagechatPaid();
     if (!p || p.status !== "paid" || !p.expiresAt){
       holder.style.display = "none";
+      if (goLink) goLink.style.display = "none";
+      if (note) note.style.display = "none";
       return false;
     }
 
@@ -526,13 +601,19 @@ function startHeaderCountdown(){
     if (remain <= 0){
       sessionStorage.removeItem(IMAGECHAT_PAID_KEY);
       holder.style.display = "none";
-      // 만료되면 메인으로
+      if (goLink) goLink.style.display = "none";
+      if (note) note.style.display = "none";
       window.location.href = "/?expired=imagechat";
       return false;
     }
 
     holder.style.display = "inline";
     bold.textContent = `Available: ${formatRemaining(remain)}`;
+
+    // ✅ 카운트 중에는 Go Unlimited 보여주기
+    if (goLink) goLink.style.display = "inline";
+    if (note) note.style.display = "none";
+
     return true;
   }
 
@@ -540,12 +621,10 @@ function startHeaderCountdown(){
   const id = setInterval(() => { if (!tick()) clearInterval(id); }, 1000);
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) tick(); // 백그라운드 복귀 시 즉시 동기화
+    if (!document.hidden) tick();
   });
 }
 
-const paid = isImagechatPaidValid();
-startHeaderCountdown();
 
 
 
@@ -954,11 +1033,128 @@ if (infoBtn && infoMenu){
     if (e.key === "Escape") closeInfoMenu();
   });
 }
+
+/* =========================
+   Go Unlimited ($25) PayPal Modal
+   ========================= */
+
+const goUnlimitedLink = document.getElementById("goUnlimitedLink");
+const unlimitedModal = document.getElementById("unlimitedModal");
+const unlimitedCloseBtn = document.getElementById("unlimitedCloseBtn");
+const paypalMount = document.getElementById("paypalUnlimitedButtons");
+
+function openUnlimitedModal(){
+  if (!unlimitedModal) return;
+  unlimitedModal.style.display = "flex";
+}
+
+function closeUnlimitedModal(){
+  if (!unlimitedModal) return;
+  unlimitedModal.style.display = "none";
+}
+
+// 모달 닫기
+if (unlimitedCloseBtn) unlimitedCloseBtn.addEventListener("click", closeUnlimitedModal);
+if (unlimitedModal){
+  unlimitedModal.addEventListener("click", (e) => {
+    if (e.target === unlimitedModal) closeUnlimitedModal();
+  });
+}
+
+// 링크 클릭 -> 모달 오픈
+if (goUnlimitedLink){
+  goUnlimitedLink.addEventListener("click", () => {
+    openUnlimitedModal();
+    ensurePayPalUnlimitedButtons();
+  });
+}
+
+/* ✅ PayPal SDK 로드 + 버튼 생성
+   IMPORTANT: 아래 YOUR_PAYPAL_CLIENT_ID 를 너의 Live client-id로 교체해야 함 */
+let paypalUnlimitedReady = false;
+let paypalSdkLoading = false;
+
+function loadPayPalSdkOnce(){
+  return new Promise((resolve, reject) => {
+    if (window.paypal) return resolve();
+    if (paypalSdkLoading) {
+      const check = setInterval(() => {
+        if (window.paypal){ clearInterval(check); resolve(); }
+      }, 80);
+      setTimeout(() => { clearInterval(check); reject(new Error("PayPal SDK load timeout")); }, 12000);
+      return;
+    }
+
+    paypalSdkLoading = true;
+    const s = document.createElement("script");
+    s.src = "https://www.paypal.com/sdk/js?client-id=ASts4hxcd4-DkLEL8b-PbbawSaCD4G5pQiuJM9aZYawixhxWbQ2upSru10WQNZa4HzCqHUcGC8Z1RIrW&currency=USD&intent=capture";
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Failed to load PayPal SDK"));
+    document.head.appendChild(s);
+  });
+}
+
+async function ensurePayPalUnlimitedButtons(){
+  if (paypalUnlimitedReady) return;
+  if (!paypalMount) return;
+
+  await loadPayPalSdkOnce();
+
+  if (!window.paypal) throw new Error("PayPal SDK not available");
+
+  // 중복 렌더 방지
+  paypalMount.innerHTML = "";
+
+  window.paypal.Buttons({
+    style: { layout: "vertical" },
+
+    createOrder: (data, actions) => {
+      return actions.order.create({
+        purchase_units: [{
+          amount: { value: "25.00", currency_code: "USD" },
+          description: "Go Unlimited (Image Chat)"
+        }]
+      });
+    },
+
+    onApprove: async (data, actions) => {
+      const details = await actions.order.capture();
+
+      // ✅ 결제 성공 -> Unlimited 전환
+      setUnlimited();
+
+      // ✅ UI 갱신: 카운트/링크 숨기고 문구 표시
+      const holder = document.getElementById("paidTimer");
+      const note = document.getElementById("unlimitedNote");
+      const link = document.getElementById("goUnlimitedLink");
+
+      if (holder) holder.style.display = "none";
+      if (link) link.style.display = "none";
+      if (note) note.style.display = "inline";
+
+      closeUnlimitedModal();
+    },
+
+    onError: (err) => {
+      alert("Payment error. Please try again.");
+      console.error(err);
+    },
+
+    onCancel: () => {
+      // 유저가 닫은 경우 조용히
+    }
+
+  }).render("#paypalUnlimitedButtons");
+
+  paypalUnlimitedReady = true;
+}
   
 </script>
 
 </body>
 </html>
+
 
 
 
