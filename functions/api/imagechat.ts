@@ -91,8 +91,16 @@ export const onRequestPost: PagesFunction<{
 
     const ch = sanitizeCharacter(characterRaw);
 
-    // 1) 텍스트 답변 생성 (기존 텍스트 프롬프트는 그대로 사용: 한 줄도 변경 X)
-    const systemPrompt = buildSystemPrompt_Text(ch);
+// ✅ 템플릿 수정 없이 appearance를 프롬프트에 포함시키기
+const chForPrompt = {
+  ...ch,
+  personality: ch.appearance
+    ? `${ch.personality}\nAppearance: ${ch.appearance}`
+    : ch.personality,
+};
+
+const systemPrompt = buildSystemPrompt_Text(chForPrompt);
+
 
     const initUserMsg =
       "Generate the first assistant message to start this roleplay. " +
@@ -646,4 +654,5 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
