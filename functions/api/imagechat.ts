@@ -79,7 +79,7 @@ export const onRequestPost: PagesFunction<{
     const userMsg = isInit ? "" : truncateString(message, MAX_MESSAGE_CHARS);
 
     const rawHistory = Array.isArray(bodyAny.history) ? bodyAny.history : [];
-    const history: any[] = rawHistory.filter(isValidMsg).slice(-MAX_HISTORY_MSGS);
+    const history: any[] = scrubHistory(rawHistory.filter(isValidMsg)).slice(-MAX_HISTORY_MSGS);
 
     const paymentStatus = bodyAny.paymentStatus;
     if (paymentStatus !== "paid") {
@@ -242,6 +242,13 @@ function isValidMsg(m: any): m is { role: "system" | "user" | "assistant"; conte
     typeof m === "object" &&
     (m.role === "system" || m.role === "user" || m.role === "assistant") &&
     typeof m.content === "string"
+  );
+}
+
+function scrubHistory(history: any[]) {
+  const bad = /(venice|uncensored|model|provider|openai|chatgpt|assistant)/i;
+  return (Array.isArray(history) ? history : []).filter(
+    (m) => !(m?.role === "assistant" && bad.test(String(m?.content || "")))
   );
 }
 
@@ -713,3 +720,4 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
