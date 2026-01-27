@@ -1041,6 +1041,14 @@ body.chatMode #viewChat .chatFooter{
   </select>
 </div>
 
+            <div class="span2">
+  <label for="appearance">Appearance</label>
+  <textarea id="appearance" name="appearance" maxlength="300"
+    placeholder="Describe looks: face, hair, body type, outfit, vibe, distinguishing features..."></textarea>
+  <div class="hint"><span id="aCount">0</span>/300</div>
+</div>
+
+
 
             <div class="span2">
               <label for="personality">Personality</label>
@@ -1284,6 +1292,8 @@ body.chatMode #viewChat .chatFooter{
     const nameInput = $("#name");
     const personality = $("#personality");
     const scenario = $("#scenario");
+    const appearance = $("#appearance");
+    const aCount = $("#aCount");
     const pCount = $("#pCount");
     const sCount = $("#sCount");
 
@@ -1445,11 +1455,14 @@ heightUnit.addEventListener("change", () => {
 
     // --------- Counters
     function updateCounts(){
-      pCount.textContent = String(personality.value.length);
-      sCount.textContent = String(scenario.value.length);
-    }
-    personality.addEventListener("input", updateCounts);
-    scenario.addEventListener("input", updateCounts);
+  if (aCount && appearance) aCount.textContent = String(appearance.value.length);
+  pCount.textContent = String(personality.value.length);
+  sCount.textContent = String(scenario.value.length);
+}
+
+if (appearance) appearance.addEventListener("input", updateCounts);
+personality.addEventListener("input", updateCounts);
+scenario.addEventListener("input", updateCounts);
     updateCounts();
 
     // --------- Name preview
@@ -1699,6 +1712,7 @@ setUnlockUIVisibility();
               height: session.height,
               weight: session.weight,
               mbti: session.mbti,
+              appearance: session.appearance,
               personality: session.personality,
               scenario: session.scenario
             },
@@ -2024,6 +2038,7 @@ who.innerHTML = (role === "assistant")
             height: session.height,
             weight: session.weight,
             mbti: $("#mbti").value,
+            appearance: session.appearance,
             personality: session.personality,
             scenario: session.scenario
           },
@@ -2120,6 +2135,7 @@ if (!nicknameVal){
       value: $("#weightValue").value ? Number($("#weightValue").value) : null
     },
     mbti: $("#mbti").value,
+    appearance: (appearance ? appearance.value.trim() : ""),
     personality: personality.value.trim(),
     scenario: scenario.value.trim(),
     fontColor: selectedColor,
@@ -2357,6 +2373,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
