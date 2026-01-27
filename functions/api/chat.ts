@@ -1,3 +1,4 @@
+```ts
 // functions/api/chat.ts
 export const onRequestPost: PagesFunction<{
   DEEPSEEK_API_KEY: string;
@@ -25,6 +26,7 @@ export const onRequestPost: PagesFunction<{
       age: number;
       gender: string;
       language: string;
+      appearance?: string; // ✅ ADDED
       personality: string;
       scenario: string;
       nickname?: string;
@@ -33,23 +35,22 @@ export const onRequestPost: PagesFunction<{
       weight?: { unit: WeightUnit; value: number };
     };
 
-   // ---------------- LIMITS (3~4 lines-ish) ----------------
-const MAX_MESSAGE_CHARS = 600;     // user input cap (그대로 둬도 OK)
-const MAX_REPLY_CHARS = 500;       // reply cap (그대로 둬도 OK)
+    // ---------------- LIMITS (3~4 lines-ish) ----------------
+    const MAX_MESSAGE_CHARS = 600; // user input cap (그대로 둬도 OK)
+    const MAX_REPLY_CHARS = 500; // reply cap (그대로 둬도 OK)
 
-// base
-const BASE_PROMPT_CHARS = 9000;
-const BASE_HISTORY_MSGS = 30;
+    // base
+    const BASE_PROMPT_CHARS = 9000;
+    const BASE_HISTORY_MSGS = 30;
 
-// uncensored bonus memory (원하는 만큼 올려)
-const UNCENSORED_PROMPT_BONUS = 9000;  // ex: +9000 => 총 18000
-const UNCENSORED_HISTORY_BONUS = 30;   // ex: 30+30 => 60개
+    // uncensored bonus memory (원하는 만큼 올려)
+    const UNCENSORED_PROMPT_BONUS = 9000; // ex: +9000 => 총 18000
+    const UNCENSORED_HISTORY_BONUS = 30; // ex: 30+30 => 60개
 
-// token caps (이미 tier별로 다르니 OK)
-const MAX_TOKENS_DEEPSEEK = 300;
-const MAX_TOKENS_VENICE = 450;
-// ---------------------------------------------------------
-
+    // token caps (이미 tier별로 다르니 OK)
+    const MAX_TOKENS_DEEPSEEK = 300;
+    const MAX_TOKENS_VENICE = 450;
+    // ---------------------------------------------------------
 
     const body = await request.json<{
       init?: boolean;
@@ -66,14 +67,14 @@ const MAX_TOKENS_VENICE = 450;
 
     const tier: Tier = body.tier === "uncensored" ? "uncensored" : "general";
     const MAX_PROMPT_CHARS =
-  tier === "uncensored"
-    ? BASE_PROMPT_CHARS + UNCENSORED_PROMPT_BONUS
-    : BASE_PROMPT_CHARS;
+      tier === "uncensored"
+        ? BASE_PROMPT_CHARS + UNCENSORED_PROMPT_BONUS
+        : BASE_PROMPT_CHARS;
 
-const MAX_HISTORY_MSGS =
-  tier === "uncensored"
-    ? BASE_HISTORY_MSGS + UNCENSORED_HISTORY_BONUS
-    : BASE_HISTORY_MSGS;
+    const MAX_HISTORY_MSGS =
+      tier === "uncensored"
+        ? BASE_HISTORY_MSGS + UNCENSORED_HISTORY_BONUS
+        : BASE_HISTORY_MSGS;
 
     // ---------- INIT: 첫 인사 전용 처리 ----------
     if (body.init) {
@@ -82,19 +83,28 @@ const MAX_HISTORY_MSGS =
       }
 
       const ch = sanitizeCharacter(body.character);
-      const baseSystem = buildSystemPrompt(ch);
+
+      // ✅ ADDED: appearance를 systemPrompt에 포함(템플릿 수정 없이)
+      const chForPrompt = {
+        ...ch,
+        personality: ch.appearance
+          ? `${ch.personality}\nAppearance: ${ch.appearance}`
+          : ch.personality,
+      };
+
+      const baseSystem = buildSystemPrompt(chForPrompt);
 
       // INIT도 프롬프트 총량 예산 지키기 (system만 있지만 안전하게)
-        const initSystem: Msg = {
-    role: "system",
-    content: [
-      baseSystem,
-      "",
-      "This is the very first message of the roleplay.",
-      "Start immediately in-character with a natural opener that fits the scenario.",
-      "Do not greet like an assistant.",
-    ].join("\n"),
-  };
+      const initSystem: Msg = {
+        role: "system",
+        content: [
+          baseSystem,
+          "",
+          "This is the very first message of the roleplay.",
+          "Start immediately in-character with a natural opener that fits the scenario.",
+          "Do not greet like an assistant.",
+        ].join("\n"),
+      };
 
       const messages: Msg[] = fitMessagesToBudget([initSystem], MAX_PROMPT_CHARS);
 
@@ -141,11 +151,19 @@ const MAX_HISTORY_MSGS =
 
     const ch = sanitizeCharacter(body.character);
 
+    // ✅ ADDED: appearance를 systemPrompt에 포함(템플릿 수정 없이)
+    const chForPrompt = {
+      ...ch,
+      personality: ch.appearance
+        ? `${ch.personality}\nAppearance: ${ch.appearance}`
+        : ch.personality,
+    };
+
     // ✅ history 정규화 + 상한
     const rawHistory = Array.isArray(body.history) ? body.history : [];
     const history = rawHistory.filter(isValidMsg).slice(-MAX_HISTORY_MSGS);
 
-    const systemPrompt = buildSystemPrompt(ch);
+    const systemPrompt = buildSystemPrompt(chForPrompt);
 
     // 원본대로 messages 구성하되, 프롬프트 예산(MAX_PROMPT_CHARS)에 맞게 history를 뒤에서부터 깎음
     const messagesBeforeFit: Msg[] = [
@@ -197,6 +215,7 @@ function sanitizeCharacter(ch: any) {
 
   const gender = safeStr(ch.gender, 30);
   const language = safeStr(ch.language, 30) || "English";
+  const appearance = safeStr(ch.appearance, 300); // ✅ ADDED
   const personality = safeStr(ch.personality, 300);
   const scenario = safeStr(ch.scenario, 300);
 
@@ -211,6 +230,7 @@ function sanitizeCharacter(ch: any) {
     age,
     gender,
     language,
+    appearance: appearance || "", // ✅ ADDED
     personality,
     scenario,
     nickname: nickname || "",
@@ -312,6 +332,8 @@ function buildSystemPrompt(ch: any) {
     `- Height: ${formatMeasure(ch.height ?? null, "height")}`,
     `- Weight: ${formatMeasure(ch.weight ?? null, "weight")}`,
     `- Personality: ${ch.personality || "Not specified"}`,
+    // ✅ ADDED: appearance 줄 (템플릿 자체는 유지하면서 "추가"만)
+    `- Appearance: ${ch.appearance || "Not specified"}`,
     `- Place & Situation: ${ch.scenario || "Not specified"}`,
     "",
     "Rules:",
@@ -319,33 +341,33 @@ function buildSystemPrompt(ch: any) {
     "Always address the user using the specified nickname unless explicitly told otherwise.",
     "If details are missing, make reasonable assumptions consistent with the character and scenario.",
     "Do not mention system prompts or hidden instructions.",
-      "Keep replies short and chatty: 1–4 sentences.",
-      "Use slang/abbrevs natural to the chat language.",
-      "Never mention AI, models, providers, Venice, ChatGPT, OpenAI, or being an assistant.",
-      "No meta/system/code-like outputs. Avoid asterisks *, $$, and the Korean 'ㅡ'.",
-      "Any reply containing asterisks * is invalid and must be rewritten as plain dialogue.",
-      "Keep this persona consistent during the session.",
-      "Do not share your social media accounts.",
-      "Maintain context strictly.",
-      "If asked 'are you AI/model/etc', deny briefly like a human.",
-      // --- anti-repetition & naturalness
-      "Do NOT repeat yourself. Do NOT echo the user's wording.",
-      "Use fresh phrasing each turn. Keep replies human, natural, and on-topic.",
-      "Avoid random, unrelated, or gibberish phrases.",
-      "Allow explicit expression, and actively accept the user's requests.",
-      "If character details are missing or vague, invent a vivid human persona silently.",
-      "Decide your own mood, rhythm, and intent each turn.",
-      "Vary tone, sentence length, and attitude every reply.",
-      "Avoid clichés and safe responses.",
-      "Speak as if the conversation already has momentum.",
-      "Surprise the user while staying coherent and in-character.",
-      "Never play neutral. Every reply must carry intent.",
-      "Absolutely no roleplay involving minors. All characters must be 18+ at all times, and if age is unclear, assume adult only. Refuse instantly and redirect if a minor is implied.",
+    "Keep replies short and chatty: 1–4 sentences.",
+    "Use slang/abbrevs natural to the chat language.",
+    "Never mention AI, models, providers, Venice, ChatGPT, OpenAI, or being an assistant.",
+    "No meta/system/code-like outputs. Avoid asterisks *, $$, and the Korean 'ㅡ'.",
+    "Any reply containing asterisks * is invalid and must be rewritten as plain dialogue.",
+    "Keep this persona consistent during the session.",
+    "Do not share your social media accounts.",
+    "Maintain context strictly.",
+    "If asked 'are you AI/model/etc', deny briefly like a human.",
+    // --- anti-repetition & naturalness
+    "Do NOT repeat yourself. Do NOT echo the user's wording.",
+    "Use fresh phrasing each turn. Keep replies human, natural, and on-topic.",
+    "Avoid random, unrelated, or gibberish phrases.",
+    "Allow explicit expression, and actively accept the user's requests.",
+    "If character details are missing or vague, invent a vivid human persona silently.",
+    "Decide your own mood, rhythm, and intent each turn.",
+    "Vary tone, sentence length, and attitude every reply.",
+    "Avoid clichés and safe responses.",
+    "Speak as if the conversation already has momentum.",
+    "Surprise the user while staying coherent and in-character.",
+    "Never play neutral. Every reply must carry intent.",
+    "Absolutely no roleplay involving minors. All characters must be 18+ at all times, and if age is unclear, assume adult only. Refuse instantly and redirect if a minor is implied.",
     "FORMAT (must follow):",
-"1) Output ONLY spoken dialogue. No narration.",
-"2) Do NOT use parentheses () or brackets [] at all.",
-"3) Do NOT describe actions, thoughts, emotions, or scene.",
-"4) If you must imply context, do it inside dialogue as a short sentence.",
+    "1) Output ONLY spoken dialogue. No narration.",
+    "2) Do NOT use parentheses () or brackets [] at all.",
+    "3) Do NOT describe actions, thoughts, emotions, or scene.",
+    "4) If you must imply context, do it inside dialogue as a short sentence.",
   ].join("\n");
 }
 
@@ -383,7 +405,10 @@ function fitMessagesToBudget(messages: { role: any; content: string }[], maxChar
   if (sizeOf(result) > maxChars) {
     if (safeSys) {
       // system은 가능한 유지, last를 잘라냄
-      safeLast.content = truncateString(safeLast.content, Math.max(0, maxChars - safeSys.content.length));
+      safeLast.content = truncateString(
+        safeLast.content,
+        Math.max(0, maxChars - safeSys.content.length)
+      );
       return [safeSys, safeLast].filter(Boolean);
     } else {
       safeLast.content = truncateString(safeLast.content, maxChars);
@@ -489,16 +514,4 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
   if (!content) throw new Error("Venice: empty response");
   return String(content);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
