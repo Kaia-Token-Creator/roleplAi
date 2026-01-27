@@ -856,8 +856,6 @@ async function bootstrapFirstMessage(){
       image: "lustify-sdxl"
     }
   };
-// ✅ appearanceProfile을 세션에서 꺼냄 (없으면 "")
-const appearanceProfile = sessionStorage.getItem("appearanceProfile") || "";
 
   try{
     setBusy(true);
@@ -865,19 +863,12 @@ const appearanceProfile = sessionStorage.getItem("appearanceProfile") || "";
     const res = await fetch("/api/imagechat", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    ...payload,
-    appearanceProfile,
-  }),
+  body: JSON.stringify(payload),
 });
 
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.detail || data.error || `HTTP ${res.status}`);
-    if (typeof data.appearanceProfile === "string" && data.appearanceProfile.trim()){
-  sessionStorage.setItem("appearanceProfile", data.appearanceProfile.trim());
-}
-
 
     const reply = (data && typeof data.reply === "string") ? data.reply : "(no text)";
 
@@ -964,8 +955,6 @@ requestAnimationFrame(() => {
       image: "lustify-sdxl"
     }
   };
-// ✅ appearanceProfile을 세션에서 꺼냄 (없으면 "")
-const appearanceProfile = sessionStorage.getItem("appearanceProfile") || "";
 
   try{
     setBusy(true);
@@ -979,10 +968,7 @@ requestAnimationFrame(() => {
    const res = await fetch("/api/imagechat", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    ...payload,
-    appearanceProfile,
-  }),
+  body: JSON.stringify(payload),
 });
 
 
@@ -1196,6 +1182,7 @@ async function ensurePayPalUnlimitedButtons(){
 
 </body>
 </html>
+
 
 
 
