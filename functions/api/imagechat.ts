@@ -699,6 +699,7 @@ async function callVeniceImageGenerate(
       safe_mode: args.safe_mode ?? true,
       variants: args.variants ?? 1,
       return_binary: false,
+      hide_watermark: true,
     }),
   });
 
@@ -712,3 +713,4 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
