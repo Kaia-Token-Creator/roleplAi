@@ -936,7 +936,7 @@ body.chatMode #viewChat .chatFooter{
             </div>
 
             <div>
-  <label for="nickname">What should the character call you?</label>
+  <label for="nickname">What should the character call you? <span style="color: #fff;">(required)</span></label>
   <input id="nickname" name="nickname" type="text" maxlength="30" placeholder="e.g., babe, buddy, captain, darling" />
 </div>
 
@@ -2090,6 +2090,13 @@ form.addEventListener("submit", (e) => {
     return;
   }
 
+ const nicknameVal = $("#nickname").value.trim();
+if (!nicknameVal){
+  $("#nickname").focus();
+  return;
+}
+  
+
   const tier = (form.querySelector('input[name="tier"]:checked') || {}).value || "general";
 
   const session = {
@@ -2346,6 +2353,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
