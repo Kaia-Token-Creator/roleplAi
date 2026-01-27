@@ -949,7 +949,6 @@ async function bootstrapFirstMessage(){
   };
 
   try{
-    setBusy(true);
 
     const appearanceProfile = sessionStorage.getItem("appearanceProfile") || "";
 
@@ -1069,7 +1068,6 @@ requestAnimationFrame(() => {
 });
 
 
-    const appearanceProfile = sessionStorage.getItem("appearanceProfile") || "";
 
 const res = await fetch("/api/imagechat", {
   method: "POST",
@@ -1086,6 +1084,10 @@ const data = await res.json().catch(() => ({}));
 if (!res.ok) {
   // ✅ 서버에서 내려준 진짜 에러 메시지 확인용
   throw new Error(data.detail || data.error || `HTTP ${res.status}`);
+}
+
+    if (typeof data.appearanceProfile === "string" && data.appearanceProfile.trim()) {
+  sessionStorage.setItem("appearanceProfile", data.appearanceProfile.trim());
 }
 
     // Expected server response shape (you’ll implement in /functions/api/imagechat.ts):
@@ -1267,6 +1269,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
