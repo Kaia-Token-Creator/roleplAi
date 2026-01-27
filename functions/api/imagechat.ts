@@ -444,25 +444,27 @@ async function makeImagePlanWithTextModel(
   };
 
   const plannerUser = {
-    role: "user",
-    content: [
-      "Character:",
-      `Name=${ch.name}; Age=${ch.age}; Gender=${ch.gender}; MBTI=${ch.mbti}; Language=${ch.language}`,
-      `Personality=${ch.personality}`,
-      `Scenario=${ch.scenario}`,
-      "",
-      "Recent history (latest last):",
-      ...history.slice(-10).map((m) => `${m.role}: ${String(m.content || "").trim()}`),
-      "",
-      "User message:",
-      userMessage,
-      "",
-      "Assistant reply (already generated):",
-      lastAssistant,
-      "",
-      "Decide and output JSON only.",
-    ].join("\n"),
-  };
+  role: "user",
+  content: [
+    "Character:",
+    `Name=${ch.name}; Age=${ch.age}; Gender=${ch.gender}; MBTI=${ch.mbti}; Language=${ch.language}`,
+    `Personality=${ch.personality}`,
+    `Scenario=${ch.scenario}`,
+    ch.appearanceProfile ? `AppearanceProfile=${ch.appearanceProfile}` : "AppearanceProfile=",
+    "",
+    "Recent history (latest last):",
+    ...history.slice(-10).map((m) => `${m.role}: ${String(m.content || "").trim()}`),
+    "",
+    "User message:",
+    userMessage,
+    "",
+    "Assistant reply (already generated):",
+    lastAssistant,
+    "",
+    "Decide and output JSON only.",
+  ].join("\n"),
+};
+
 
   const raw = await callVeniceChat(apiKey, [plannerSystem, plannerUser], maxTokens);
 
@@ -509,18 +511,19 @@ async function makeForcedPromptWithTextModel(
   };
 
   const user = {
-    role: "user",
-    content: [
-      `Character: Name=${ch.name}; Age=${ch.age}; Gender=${ch.gender}; Personality=${ch.personality}; Scenario=${ch.scenario}`,
-      "Recent history (latest last):",
-      ...history.slice(-10).map((m) => `${m.role}: ${String(m.content || "").trim()}`),
-      "",
-      `User message: ${userMessage}`,
-      `Assistant reply: ${lastAssistant}`,
-      "",
-      "Generate the best possible image prompt for what the user is asking to see.",
-    ].join("\n"),
-  };
+  role: "user",
+  content: [
+    `Character: Name=${ch.name}; Age=${ch.age}; Gender=${ch.gender}; Personality=${ch.personality}; Scenario=${ch.scenario}`,
+    ch.appearanceProfile ? `AppearanceProfile: ${ch.appearanceProfile}` : "AppearanceProfile:",
+    "Recent history (latest last):",
+    ...history.slice(-10).map((m) => `${m.role}: ${String(m.content || "").trim()}`),
+    "",
+    `User message: ${userMessage}`,
+    `Assistant reply: ${lastAssistant}`,
+    "",
+    "Generate the best possible image prompt for what the user is asking to see.",
+  ].join("\n"),
+};
 
   const raw = await callVeniceChat(apiKey, [sys, user], maxTokens);
   return String(raw || "").trim();
@@ -601,7 +604,7 @@ function looksLikeDataImageUrl(s: string) {
 // ✅ NEW: decide if prompt likely includes a person; if not, skip appearance hint
 function promptLikelyHasPerson(prompt: string) {
   const p = (prompt || "").toLowerCase();
-  return /\b(person|woman|man|girl|boy|adult|female|male|model|portrait|selfie|couple|nude|body|figure)\b/.test(p);
+  return /\b(person|human|woman|man|female|male|adult|model|portrait|selfie|couple|nude|body|figure|girl|boy|she|her|him|he)\b/.test(p);
 }
 
 // ✅ CHANGED: actually apply appearance hint when relevant
@@ -609,14 +612,12 @@ function buildImagePromptWithAvatarHint(basePrompt: string, ch: any) {
   const ap = String(ch?.appearanceProfile || "").trim();
   if (!ap) return basePrompt;
 
-  // Only apply if prompt likely depicts a person
   if (!promptLikelyHasPerson(basePrompt)) return basePrompt;
 
   return [
+    `Subject must match these traits: ${ap}`, // ✅ 앞에 박아넣기
     basePrompt.trim(),
-    "",
-    "Identity consistency (use as soft constraints, do not add text/logos):",
-    ap,
+    "No text, no watermark, no logo."
   ].join("\n");
 }
 
@@ -627,9 +628,8 @@ async function extractAppearanceFromAvatar(apiKey: string, avatarDataUrl: string
     content: [
       "You are extracting stable visual traits from a single profile photo for consistent depiction in generated images.",
       "Return ONLY ONE line of plain text, no JSON, no lists, no extra commentary.",
-      "Include: apparent ethnicity/skin tone (cautiously), hair color, hair style/length, eye color if visible, facial hair, and 1-2 notable facial features.",
-      "Do NOT mention age numbers, do NOT mention minors; assume adult. Do NOT add names. Do NOT add speculation beyond visible traits.",
-      "Example format: 'adult, East Asian appearance, light-medium skin tone, long straight black hair, brown eyes, no facial hair, defined eyebrows'.",
+      "Include: hair color, hair style/length, eye color if visible, facial hair, and 1-2 notable facial features.",
+      "Do NOT mention age numbers. Do NOT add names. Do NOT add speculation beyond visible traits."
     ].join("\n"),
   };
 
@@ -641,20 +641,27 @@ async function extractAppearanceFromAvatar(apiKey: string, avatarDataUrl: string
     ],
   };
 
-  // Note: callVeniceChat already posts to the same endpoint. It can carry multimodal content as-is.
-  const raw = await callVeniceChat(apiKey, [sys, user], maxTokens);
+  // ✅ IMPORTANT: use a vision-capable model (example in docs shows qwen-2.5-vl)
+  const raw = await callVeniceChat(apiKey, [sys, user], maxTokens, "qwen-2.5-vl");
   return String(raw || "").trim();
 }
 
+
 // ---------------- Venice: chat (text / multimodal) ----------------
-async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number) {
+// ---------------- Venice: chat (text / multimodal) ----------------
+async function callVeniceChat(
+  apiKey: string,
+  messages: any[],
+  maxTokens: number,
+  model: string = "venice-uncensored"   // ✅ NEW: default
+) {
   if (!apiKey) throw new Error("Missing VENICE_API_KEY");
 
   const res = await fetch("https://api.venice.ai/api/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "venice-uncensored",
+      model, // ✅ CHANGED
       messages,
       stream: false,
       temperature: 0.92,
@@ -674,6 +681,7 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
   if (!content) throw new Error("Venice: empty response");
   return String(content);
 }
+
 
 // ---------------- Venice: image generate ----------------
 async function callVeniceImageGenerate(
@@ -720,4 +728,5 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
