@@ -856,18 +856,28 @@ async function bootstrapFirstMessage(){
       image: "lustify-sdxl"
     }
   };
+// ✅ appearanceProfile을 세션에서 꺼냄 (없으면 "")
+const appearanceProfile = sessionStorage.getItem("appearanceProfile") || "";
 
   try{
     setBusy(true);
 
     const res = await fetch("/api/imagechat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    ...payload,
+    appearanceProfile,
+  }),
+});
+
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.detail || data.error || `HTTP ${res.status}`);
+    if (typeof data.appearanceProfile === "string" && data.appearanceProfile.trim()){
+  sessionStorage.setItem("appearanceProfile", data.appearanceProfile.trim());
+}
+
 
     const reply = (data && typeof data.reply === "string") ? data.reply : "(no text)";
 
@@ -954,28 +964,37 @@ requestAnimationFrame(() => {
       image: "lustify-sdxl"
     }
   };
+// ✅ appearanceProfile을 세션에서 꺼냄 (없으면 "")
+const appearanceProfile = sessionStorage.getItem("appearanceProfile") || "";
 
   try{
     setBusy(true);
 
   // ✅ 입력창 disabled 등 레이아웃 확정된 다음에 한 번 더 바닥 고정
-setBusy(true);
 requestAnimationFrame(() => {
   chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "auto" });
 });
 
 
-    const res = await fetch("/api/imagechat", {
+   const res = await fetch("/api/imagechat", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload),
+  body: JSON.stringify({
+    ...payload,
+    appearanceProfile,
+  }),
 });
+
 
 const data = await res.json().catch(() => ({}));
 
 if (!res.ok) {
   // ✅ 서버에서 내려준 진짜 에러 메시지 확인용
   throw new Error(data.detail || data.error || `HTTP ${res.status}`);
+}
+// ✅ 서버가 내려준 appearanceProfile 저장
+if (typeof data.appearanceProfile === "string" && data.appearanceProfile.trim()) {
+  sessionStorage.setItem("appearanceProfile", data.appearanceProfile.trim());
 }
 
     // Expected server response shape (you’ll implement in /functions/api/imagechat.ts):
@@ -1177,6 +1196,7 @@ async function ensurePayPalUnlimitedButtons(){
 
 </body>
 </html>
+
 
 
 
