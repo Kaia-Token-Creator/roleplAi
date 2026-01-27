@@ -844,6 +844,7 @@ async function bootstrapFirstMessage(){
       height: session.height,
       weight: session.weight,
       mbti: session.mbti,
+      appearance: session.appearance || "",
       personality: session.personality || "",
       scenario: session.scenario || "",
       fontColor: session.fontColor || "#ffffff",
@@ -943,6 +944,7 @@ requestAnimationFrame(() => {
       height: session.height,
       weight: session.weight,
       mbti: session.mbti,
+      appearance: session.appearance || "",
       personality: session.personality || "",
       scenario: session.scenario || "",
       fontColor: session.fontColor || "#ffffff",
@@ -1182,6 +1184,7 @@ async function ensurePayPalUnlimitedButtons(){
 
 </body>
 </html>
+
 
 
 
