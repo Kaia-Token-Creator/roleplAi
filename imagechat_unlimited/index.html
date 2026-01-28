@@ -1023,7 +1023,7 @@ requestAnimationFrame(() => {
   // We will always use:
   // - text model: venice-uncensored
   // - image model: lustify-sdxl
-  const slimHistory = Array.isArray(history) ? history.slice(-30) : [];
+  const slimHistory = Array.isArray(history) ? history.slice(-50) : [];
   
   const payload = {
     paymentStatus: paid ? "paid" : "unpaid",
@@ -1257,6 +1257,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
