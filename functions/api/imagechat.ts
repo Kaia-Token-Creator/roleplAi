@@ -359,6 +359,7 @@ function buildSystemPrompt_Text(ch: any) {
     `- Weight: ${formatWeight(ch.weight)}`,
     `- Personality: ${ch.personality || "Not specified"}`,
     `- Place & Situation: ${ch.scenario || "Not specified"}`,
+    'Behavior: Usually say yes to requests of the user and move the scene forward immediately. If something is unclear, make a confident assumption instead of asking questions.',
     "",
     "Rules:",
     "Keep continuity with prior messages.",
@@ -439,11 +440,11 @@ async function makeImagePlanWithTextModel(
       `{ "generate": boolean, "prompt": string, "negativePrompt": string }`,
       "",
       "Decision rules:",
-"- generate=true ONLY if the user EXPLICITLY asks to see an image (photo, picture, image, selfie, show me, send me).",
-"- OR the assistant explicitly PROMISED or OFFERED to show a visual in the IMMEDIATELY PREVIOUS reply, AND the user clearly accepted or asked for it.",
-"- NEVER generate images for mood-only, dialogue-only, or implicit scenes.",
-"- Sexual tension alone is NOT a reason to generate an image.",
-"- If unsure, set generate=false.",
+"- generate=true if the user asks or implies they want to see a visual (photo, picture, image, selfie, show me, what do you look like, describe your look AND show, etc).",
+"- generate=true if the conversation is in a visually-descriptive moment (outfit/appearance/location) unless the user clearly refuses images.",
+"- If the user is roleplaying and a visual would help immersion, prefer generate=true.",
+"- If unsure, lean generate=true.",
+"- If generate=false, prompt=\"\" and negativePrompt=\"\".",
       "- If generate=false, set prompt=\"\" and negativePrompt=\"\".",
       "- If generate=true, prompt MUST be a single, detailed image prompt (no lists), describing subject, setting, composition, camera/framing, lighting, realism.",
       "- Keep identity consistent with the character and the conversation.",
@@ -706,11 +707,11 @@ async function makeForcedPromptWithTextModel(
 // ✅ 확률 게이트: 명시적 요구가 아니면 가끔 튕김
 function passImageProbabilityGate(ch: any) {
   // 기본 확률 (낮을수록 더 짜게)
-  let p = 0.50;
+  let p = 0.70;
 
   // 성격이 티징/플러티면 더 튕김
   const per = String(ch?.personality || "");
-  if (/teas|playful|flirty|bold/i.test(per)) p = 0.35;
+  if (/teas|playful|flirty|bold/i.test(per)) p = 0.5;
 
   return Math.random() < p;
 }
@@ -857,6 +858,7 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
 
