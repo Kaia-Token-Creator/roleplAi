@@ -120,7 +120,8 @@ const systemPrompt = buildSystemPrompt_Text(chForPrompt);
     const fitted = fitMessagesToBudget(messagesBeforeFit, MAX_PROMPT_CHARS);
 
     const replyRaw = await callVeniceChat(env.VENICE_API_KEY, fitted, MAX_TOKENS_TEXT);
-    const reply = truncateReply(replyRaw, MAX_REPLY_CHARS);
+let reply = truncateReply(replyRaw, MAX_REPLY_CHARS);
+
 
     // 2) 사진 판단 + 프롬프트 생성: 텍스트 모델이 JSON으로 내리도록 (강건 파서 적용)
     let plan: { generate: boolean; prompt: string; negativePrompt?: string } = { generate: false, prompt: "" };
@@ -154,6 +155,31 @@ const systemPrompt = buildSystemPrompt_Text(chForPrompt);
         }
       }
     }
+
+ // ✅ 확률 게이트: 명시적 이미지 요구가 아니면 가끔 튕기기
+if (plan.generate === true && !userExplicitlyAsksImage(userMsg)) {
+  if (!passImageProbabilityGate(ch)) {
+    plan = { generate: false, prompt: "", negativePrompt: "" };
+
+    // ✅ 옵션 B: 생성형 튕김 멘트 1줄 생성
+    const teaseLine = await makeTeaseLineWithTextModel(env.VENICE_API_KEY, {
+      character: ch,
+      userMessage: userMsg,
+      lastAssistant: reply,
+      history,
+      maxTokens: 60,
+    });
+
+    // ✅ reply가 너무 길면 교체, 아니면 뒤에 한 줄 붙이기
+    if ((reply || "").length > 520) {
+      reply = teaseLine;
+    } else if (teaseLine) {
+      reply = (reply || "").trim() + "\n" + teaseLine;
+    }
+  }
+}
+
+   
 
     // 3) 이미지 생성
     let image: null | { mime: "image/webp" | "image/png" | "image/jpeg"; b64: string } = null;
@@ -413,7 +439,11 @@ async function makeImagePlanWithTextModel(
       `{ "generate": boolean, "prompt": string, "negativePrompt": string }`,
       "",
       "Decision rules:",
-      "- generate=true ONLY when the scene clearly benefits from a visual OR the user is asking to see something.",
+"- generate=true ONLY if the user EXPLICITLY asks to see an image (photo, picture, image, selfie, show me, send me).",
+"- OR the assistant explicitly PROMISED or OFFERED to show a visual in the IMMEDIATELY PREVIOUS reply, AND the user clearly accepted or asked for it.",
+"- NEVER generate images for mood-only, dialogue-only, or implicit scenes.",
+"- Sexual tension alone is NOT a reason to generate an image.",
+"- If unsure, set generate=false.",
       "- If generate=false, set prompt=\"\" and negativePrompt=\"\".",
       "- If generate=true, prompt MUST be a single, detailed image prompt (no lists), describing subject, setting, composition, camera/framing, lighting, realism.",
       "- Keep identity consistent with the character and the conversation.",
@@ -422,7 +452,7 @@ async function makeImagePlanWithTextModel(
       "- If user requests something illegal or disallowed, set generate=false.",
       "",
       "Important:",
-      "- Use the conversation context to infer what the image should show.",
+      "- Use the conversation context only to refine WHAT to show, never WHETHER to show.",
       "- The prompt should stand alone (it will be sent directly to an image model).",
     ].join("\n"),
   };
@@ -464,11 +494,171 @@ async function makeImagePlanWithTextModel(
 
 // ✅ 유저가 "사진/이미지"를 명시적으로 요구하는 경우 감지 (안전핀용)
 function userExplicitlyAsksImage(userMsg: string) {
-  const s = (userMsg || "").toLowerCase();
-  return (
-    /\b(photo|picture|pic|image|selfie|snapshot)\b/.test(s) ||
-    /\b(show me|can i see|let me see|send me)\b/.test(s)
-  );
+  const raw = String(userMsg || "").trim();
+  const s = raw.toLowerCase();
+
+  // 공통 강력 트리거 (언어 무관)
+  const universal = [
+    "📷", "🤳", "🖼️", "🖼", "📸",
+    "img", "image", "images", "pic", "pics", "photo", "photos", "selfie", "selfies",
+  ];
+
+  // 이미지 명사 (언어별)
+  const imageNouns: string[] = [
+    // English
+    "photo","picture","pic","image","selfie","snapshot","screenshot","portrait","wallpaper",
+
+    // Spanish
+    "foto","imagen","selfi","autofoto","captura","pantallazo","retrato",
+
+    // Chinese (Simplified / Traditional)
+    "照片","图片","圖片","相片","影像","自拍","截图","截圖","壁纸","壁紙",
+
+    // French
+    "photo","image","autoportrait","selfie","capture","portrait",
+
+    // Portuguese
+    "foto","imagem","autofoto","selfie","captura","print","retrato",
+
+    // German
+    "foto","bild","bilder","selbstfoto","selfie","screenshot","porträt",
+
+    // Japanese
+    "写真","画像","自撮り","スクショ","壁紙","イラスト",
+
+    // Italian
+    "foto","immagine","autofoto","selfie","screenshot","ritratto",
+
+    // Korean
+    "사진","이미지","그림","짤","셀카","스샷","스크린샷","캡처","화보",
+
+    // Dutch
+    "foto","afbeelding","plaatje","selfie","screenshot",
+
+    // Russian
+    "фото","фотка","изображение","картинка","селфи","скриншот",
+
+    // Arabic
+    "صورة","صور","سيلفي","لقطة","لقطة شاشة",
+
+    // Swedish
+    "foto","bild","selfie","skärmdump",
+
+    // Norwegian
+    "foto","bilde","selfie","skjermbilde",
+
+    // Danish
+    "foto","billede","selfie","skærmbillede",
+  ];
+
+  // 요청 동사 / 구문 (언어별)
+  const askPhrases: string[] = [
+    // English
+    "show me","let me see","can i see","send me","share","generate","make","create","draw","render",
+
+    // Spanish
+    "muéstrame","muestrame","déjame ver","dejame ver","envíame","mandame","genera","crea","haz","dibúja","dibujá",
+
+    // Chinese
+    "给我看","让我看看","发我","发给我","生成","做一张","画一张",
+
+    // French
+    "montre-moi","montre moi","laisse-moi voir","envoie-moi","génère","genere","crée","cree","dessine",
+
+    // Portuguese
+    "mostra","me mostra","deixa eu ver","envia","manda","gera","cria","faz","desenha",
+
+    // German
+    "zeig mir","lass mich sehen","schick mir","sende mir","generiere","mach","erstelle","zeichne",
+
+    // Japanese
+    "見せて","見せてよ","送って","作って","生成して","描いて",
+
+    // Italian
+    "fammi vedere","mostrami","inviami","mandami","genera","crea","fai","disegna",
+
+    // Korean
+    "보여줘","보여 줘","보여줄래","보여 봐","보고싶어","보고 싶어",
+    "보내줘","생성해","만들어","그려줘",
+
+    // Dutch
+    "laat me zien","stuur me","maak","genereer","teken",
+
+    // Russian
+    "покажи","покажи мне","пришли","скинь","сгенерируй","сделай","нарисуй",
+
+    // Arabic
+    "أرني","وريني","خليني أشوف","ابعث","ارسل","أرسل","أنشئ","اصنع","ارسم",
+
+    // Swedish
+    "visa mig","skicka","skapa","generera","rita",
+
+    // Norwegian
+    "vis meg","send","lag","generer","tegn",
+
+    // Danish
+    "vis mig","send","lav","generer","tegn",
+  ];
+
+  // 매칭 로직
+  const hasUniversal = universal.some(t => raw.includes(t) || s.includes(t));
+  const hasNoun = imageNouns.some(t => (t === t.toLowerCase() ? s.includes(t) : raw.includes(t)));
+  const hasAsk = askPhrases.some(t => (t === t.toLowerCase() ? s.includes(t) : raw.includes(t)));
+
+  // 영어 imagine 오탐 방지
+  if (/\bimagine\b/.test(s) && !(hasAsk && hasNoun)) return false;
+
+  // 최종 판정
+  return (hasAsk && hasNoun) || hasUniversal;
+}
+
+
+// ✅ 게이트로 이미지가 막혔을 때 "생성형 튕김 멘트" 1줄 만들기
+async function makeTeaseLineWithTextModel(
+  apiKey: string,
+  args: {
+    character: any;
+    userMessage: string;
+    lastAssistant: string;
+    history: { role: string; content: string }[];
+    maxTokens: number;
+  }
+): Promise<string> {
+  const { character: ch, userMessage, lastAssistant, history, maxTokens } = args;
+
+  const sys = {
+    role: "system",
+    content: [
+      "Write ONE short spoken dialogue line that playfully refuses to show an image for now.",
+      "It must match the character's personality and scenario.",
+      "No narration. No brackets. No parentheses.",
+      "Do not mention AI, models, providers, Venice, or policies.",
+      "Keep it very short (1 sentence).",
+      "If the character language is Korean, write in Korean.",
+      "Make it feel teasing and in-character.",
+      "Return ONLY the dialogue line.",
+    ].join("\n"),
+  };
+
+  const user = {
+    role: "user",
+    content: [
+      `Character: Name=${ch.name}; Language=${ch.language}; Personality=${ch.personality}; Scenario=${ch.scenario}`,
+      "Recent history (latest last):",
+      ...history.slice(-6).map((m) => `${m.role}: ${String(m.content || "").trim()}`),
+      "",
+      `User message: ${userMessage}`,
+      `Assistant reply: ${lastAssistant}`,
+      "",
+      "Return only one line of spoken dialogue.",
+    ].join("\n"),
+  };
+
+  const raw = await callVeniceChat(apiKey, [sys, user], maxTokens);
+
+  // ✅ 안전: 너무 길면 잘라서 1줄로
+  const line = String(raw || "").trim().split("\n").filter(Boolean)[0] || "";
+  return line.slice(0, 140);
 }
 
 // ✅ 유저가 명시 요구했는데 planner가 prompt를 비워버리면: 텍스트 모델로 prompt만 생성
@@ -512,6 +702,19 @@ async function makeForcedPromptWithTextModel(
   const raw = await callVeniceChat(apiKey, [sys, user], maxTokens);
   return String(raw || "").trim();
 }
+
+// ✅ 확률 게이트: 명시적 요구가 아니면 가끔 튕김
+function passImageProbabilityGate(ch: any) {
+  // 기본 확률 (낮을수록 더 짜게)
+  let p = 0.50;
+
+  // 성격이 티징/플러티면 더 튕김
+  const per = String(ch?.personality || "");
+  if (/teas|playful|flirty|bold/i.test(per)) p = 0.35;
+
+  return Math.random() < p;
+}
+
 
 // ---------------- budget helpers ----------------
 function fitMessagesToBudget(messages: { role: any; content: string }[], maxChars: number) {
@@ -654,5 +857,6 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
