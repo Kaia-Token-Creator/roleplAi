@@ -859,7 +859,7 @@ async function callVeniceImageGenerate(
 
   if (!res.ok) {
     const t = await res.text();
-    throw new Error(`Venice image error (${res.status}): ${t.slice(0, 800)}`);
+    throw new Error(`image error (${res.status}): ${t.slice(0, 800)}`);
   }
 
   const data: any = await res.json();
@@ -867,6 +867,7 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
 
