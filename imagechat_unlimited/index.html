@@ -1023,6 +1023,8 @@ requestAnimationFrame(() => {
   // We will always use:
   // - text model: venice-uncensored
   // - image model: lustify-sdxl
+  const slimHistory = Array.isArray(history) ? history.slice(-30) : [];
+  
   const payload = {
     paymentStatus: paid ? "paid" : "unpaid",
     message: text,
@@ -1042,7 +1044,7 @@ requestAnimationFrame(() => {
       avatarDataUrl: session.avatarDataUrl || "",
       tier: "uncensored"
     },
-    history,
+    history: slimHistory, 
     models: {
       text: "venice-uncensored",
       image: "lustify-sdxl"
@@ -1255,6 +1257,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
