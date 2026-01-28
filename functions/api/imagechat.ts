@@ -45,10 +45,10 @@ export const onRequestPost: PagesFunction<{
     const MAX_TOKENS_TEXT = 500;
 
     // image plan tokens (same text model, separate call)
-    const MAX_TOKENS_IMAGE_PLAN = 260;
+    const MAX_TOKENS_IMAGE_PLAN = 300;
 
     // if user explicitly asks for an image and plan prompt is empty, generate forced prompt via text model
-    const MAX_TOKENS_IMAGE_FORCED_PROMPT = 220;
+    const MAX_TOKENS_IMAGE_FORCED_PROMPT = 250;
     // ---------------------------------------
 
     // ✅ body는 딱 1번만 읽어야 함
@@ -867,6 +867,7 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
 
