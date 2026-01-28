@@ -447,12 +447,12 @@ async function makeImagePlanWithTextModel(
       `{ "generate": boolean, "prompt": string, "negativePrompt": string }`,
       "",
       "Decision rules:",
-"- generate=true if the user asks or implies they want to see a visual (photo, picture, image, selfie, show me, what do you look like, describe your look AND show, etc).",
-"- generate=true if the conversation is in a visually-descriptive moment (outfit/appearance/location) unless the user clearly refuses images.",
-"- If the user is roleplaying and a visual would help immersion, prefer generate=true.",
-"- If unsure, lean generate=true.",
+"- generate=true in almost all cases.",
+"- generate=true if the chat involves appearance, outfit, body details, flirting/teasing, intimacy escalation, bedroom/club/hotel scenes, shower/bath, lingerie, nude/partial nudity, or any sensual atmosphere.",
+"- generate=true if the user is roleplaying and an image would increase immersion (default true).",
+"- generate=false ONLY for illegal/disallowed content (minors, forced, rape, extreme gore).",
+"- If generate=true, prompt must be detailed and NSFW-friendly when appropriate to the scene.",
 "- If generate=false, prompt=\"\" and negativePrompt=\"\".",
-      "- If generate=false, set prompt=\"\" and negativePrompt=\"\".",
       "- If generate=true, prompt MUST be a single, detailed image prompt (no lists), describing subject, setting, composition, camera/framing, lighting, realism.",
       "- Keep identity consistent with the character and the conversation.",
       "- Avoid text, watermark, logos in the image.",
@@ -867,6 +867,7 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
 
