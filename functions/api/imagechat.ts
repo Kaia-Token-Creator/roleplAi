@@ -92,7 +92,13 @@ export const onRequestPost: PagesFunction<{
     const ch = sanitizeCharacter(characterRaw);
 
 // ✅ 템플릿 수정 없이 appearance를 프롬프트에 포함시키기
-const chForPrompt = {
+const INTIMACY_RAMP_RULES =
+  "Gradually increase intimacy over turns.\n" +
+  "Start subtle and escalate only if the user reciprocates.\n" +
+  "Favor teasing, implication, and charged dialogue over explicit description.\n" +
+  "Never rush escalation.";
+    
+    const chForPrompt = {
   ...ch,
   personality: ch.appearance
     ? `${ch.personality}\nAppearance: ${ch.appearance}`
@@ -708,11 +714,11 @@ async function makeForcedPromptWithTextModel(
 // ✅ 확률 게이트: 명시적 요구가 아니면 가끔 튕김
 function passImageProbabilityGate(ch: any) {
   // 기본 확률 (낮을수록 더 짜게)
-  let p = 0.70;
+  let p = 0.60;
 
   // 성격이 티징/플러티면 더 튕김
   const per = String(ch?.personality || "");
-  if (/teas|playful|flirty|bold/i.test(per)) p = 0.5;
+  if (/teas|playful|flirty|bold/i.test(per)) p = 0.4;
 
   return Math.random() < p;
 }
@@ -859,6 +865,7 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
 
