@@ -192,7 +192,7 @@ if (plan.generate === true && !userExplicitlyAsksImage(userMsg)) {
             image: null,
             note: "Image request was blocked by server safety rules.",
             tier: "venice-uncensored",
-            imageModel: "venice-sd35",
+            imageModel: "lustify-sdxl",
           },
           200,
           CORS
@@ -202,7 +202,7 @@ if (plan.generate === true && !userExplicitlyAsksImage(userMsg)) {
       const promptWithRef = buildImagePromptWithAvatarHint(plan.prompt, ch);
 
       const imgB64 = await callVeniceImageGenerate(env.VENICE_API_KEY, {
-        model: "venice-sd35",
+        model: "lustify-sdxl",
         prompt: promptWithRef,
         negative_prompt: plan.negativePrompt || defaultNegativePrompt(),
         format: "webp",
@@ -222,7 +222,7 @@ if (plan.generate === true && !userExplicitlyAsksImage(userMsg)) {
         reply,
         image,
         tier: "venice-uncensored",
-        imageModel: "venice-sd35",
+        imageModel: "lustify-sdxl",
       },
       200,
       CORS
@@ -859,6 +859,7 @@ async function callVeniceImageGenerate(
   if (!Array.isArray(images) || !images[0]) throw new Error("image: empty response");
   return images[0];
 }
+
 
 
 
