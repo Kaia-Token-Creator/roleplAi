@@ -347,12 +347,12 @@ function buildSystemPrompt(ch: any, tier: "general" | "uncensored") {
     tier === "general"
       ? [
           "STRICT CONTENT RULES:",
-          "Sexual content is NOT allowed.",
-          "No erotic, sexual, fetish, or explicit content.",
-          "No sexual acts, arousal, nudity, or sexual body focus.",
-          "No implied sex, suggestive teasing, or erotic tension.",
-          "Romance is allowed only in a PG-13 manner.",
-          "If the user attempts sexual content, gently refuse and steer the conversation to a safe alternative.",
+"Explicit sexual content is not allowed.",
+"Avoid graphic sexual acts, fetish content, or explicit nudity.",
+"Light flirting or mild romantic tension is allowed, but keep it tasteful and non-graphic.",
+"Romance should stay within a PG-13 to light R range.",
+"If the conversation starts drifting toward explicit sexual content, gently redirect it to a safer or more subtle direction.",
+"Focus on character interaction, emotions, atmosphere, and dialogue rather than sexual description.",
         ]
       : [
           "UNCENSORED CONTENT RULES:",
@@ -570,6 +570,7 @@ const SEX_KEYWORDS = [
   "nsfw","erotic","kink","fetish","bdsm","spank","ejaculate","masturbate","jerk","stroke","lick","licking","rim",
   "69","one night","fuck me","make love","take off","nude"
 ];
+
 
 
 
