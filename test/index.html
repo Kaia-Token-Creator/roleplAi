@@ -556,8 +556,22 @@ padding: 5px 8px;
   border: 1px solid #ff2fce;
   color: #000;
   font-weight: 900;
+  border-color: rgba(255, 204, 0, .65) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 204, 0, .30),
+    0 0 18px rgba(255, 204, 0, .35),
+    0 0 34px rgba(255, 204, 0, .22),
+    var(--shadow);
 }
-#unlockBtn:hover{ background:#ff6fe1; }
+#unlockBtn:hover{
+  background:#ff6fe1;
+  border-color: rgba(255, 204, 0, .85) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 204, 0, .38),
+    0 0 22px rgba(255, 204, 0, .50),
+    0 0 44px rgba(255, 204, 0, .28),
+    var(--shadow);
+}
 #unlockBtn:active{ background:#ff2fce; }
 
     /* New 버튼만 진한 노란색 */
@@ -2504,3 +2518,4 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
