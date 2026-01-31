@@ -110,9 +110,7 @@ export const onRequestPost: PagesFunction = async (ctx) => {
         prompt,
         duration,                  // "5s" | "10s"
         image_url: b.imageDataUrl, // URL or data URL (docs)
-        aspect_ratio: "16:9",
-        resolution: "720p",
-        audio: true,
+        resolution: "480p",
         negative_prompt: "low resolution, error, worst quality, low quality, defects",
       };
 
@@ -210,3 +208,4 @@ export const onRequestPost: PagesFunction = async (ctx) => {
     return json({ error: "Server error", detail: String(e?.message || e) }, { status: 500, headers: cors(origin) });
   }
 };
+
