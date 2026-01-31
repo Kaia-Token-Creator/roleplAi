@@ -1078,8 +1078,8 @@ function renderPayPalButtons(){
       appendMsg("assistant", `Payment complete. Generating ${duration} video...`, undefined, undefined, { animate: true });
 
       try{
-        await generateVideoFromSelectedImage({ duration, extraPrompt });
-      } catch(e){
+  await generateVideoFromSelectedImage({ duration, extraPrompt });
+}catch(e){
   appendMsg("assistant", `Error: ${prettyErr(e)}`);
 }
 
@@ -1622,4 +1622,5 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
