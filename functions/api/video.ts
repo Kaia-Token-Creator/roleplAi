@@ -1,74 +1,90 @@
 // functions/api/video.ts
-// Node/Vercel style serverless function
-// - POST { action: "queue", duration: "5s"|"10s", imageDataUrl: "data:image/..", prompt?: string }
-// - POST { action: "retrieve", model: string, queue_id: string }
-//
-// Uses Venice Video API:
-//   POST https://api.venice.ai/api/v1/video/queue
-//   POST https://api.venice.ai/api/v1/video/retrieve
-//
-// Docs:
-//   /video/queue  + duration options 5s/10s + image_url supports data URL :contentReference[oaicite:6]{index=6}
-//   /video/retrieve returns status PROCESSING or video when complete :contentReference[oaicite:7]{index=7}
+// Cloudflare Pages Functions
 
-type Json = Record<string, any>;
+type QueueBody = {
+  action: "queue";
+  duration?: "5s" | "10s";
+  imageDataUrl: string;
+  prompt?: string;
+};
 
-function json(res: any, status: number, data: Json) {
-  res.statusCode = status;
-  res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify(data));
+type RetrieveBody = {
+  action: "retrieve";
+  model: string;
+  queue_id: string;
+};
+
+function cors(origin?: string) {
+  // same-origin이면 사실 없어도 되지만, preflight/환경차로 405 나는 거 방지용
+  return {
+    "Access-Control-Allow-Origin": origin || "*",
+    "Access-Control-Allow-Methods": "POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+  };
+}
+
+function json(data: any, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(data), {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init.headers || {}),
+    },
+  });
 }
 
 function pickDuration(v: any): "5s" | "10s" {
   return v === "10s" ? "10s" : "5s";
 }
 
-function isDataUrl(s: any): boolean {
+function isDataUrl(s: any): s is string {
   return typeof s === "string" && s.startsWith("data:");
 }
 
-export default async function handler(req: any, res: any) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return json(res, 405, { error: "Method Not Allowed" });
+// ✅ OPTIONS preflight 대응 (없으면 405 뜨는 경우 많음)
+export const onRequestOptions: PagesFunction = async (ctx) => {
+  const origin = ctx.request.headers.get("Origin") || undefined;
+  return new Response(null, { status: 204, headers: cors(origin) });
+};
+
+export const onRequestPost: PagesFunction = async (ctx) => {
+  const origin = ctx.request.headers.get("Origin") || undefined;
+
+  let body: any;
+  try {
+    body = await ctx.request.json();
+  } catch {
+    return json({ error: "Invalid JSON body" }, { status: 400, headers: cors(origin) });
   }
 
-  const VENICE_API_KEY = process.env.VENICE_API_KEY;
-  if (!VENICE_API_KEY) {
-    return json(res, 500, { error: "Missing VENICE_API_KEY env var" });
+  const apiKey = (ctx.env as any)?.VENICE_API_KEY;
+  if (!apiKey) {
+    return json({ error: "Missing VENICE_API_KEY" }, { status: 500, headers: cors(origin) });
   }
-
-  let body: any = req.body;
-  // Some runtimes deliver body as string
-  if (typeof body === "string") {
-    try { body = JSON.parse(body); } catch {}
-  }
-  if (!body || typeof body !== "object") {
-    return json(res, 400, { error: "Invalid JSON body" });
-  }
-
-  const action = body.action;
 
   const baseURL = "https://api.venice.ai/api/v1";
   const headers = {
-    "Authorization": `Bearer ${VENICE_API_KEY}`,
+    "Authorization": `Bearer ${apiKey}`,
     "Content-Type": "application/json",
   };
 
   try {
-    if (action === "queue") {
-      const duration = pickDuration(body.duration);
-      const imageDataUrl = body.imageDataUrl;
+    // ---------------------------
+    // action: queue
+    // ---------------------------
+    if (body.action === "queue") {
+      const b = body as QueueBody;
+      const duration = pickDuration(b.duration);
 
-      if (!isDataUrl(imageDataUrl)) {
-        return json(res, 400, { error: "imageDataUrl must be a data: URL" });
+      if (!isDataUrl(b.imageDataUrl)) {
+        return json({ error: "imageDataUrl must be a data: URL" }, { status: 400, headers: cors(origin) });
       }
 
-      // Model from docs example (image-to-video)
-      // :contentReference[oaicite:8]{index=8}
-      const model = "grok-imagine-image-to-video";
+      // Venice image-to-video 모델 (docs 예시)
+      const model = "wan-2.5-preview-image-to-video";
 
-      const userPrompt = (typeof body.prompt === "string" ? body.prompt.trim() : "");
+      const userPrompt = typeof b.prompt === "string" ? b.prompt.trim() : "";
       const prompt =
         userPrompt.length > 0
           ? userPrompt.slice(0, 2500)
@@ -77,12 +93,11 @@ export default async function handler(req: any, res: any) {
       const payload = {
         model,
         prompt,
-        duration,                 // "5s" | "10s" :contentReference[oaicite:9]{index=9}
-        image_url: imageDataUrl,  // data URL supported :contentReference[oaicite:10]{index=10}
+        duration,                 // "5s" | "10s"
+        image_url: b.imageDataUrl, // data URL OK
         aspect_ratio: "16:9",
         resolution: "720p",
         audio: true,
-        // optional negative prompt (Venice default exists, but you can override)
         negative_prompt: "low resolution, error, worst quality, low quality, defects",
       };
 
@@ -92,26 +107,35 @@ export default async function handler(req: any, res: any) {
         body: JSON.stringify(payload),
       });
 
-      const data = await r.json().catch(() => ({}));
+      const data = await r.json().catch(() => ({} as any));
       if (!r.ok) {
-        return json(res, r.status, { error: data?.error || data?.detail || "Queue failed", detail: data });
+        return json(
+          { error: data?.error || data?.detail || "Queue failed", detail: data },
+          { status: r.status, headers: cors(origin) }
+        );
       }
 
-      // Response: { model, queue_id } :contentReference[oaicite:11]{index=11}
-      return json(res, 200, { model: data.model, queue_id: data.queue_id });
+      // expected: { model, queue_id }
+      return json({ model: data.model, queue_id: data.queue_id }, { status: 200, headers: cors(origin) });
     }
 
-    if (action === "retrieve") {
-      const model = body.model;
-      const queue_id = body.queue_id;
+    // ---------------------------
+    // action: retrieve
+    // ---------------------------
+    if (body.action === "retrieve") {
+      const b = body as RetrieveBody;
 
-      if (typeof model !== "string" || !model) return json(res, 400, { error: "Missing model" });
-      if (typeof queue_id !== "string" || !queue_id) return json(res, 400, { error: "Missing queue_id" });
+      if (!b.model || typeof b.model !== "string") {
+        return json({ error: "Missing model" }, { status: 400, headers: cors(origin) });
+      }
+      if (!b.queue_id || typeof b.queue_id !== "string") {
+        return json({ error: "Missing queue_id" }, { status: 400, headers: cors(origin) });
+      }
 
       const payload = {
-        model,
-        queue_id,
-        delete_media_on_completion: true, // recommended cleanup :contentReference[oaicite:12]{index=12}
+        model: b.model,
+        queue_id: b.queue_id,
+        delete_media_on_completion: true,
       };
 
       const r = await fetch(`${baseURL}/video/retrieve`, {
@@ -122,34 +146,41 @@ export default async function handler(req: any, res: any) {
 
       const ct = (r.headers.get("content-type") || "").toLowerCase();
 
-      // If still processing, Venice returns JSON with status PROCESSING :contentReference[oaicite:13]{index=13}
+      // JSON이면 그대로 전달 (PROCESSING 등)
       if (ct.includes("application/json")) {
-        const data = await r.json().catch(() => ({}));
+        const data = await r.json().catch(() => ({} as any));
         if (!r.ok) {
-          return json(res, r.status, { error: data?.error || data?.detail || "Retrieve failed", detail: data });
+          return json(
+            { error: data?.error || data?.detail || "Retrieve failed", detail: data },
+            { status: r.status, headers: cors(origin) }
+          );
         }
-        return json(res, 200, data);
+        return json(data, { status: 200, headers: cors(origin) });
       }
 
-      // If completed, Venice returns the video file (binary) (content-type likely video/mp4)
+      // 완료되면 바이너리(mp4 등)일 수 있음 → base64로 감싸서 프론트에 전달
       if (!r.ok) {
-        const errText = await r.text().catch(() => "");
-        return json(res, r.status, { error: "Retrieve failed (non-json)", detail: errText });
+        const txt = await r.text().catch(() => "");
+        return json({ error: "Retrieve failed (non-json)", detail: txt }, { status: r.status, headers: cors(origin) });
       }
 
-      const buf = Buffer.from(await r.arrayBuffer());
+      const ab = await r.arrayBuffer();
       const mime = ct && ct.includes("/") ? ct : "video/mp4";
-      const b64 = buf.toString("base64");
 
-      return json(res, 200, {
-        status: "COMPLETED",
-        video: { mime, b64 },
-      });
+      // Cloudflare 환경에선 Buffer가 없을 수 있어 직접 b64 변환
+      const bytes = new Uint8Array(ab);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const b64 = btoa(binary);
+
+      return json(
+        { status: "COMPLETED", video: { mime, b64 } },
+        { status: 200, headers: cors(origin) }
+      );
     }
 
-    return json(res, 400, { error: "Unknown action. Use 'queue' or 'retrieve'." });
+    return json({ error: "Unknown action. Use 'queue' or 'retrieve'." }, { status: 400, headers: cors(origin) });
   } catch (e: any) {
-    return json(res, 500, { error: "Server error", detail: String(e?.message || e) });
+    return json({ error: "Server error", detail: String(e?.message || e) }, { status: 500, headers: cors(origin) });
   }
-}
-
+};
