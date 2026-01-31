@@ -841,6 +841,23 @@
 </div>
 
 <script>
+  function prettyErr(e){
+  try{
+    if (!e) return "Unknown error";
+    if (e instanceof Error) return e.message || String(e);
+
+    // Venice/서버가 JSON으로 주는 에러 형태
+    if (typeof e === "object"){
+      if (e.error) return typeof e.error === "string" ? e.error : JSON.stringify(e.error);
+      if (e.detail) return typeof e.detail === "string" ? e.detail : JSON.stringify(e.detail);
+      if (e.message) return typeof e.message === "string" ? e.message : JSON.stringify(e.message);
+      return JSON.stringify(e);
+    }
+    return String(e);
+  }catch(_){
+    return String(e);
+  }
+}
 /* =========================
    Load character from main
    ========================= */
@@ -1062,14 +1079,14 @@ function renderPayPalButtons(){
 
       try{
         await generateVideoFromSelectedImage({ duration, extraPrompt });
-      }catch(e){
-        appendMsg("assistant", `Error: ${String(e?.message || e)}`);
-      }
+      } catch(e){
+  appendMsg("assistant", `Error: ${prettyErr(e)}`);
+}
+
     },
     onError: (err) => {
-      // optional: show error in chat
-      appendMsg("assistant", `PayPal error: ${String(err?.message || err)}`);
-    }
+  appendMsg("assistant", `PayPal error: ${prettyErr(err)}`);
+}
   }).render(paypalButtonsWrap);
 
   paypalRendered = true;
@@ -1092,21 +1109,26 @@ async function generateVideoFromSelectedImage({ duration, extraPrompt }){
   }
 
   // 1) queue
-  const qRes = await fetch("/api/video", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "queue",
-      duration,
-      imageDataUrl: selectedImageDataUrl,
-      prompt: extraPrompt || ""
-    })
-  });
+  // 1) queue
+const qRes = await fetch("/api/video", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    action: "queue",
+    duration,
+    imageDataUrl: selectedImageDataUrl,
+    prompt: extraPrompt || ""
+  })
+});
 
-  const qData = await qRes.json().catch(() => ({}));
-  if (!qRes.ok){
-    throw new Error(qData.detail || qData.error || `HTTP ${qRes.status}`);
-  }
+let qData = null;
+try { qData = await qRes.json(); } catch { qData = null; }
+
+if (!qRes.ok){
+  // 서버가 {error, detail} 주면 그걸 보여줌
+  throw (qData || { error: `HTTP ${qRes.status}` });
+}
+
 
   const model = qData.model;
   const queue_id = qData.queue_id;
@@ -1123,20 +1145,21 @@ async function generateVideoFromSelectedImage({ duration, extraPrompt }){
     await new Promise(r => setTimeout(r, pollEveryMs));
 
     const rRes = await fetch("/api/video", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "retrieve",
-        model,
-        queue_id
-      })
-    });
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    action: "retrieve",
+    model,
+    queue_id
+  })
+});
 
-    const ct = (rRes.headers.get("content-type") || "").toLowerCase();
-    const rData = await rRes.json().catch(() => ({}));
-    if (!rRes.ok){
-      throw new Error(rData.detail || rData.error || `HTTP ${rRes.status}`);
-    }
+let rData = null;
+try { rData = await rRes.json(); } catch { rData = null; }
+
+if (!rRes.ok){
+  throw (rData || { error: `HTTP ${rRes.status}` });
+}
 
     if (rData && rData.status === "PROCESSING"){
       // keep waiting
@@ -1350,7 +1373,7 @@ async function bootstrapFirstMessage(){
     saveHistory(history);
 
   } catch(e){
-    appendMsg("assistant", `Error: ${String(e?.message || e)}`);
+    appendMsg("assistant", `Error: ${prettyErr(e)}`);
     history.push({ role: "assistant", content: `Error: ${String(e?.message || e)}` });
     saveHistory(history);
   } finally {
@@ -1451,7 +1474,7 @@ async function send(){
     saveHistory(history);
 
   }catch(e){
-    appendMsg("assistant", `Error: ${String(e?.message || e)}`);
+    appendMsg("assistant", `Error: ${prettyErr(e)}`);
     history.push({ role: "assistant", content: `Error: ${String(e?.message || e)}` });
     saveHistory(history);
   }finally{
@@ -1599,3 +1622,4 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
