@@ -30,17 +30,6 @@ async function sleep(ms: number) {
   await new Promise((r) => setTimeout(r, ms));
 }
 
-function arrayBufferToBase64(buf: ArrayBuffer): string {
-  // ⚠️ 큰 영상이면 메모리 부담이 큼. 일단 “돌아가게” 용으로 유지.
-  const bytes = new Uint8Array(buf);
-  let binary = "";
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-  }
-  return btoa(binary);
-}
-
 export const onRequestOptions = async () => {
   return new Response(null, { status: 204, headers: withCors() });
 };
@@ -50,7 +39,6 @@ type VeniceRetrieveJson = { status?: string; video_url?: string; media_url?: str
 
 function isProcessingStatus(s: unknown) {
   const v = String(s || "").toUpperCase();
-  // Venice가 어떤 상태를 쓰든 여기서 넓게 처리
   return (
     v === "PROCESSING" ||
     v === "QUEUED" ||
@@ -81,7 +69,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // (B) { queue_id } -> 해당 queue_id로 retrieve만 시도 (프론트 폴링용)
     const queueIdFromClient = body?.queue_id;
 
+    // ⚠️ 모델명은 계정/문서에 따라 다를 수 있음.
+    // 실제로는 /api/v1/models?type=video 에서 가능한 모델을 확인하는 게 가장 확실.
     const model = "grok-imagine-image-to-video";
+
     const resolution =
       body?.quality === "480p" || body?.quality === "720p" || body?.quality === "1080p"
         ? body.quality
@@ -96,7 +87,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         env,
         model,
         queueId,
-        // poll-only 모드는 짧게: 25초 정도만 붙잡고, 아니면 202로 계속 폴링 유도
         maxWaitMs: 25_000,
         pollEveryMs: 2_000,
       });
@@ -186,8 +176,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     // 2) Try retrieve while keeping the request (짧게만)
-    // ⚠️ 플랫폼 타임아웃 때문에 3분 붙잡지 말고,
-    //     25~30초 정도만 기다렸다가 202로 queue_id를 줘서 프론트가 이어서 폴링하게 함.
     return await retrieveUntilDone({
       env,
       model,
@@ -224,7 +212,6 @@ async function retrieveUntilDone(opts: {
       }),
     });
 
-    // ✅ 먼저 ok 체크 (실패면 text로 읽어 에러 반환)
     if (!r.ok) {
       const t = await r.text().catch(() => "");
       return json(
@@ -235,20 +222,19 @@ async function retrieveUntilDone(opts: {
 
     const ct = (r.headers.get("content-type") || "").toLowerCase();
 
-    // JSON이면 상태 응답일 가능성
+    // 1) JSON이면 상태 응답일 가능성
     if (ct.includes("application/json")) {
       const j = (await r.json().catch(() => null)) as VeniceRetrieveJson | null;
       const status = j?.status;
 
-      // ✅ 계속 처리중이면 대기
       if (isProcessingStatus(status)) {
         await sleep(pollEveryMs);
         continue;
       }
 
-      // ✅ JSON에 url이 포함돼 오는 타입이면(벤더에 따라 가능) 그걸 사용
       const maybeUrl = j?.video_url || j?.media_url;
       if (typeof maybeUrl === "string" && maybeUrl.startsWith("http")) {
+        // ✅ URL을 주는 타입이면 그대로 반환 (프론트가 URL 재생 가능)
         return json({ videoUrl: maybeUrl, queue_id: queueId, status: status || "DONE" }, 200);
       }
 
@@ -256,37 +242,27 @@ async function retrieveUntilDone(opts: {
         return json({ error: "Venice reported terminal failure", queue_id: queueId, details: j }, 502);
       }
 
-      // 그 외: 알 수 없는 JSON
       return json(
         { error: "Venice retrieve returned unexpected JSON", queue_id: queueId, details: j },
         502
       );
     }
 
-    // JSON이 아니면 영상 바이너리라고 보고 처리
-    const videoBuf = await r.arrayBuffer();
-
-    // 너무 큰 영상은 base64로 터질 수 있음 (일단 가드)
-    const maxBytes = 12 * 1024 * 1024; // 12MB
-    if (videoBuf.byteLength > maxBytes) {
-      return json(
-        {
-          error: "Video too large to return as data URL. Use storage + URL approach.",
-          queue_id: queueId,
-          bytes: videoBuf.byteLength,
-        },
-        502
-      );
-    }
-
-    const videoB64 = arrayBufferToBase64(videoBuf);
+    // 2) JSON이 아니면: ✅ 여기서부터가 '교체'된 부분
+    //    기존 base64 변환/데이터URL 반환은 502(응답크기/메모리) 원인이 되기 쉬움
+    //    -> 비디오 바이너리를 그대로 스트리밍으로 프론트에 전달
     const videoMime = ct.startsWith("video/") ? ct.split(";")[0] : "video/mp4";
-    const videoDataUrl = `data:${videoMime};base64,${videoB64}`;
 
-    return json({ videoUrl: videoDataUrl, queue_id: queueId }, 200);
+    return new Response(r.body, {
+      status: 200,
+      headers: withCors({
+        "Content-Type": videoMime || "video/mp4",
+        "Cache-Control": "no-store",
+      }),
+    });
   }
 
-  // ✅ 짧게 기다렸는데 아직이면 202로 queue_id 반환 (프론트 폴링 유도)
+  // 아직이면 202로 queue_id 반환 (프론트 폴링 유도)
   return json(
     { status: "PROCESSING", queue_id: queueId, message: "Still generating. Poll with {queue_id}." },
     202
