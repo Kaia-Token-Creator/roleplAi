@@ -175,6 +175,13 @@
 
     .ok{ color:#4cff9a; display:none; font-size:13px; margin-top:8px; }
     .error{ color:#ff6b6b; display:none; font-size:13px; margin-top:8px; }
+
+    .qualityNote{
+  font-size:11px;
+  color:rgba(255,255,255,.55);
+  margin-top:4px;
+}
+
   </style>
 </head>
 
@@ -212,8 +219,10 @@
       <label class="pill"><input type="radio" name="dur" value="10" data-price="2">10s · $2</label>
     </div>
 
-    <label>Quality</label>
-    <div class="chip">480p (fixed)</div>
+   <div class="qualityNote">
+  Video will be generated in <b>480p</b>.
+</div>
+
 
     <div class="note">Price: <b id="price">$1.5</b></div>
 
@@ -304,5 +313,6 @@ async function generateVideo(){
 
 </body>
 </html>
+
 
 
