@@ -2357,7 +2357,7 @@ if (!nicknameVal){
       }
 
       clearPending();
-      window.location.href = "/imagechat/";
+      window.location.href = "/imagechat_test/";
     }, "6.90", "playing image game");
     return;
   }
@@ -2379,7 +2379,7 @@ if (!nicknameVal){
       }
 
       clearPending();
-      window.location.href = "/imagechat_unlimited";
+      window.location.href = "/imagechat_unlimited_test";
     }, "25.00", "Upgrade game");
     return;
   }
@@ -2564,9 +2564,9 @@ if (!existing){
   show(viewSetup);
 } else {
   if (existing.tier === "imagechat"){
-    window.location.href = "/imagechat/";
+    window.location.href = "/imagechat_test/";
   } else if (existing.tier === "imagechat_unlimited"){
-    window.location.href = "/imagechat_unlimited";
+    window.location.href = "/imagechat_unlimited_test";
   } else {
     enterChat(existing);
   }
@@ -2621,6 +2621,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
