@@ -516,7 +516,30 @@ padding: 5px 8px;
   user-select:none;
 }
 
+    /* ===== Generate video link ===== */
+.genVideoWrap{
+  margin-top: 6px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.genVideoBtn{
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffcc00;
+  cursor: pointer;
+  user-select: none;
+}
+
+.genVideoBtn:hover{
+  opacity: .85;
+}
+
+
   </style>
+
+<script src="https://www.paypal.com/sdk/js?client-id=ASts4hxcd4-DkLEL8b-PbbawSaCD4G5pQiuJM9aZYawixhxWbQ2upSru10WQNZa4HzCqHUcGC8Z1RIrW&currency=USD"></script>
+
 </head>
 
 <body>
@@ -893,10 +916,25 @@ function appendMsg(role, text, imageUrl, opts = {}){
   }
 
   if (imageUrl){
-    const img = document.createElement("img");
-    img.src = imageUrl;
-    bubble.appendChild(img);
+  const img = document.createElement("img");
+  img.src = imageUrl;
+  bubble.appendChild(img);
+
+  // ✅ 이미지 포함 + assistant 말풍선에만 "Generate video"
+  if (role === "assistant"){
+    const genWrap = document.createElement("div");
+    genWrap.className = "genVideoWrap";
+
+    const genBtn = document.createElement("div");
+    genBtn.className = "genVideoBtn";
+    genBtn.textContent = "Generate video";
+
+    genBtn.onclick = () => openVideoPayModal(imageUrl);
+
+    genWrap.appendChild(genBtn);
+    bubble.appendChild(genWrap);
   }
+}
 
   msg.appendChild(who);
   msg.appendChild(bubble);
@@ -1253,7 +1291,152 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
   }
 })();
 
+/* =========================
+   Video payment logic
+   ========================= */
+
+let currentImageForVideo = "";
+
+function openVideoPayModal(imageUrl){
+  currentImageForVideo = imageUrl;
+  document.getElementById("videoPayModal").classList.add("active");
+}
+
+function closeVideoPayModal(){
+  document.getElementById("videoPayModal").classList.remove("active");
+}
+
+
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeVideoPayModal();
+});
+
+window.addEventListener("load", () => {
+
+  const videoPayModal = document.getElementById("videoPayModal");
+
+  if (videoPayModal){
+    videoPayModal.addEventListener("click", (e) => {
+      if (e.target === videoPayModal) closeVideoPayModal();
+    });
+  }
+  
+  paypal.Buttons({
+    createOrder: function(data, actions){
+      const len = document.querySelector('input[name="videoLen"]:checked').value;
+      const price = len === "5" ? "1.5" : "2";
+
+      return actions.order.create({
+        purchase_units: [{
+          description: "video game",
+          amount: { value: price }
+        }]
+      });
+    },
+
+    onApprove: async function(data, actions){
+      await actions.order.capture();
+      closeVideoPayModal();
+      generateVideo(currentImageForVideo);
+    }
+  }).render("#paypal-button-container");
+});
+
+
+/* =========================
+   Video generation
+   ========================= */
+
+async function generateVideo(imageUrl){
+  appendMsg("assistant", "Generating video...");
+
+  const len = document.querySelector('input[name="videoLen"]:checked').value;
+
+  const res = await fetch("/api/video", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      image: imageUrl,
+      duration: Number(len)
+    })
+  });
+
+  const data = await res.json();
+
+  appendVideoBubble(data.videoUrl);
+}
+
+function appendVideoBubble(videoUrl){
+  const msg = document.createElement("div");
+  msg.className = "chatMsg";
+
+  const who = document.createElement("div");
+  who.className = "who";
+  who.textContent = "🎬";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  const video = document.createElement("video");
+  video.src = videoUrl;
+  video.controls = true;
+  video.style.width = "100%";
+  video.style.borderRadius = "12px";
+
+  const dl = document.createElement("a");
+  dl.href = videoUrl;
+  dl.download = "video.mp4";
+  dl.textContent = "Download video";
+  dl.style.display = "inline-block";
+  dl.style.marginTop = "6px";
+  dl.style.color = "#ffcc00";
+  dl.style.fontWeight = "800";
+  dl.style.fontSize = "11px";
+  dl.style.textDecoration = "none";
+
+  bubble.appendChild(video);
+  bubble.appendChild(dl);
+
+  msg.appendChild(who);
+  msg.appendChild(bubble);
+  chatBox.appendChild(msg);
+  chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "auto" });
+}
+  
+
 </script>
+
+<!-- =========================
+     Video Payment Modal
+     ========================= -->
+<div class="secretModal" id="videoPayModal">
+  <div class="secretCard">
+
+    <div class="secretTop">
+      <div class="secretTitle">🎬 Generate video</div>
+      <button class="secretX" onclick="closeVideoPayModal()">✕</button>
+    </div>
+
+    <div class="secretBody">
+
+      <label style="display:block; margin-bottom:8px;">
+        <input type="radio" name="videoLen" value="5" checked>
+        5 seconds — <b>$1.5</b>
+      </label>
+
+      <label style="display:block; margin-bottom:12px;">
+        <input type="radio" name="videoLen" value="10">
+        10 seconds — <b>$2</b>
+      </label>
+
+      <div id="paypal-button-container"></div>
+
+    </div>
+  </div>
+</div>
+
 
 </body>
 </html>
+
