@@ -1236,10 +1236,10 @@ if (!rRes.ok){
   const objectUrl = URL.createObjectURL(blob);
 
   // 화면에만 표시 (Blob URL)
-  appendMsg("assistant", "Thanks for waiting", undefined, objectUrl, { animate: true });
+  appendMsg("assistant", "Here you are. Save your video now before it’s deleted.", undefined, objectUrl, { animate: true });
 
   // history에는 비디오 저장 금지 (텍스트만)
-  history.push({ role: "assistant", content: "Thanks for waiting" });
+  history.push({ role: "assistant", content: "Here you are. Save your video now before it’s deleted." });
   saveHistory(history);
 
   return;
@@ -1333,7 +1333,7 @@ function appendMsg(role, text, imageUrl, videoUrl, opts = {}){
 
       const link = document.createElement("a");
       link.className = "genVideoLink";
-      link.textContent = "Generate video";
+      link.textContent = "Wanna see more than just a photo… a video?";
       link.href = "javascript:void(0)";
 
       link.addEventListener("click", () => {
@@ -1696,6 +1696,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
