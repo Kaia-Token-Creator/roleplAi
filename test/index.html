@@ -2017,6 +2017,7 @@ function mountPayPalButtons(onSuccess, priceUsd = "2.00", description = "Playing
     const PAYMENT_KEY = "roleplay-chat_paid_v1";
     let paymentStatus = sessionStorage.getItem(PAYMENT_KEY) || "unpaid"; // refresh-safe within this tab
 
+    
     function appendMsg(role, content){
       const currentSession = loadSession();
 const assistantName = (currentSession && currentSession.name) || "Character";
@@ -2103,6 +2104,7 @@ who.innerHTML = (role === "assistant")
       return data.reply;
     }
 
+    
     async function handleSend(){
       const text = chatInput.value.trim();
       if (!text) return;
@@ -2123,6 +2125,23 @@ const textEl = msgEl.querySelector(".text div:last-child"); // 본문 div 잡기
 await typeWriter(textEl, reply, 18); // ✅ 타자기 출력
 chatHistory.push({ role: "assistant", content: reply });
 saveHistory(chatHistory);
+
+        // ✅ 결제 안 된 상태에서만 + 사용자가 sex 트리거 단어를 쓴 경우
+// ✅ 서버 응답(타자기) 완전히 끝난 "다음" 말풍선으로 속마음 출력
+if (isUnpaidGeneral() && containsSexTrigger(text)){
+  // 살짝 텀 주면 “다음 말풍선” 느낌이 더 강해짐 (원하면 0으로)
+  await new Promise(r => setTimeout(r, 250));
+
+  await appendLockedInnerThought();
+
+  // 원하면 히스토리에도 저장(새로고침해도 남게)
+  chatHistory.push({
+    role: "assistant",
+    content: "(I wanna sext with you but I can't. Please unlock me.)"
+  });
+  saveHistory(chatHistory);
+}
+
         
       }catch(e){
         appendMsg("assistant", `Error: ${String(e.message || e)}`);
@@ -2549,6 +2568,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
