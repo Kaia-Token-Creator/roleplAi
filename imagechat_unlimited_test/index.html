@@ -846,18 +846,38 @@
     if (!e) return "Unknown error";
     if (e instanceof Error) return e.message || String(e);
 
-    // Venice/서버가 JSON으로 주는 에러 형태
+    // object 에러면 최대한 많은 정보를 표시
     if (typeof e === "object"){
-      if (e.error) return typeof e.error === "string" ? e.error : JSON.stringify(e.error);
-      if (e.detail) return typeof e.detail === "string" ? e.detail : JSON.stringify(e.detail);
-      if (e.message) return typeof e.message === "string" ? e.message : JSON.stringify(e.message);
-      return JSON.stringify(e);
+      const code = e.code ? `code=${e.code}` : "";
+      const status = e.status ? `status=${e.status}` : "";
+
+      // venice 원본 에러에서 message 우선 노출
+      const veniceMsg =
+        (typeof e?.venice?.message === "string" && e.venice.message) ||
+        (typeof e?.venice?.error === "string" && e.venice.error) ||
+        (typeof e?.venice?.detail === "string" && e.venice.detail) ||
+        "";
+
+      const mainMsg =
+        (typeof e.message === "string" && e.message) ||
+        (typeof e.error === "string" && e.error) ||
+        (typeof e.detail === "string" && e.detail) ||
+        "";
+
+      // 우선순위: venice 메시지 > main 메시지 > stringify
+      const msg = veniceMsg || mainMsg || JSON.stringify(e);
+
+      // code/status 같이 보여주기
+      const meta = [code, status].filter(Boolean).join(", ");
+      return meta ? `${msg} (${meta})` : msg;
     }
+
     return String(e);
   }catch(_){
     return String(e);
   }
 }
+
 /* =========================
    Load character from main
    ========================= */
@@ -1125,7 +1145,8 @@ let qData = null;
 try { qData = await qRes.json(); } catch { qData = null; }
 
 if (!qRes.ok){
-  // 서버가 {error, detail} 주면 그걸 보여줌
+  // 디버깅용: 서버가 준 전체 에러 객체를 그대로 보여줌
+  appendMsg("assistant", `Queue debug: ${JSON.stringify(qData)}`);
   throw (qData || { error: `HTTP ${qRes.status}` });
 }
 
@@ -1374,7 +1395,7 @@ async function bootstrapFirstMessage(){
 
   } catch(e){
     appendMsg("assistant", `Error: ${prettyErr(e)}`);
-    history.push({ role: "assistant", content: `Error: ${String(e?.message || e)}` });
+    history.push({ role: "assistant", content: `Error: ${prettyErr(e)}` });
     saveHistory(history);
   } finally {
     setBusy(false);
@@ -1622,5 +1643,6 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
