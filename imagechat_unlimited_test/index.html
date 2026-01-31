@@ -633,6 +633,11 @@
       font-size: 11px;
       color: rgba(255,255,255,.65);
     }
+
+    .asstItalic {
+  font-style: italic;
+  opacity: 0.85; /* 살짝 부드럽게 */
+}
   </style>
 </head>
 
@@ -1097,12 +1102,12 @@ function renderPayPalButtons(){
       // UX: user가 뭘 샀는지 보이게 한 줄
       appendMsg(
   "assistant",
-  `Payment complete. Generating ${duration} video...\n` +
+  `Generating ${duration} video...\n` +
   `It may take a while.\n` +
   `Please do not type until the video appears. Typing will pause the chat while we generate the video.`,
   undefined,
   undefined,
-  { animate: true }
+  { animate: true, italic: true }
 );
 
       try{
@@ -1252,6 +1257,10 @@ function appendMsg(role, text, imageUrl, videoUrl, opts = {}){
 
     const body = document.createElement("div");
     body.className = "asstText";
+
+    if (opts.italic){
+  body.classList.add("asstItalic");
+}
 
     bubble.appendChild(name);
     bubble.appendChild(body);
@@ -1651,6 +1660,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
