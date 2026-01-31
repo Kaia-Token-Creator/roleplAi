@@ -1381,10 +1381,28 @@ async function generateVideo(imageUrl){
       throw new Error(`Video API failed: HTTP ${res.status} ${t}`);
     }
 
-    const data = await res.json().catch(() => ({}));
-    if (!data.videoUrl) throw new Error("No videoUrl in response");
+    const ct = (res.headers.get("content-type") || "").toLowerCase();
 
-    appendVideoBubble(data.videoUrl);
+    // A) 서버가 video/mp4 바이너리를 직접 주는 경우 (우리 TS가 이렇게 바뀜)
+    if (ct.startsWith("video/")) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      appendVideoBubble(url);
+      return;
+    }
+
+    // B) 서버가 JSON으로 URL을 주는 경우(벤더가 video_url 같은 걸 줄 때)
+    if (ct.includes("application/json")) {
+      const data = await res.json().catch(() => ({}));
+      if (!data.videoUrl) throw new Error("No videoUrl in JSON response");
+      appendVideoBubble(data.videoUrl);
+      return;
+    }
+
+    // C) 예상 못한 응답
+    const t = await res.text().catch(()=> "");
+    throw new Error(`Unexpected response type: ${ct || "(no content-type)"} ${t}`);
+
   }catch(e){
     appendMsg("assistant", `Video error: ${String(e?.message || e)}`);
   }
@@ -1463,6 +1481,7 @@ function appendVideoBubble(videoUrl){
 
 </body>
 </html>
+
 
 
 
