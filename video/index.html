@@ -204,9 +204,6 @@
     <div class="pillGroup">
       <label class="pill"><input type="radio" name="dur" value="5" data-price="1.5" checked>5s · $1.5</label>
       <label class="pill"><input type="radio" name="dur" value="10" data-price="2">10s · $2</label>
-      <label class="pill"><input type="radio" name="dur" value="15" data-price="3">15s · $3</label>
-      <label class="pill"><input type="radio" name="dur" value="30" data-price="7">30s · $7</label>
-      <label class="pill"><input type="radio" name="dur" value="60" data-price="15">60s · $15</label>
     </div>
 
     <label>Quality</label>
@@ -244,7 +241,7 @@
 const priceEl=document.getElementById("price");
 const durRadios=document.querySelectorAll("input[name='dur']");
 const payModal=document.getElementById("payModal");
-let selectedPrice=1.5,selectedDuration=5;
+let selectedPrice = 1.5, selectedDuration = "5";
 
 durRadios.forEach(r=>{
   r.onchange=()=>{
@@ -301,3 +298,4 @@ async function generateVideo(){
 
 </body>
 </html>
+
