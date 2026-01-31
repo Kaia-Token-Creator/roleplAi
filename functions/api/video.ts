@@ -108,12 +108,25 @@ export const onRequestPost: PagesFunction = async (ctx) => {
       });
 
       const data = await r.json().catch(() => ({} as any));
-      if (!r.ok) {
-        return json(
-          { error: data?.error || data?.detail || "Queue failed", detail: data },
-          { status: r.status, headers: cors(origin) }
-        );
-      }
+if (!r.ok) {
+  // Venice는 보통 { code, message } 형태로 에러를 줌
+  const errMsg =
+    (typeof data?.message === "string" && data.message) ||
+    (typeof data?.error === "string" && data.error) ||
+    (typeof data?.detail === "string" && data.detail) ||
+    "Queue failed";
+
+  return json(
+    {
+      error: errMsg,
+      code: data?.code || null,
+      status: r.status,
+      venice: data, // 원본 그대로 내려주기
+    },
+    { status: r.status, headers: cors(origin) }
+  );
+}
+
 
       // expected: { model, queue_id }
       return json({ model: data.model, queue_id: data.queue_id }, { status: 200, headers: cors(origin) });
@@ -149,12 +162,25 @@ export const onRequestPost: PagesFunction = async (ctx) => {
       // JSON이면 그대로 전달 (PROCESSING 등)
       if (ct.includes("application/json")) {
         const data = await r.json().catch(() => ({} as any));
-        if (!r.ok) {
-          return json(
-            { error: data?.error || data?.detail || "Retrieve failed", detail: data },
-            { status: r.status, headers: cors(origin) }
-          );
-        }
+if (!r.ok) {
+  // Venice는 보통 { code, message } 형태로 에러를 줌
+  const errMsg =
+    (typeof data?.message === "string" && data.message) ||
+    (typeof data?.error === "string" && data.error) ||
+    (typeof data?.detail === "string" && data.detail) ||
+    "Queue failed";
+
+  return json(
+    {
+      error: errMsg,
+      code: data?.code || null,
+      status: r.status,
+      venice: data, // 원본 그대로 내려주기
+    },
+    { status: r.status, headers: cors(origin) }
+  );
+}
+
         return json(data, { status: 200, headers: cors(origin) });
       }
 
@@ -184,3 +210,4 @@ export const onRequestPost: PagesFunction = async (ctx) => {
     return json({ error: "Server error", detail: String(e?.message || e) }, { status: 500, headers: cors(origin) });
   }
 };
+
