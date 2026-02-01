@@ -1013,9 +1013,35 @@ if (session?.fontColor){
 const chatBox = document.getElementById("chatBox");
 const input = document.getElementById("chatInput");
 const sendBtn = document.getElementById("sendBtn");
+  
+const MAX_HISTORY = 60; // ✅ 유저 + assistant 말풍선 합쳐서 최대 60개
 
 let history = loadHistory();
+pruneHistoryAndUI();
 
+function pruneHistoryAndUI(){
+  // 1) in-memory history prune
+  if (Array.isArray(history) && history.length > MAX_HISTORY){
+    history = history.slice(-MAX_HISTORY);
+  }
+
+  // 2) DOM prune: chatBox의 말풍선도 MAX_HISTORY개로 유지
+  if (chatBox){
+    while (chatBox.children.length > MAX_HISTORY){
+      const first = chatBox.firstElementChild;
+      if (!first) break;
+
+      // ✅ 혹시 남아있는 비디오 objectURL이 있으면 여기서 해제하고 싶다면,
+      // (추가 구현 가능) first 안의 video/src 검사해서 revoke 가능.
+      first.remove();
+    }
+  }
+
+  // 3) persist
+  saveHistory(history);
+}
+
+  
 function escapeText(s){
   return (s ?? "").toString();
 }
@@ -1259,7 +1285,7 @@ if (!rRes.ok){
 
   // history에는 비디오 저장 금지 (텍스트만)
   history.push({ role: "assistant", content: "Expired video (03:00 passed)👻" });
-  saveHistory(history);
+pruneHistoryAndUI();
 
   return;
 }
@@ -1490,6 +1516,7 @@ if (videoUrl){
   chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "auto" });
 }
 
+  
 function renderHistory(){
   if (!Array.isArray(history)) history = [];
   for (const m of history){
@@ -1552,7 +1579,7 @@ async function bootstrapFirstMessage(){
 
     appendMsg("assistant", reply, imageUrl || undefined, undefined, { animate: true });
     history.push({ role: "assistant", content: reply, imageUrl });
-    saveHistory(history);
+pruneHistoryAndUI();
 
   } catch(e){
     appendMsg("assistant", `Error: ${prettyErr(e)}`);
@@ -1590,7 +1617,7 @@ async function send(){
   });
 
   history.push({ role: "user", content: text });
-  saveHistory(history);
+pruneHistoryAndUI(); // ✅ 여기서 저장까지 함
 
   if (!session || !session.name){
     appendMsg("assistant", "Error: No character session found. Please create a character first.");
@@ -1653,7 +1680,8 @@ async function send(){
     const shownText = reply || "(no text)";
     appendMsg("assistant", shownText, imageUrl || undefined, undefined, { animate: true });
     history.push({ role: "assistant", content: shownText, imageUrl });
-    saveHistory(history);
+pruneHistoryAndUI();
+
 
   }catch(e){
     appendMsg("assistant", `Error: ${prettyErr(e)}`);
@@ -1804,6 +1832,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
