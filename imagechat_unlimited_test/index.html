@@ -1584,15 +1584,22 @@ if (!res.ok) {
 };
 
     const reply = (data && typeof data.reply === "string") ? data.reply : "(no text)";
+let imageUrl = "";
 
-    let imageUrl = "";
-    if (data && data.image && typeof data.image.b64 === "string" && typeof data.image.mime === "string"){
-      imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
-    }
+if (data && data.image && typeof data.image.b64 === "string" && typeof data.image.mime === "string"){
+  imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
+}
 
-    appendMsg("assistant", reply, imageUrl || undefined, undefined, { animate: true });
-    history.push({ role: "assistant", content: reply, imageUrl });
+appendMsg("assistant", reply, imageUrl || undefined, undefined, { animate: true });
+
+if (!imageUrl && data && data.image_error){
+  appendMsg("assistant", `Image failed (debug): ${JSON.stringify(data.image_error)}`);
+}
+
+// ✅ history 저장도 같이 (지금 bootstrapFirstMessage에도 있어야 함)
+history.push({ role: "assistant", content: reply, imageUrl });
 pruneHistoryAndUI();
+
 
   } catch(e){
     appendMsg("assistant", `Error: ${prettyErr(e)}`);
@@ -1695,17 +1702,23 @@ if (!res.ok) {
   throw new Error(data.detail || data.error || `HTTP ${res.status}`);
 }
 
-    const reply = (data && typeof data.reply === "string") ? data.reply : "";
+    const reply = (data && typeof data.reply === "string") ? data.reply : "(no text)";
+let imageUrl = "";
 
-    let imageUrl = "";
-    if (data && data.image && typeof data.image.b64 === "string" && typeof data.image.mime === "string"){
-      imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
-    }
+if (data && data.image && typeof data.image.b64 === "string" && typeof data.image.mime === "string"){
+  imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
+}
 
-    const shownText = reply || "(no text)";
-    appendMsg("assistant", shownText, imageUrl || undefined, undefined, { animate: true });
-    history.push({ role: "assistant", content: shownText, imageUrl });
+appendMsg("assistant", reply, imageUrl || undefined, undefined, { animate: true });
+
+if (!imageUrl && data && data.image_error){
+  appendMsg("assistant", `Image failed (debug): ${JSON.stringify(data.image_error)}`);
+}
+
+// ✅ history 저장도 같이 (지금 bootstrapFirstMessage에도 있어야 함)
+history.push({ role: "assistant", content: reply, imageUrl });
 pruneHistoryAndUI();
+
 
 
   }catch(e){
@@ -1857,6 +1870,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
