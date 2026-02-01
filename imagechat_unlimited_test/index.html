@@ -638,6 +638,25 @@
   font-style: italic;
   opacity: 0.85; /* 살짝 부드럽게 */
 }
+
+    /* ✅ Downloadable countdown */
+.dlTimer{
+  font-size: 11px;
+  color: rgba(255,255,255,.65);
+  user-select:none;
+}
+
+/* ✅ Expired style */
+.dlBtn.expired{
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  color: rgba(255,255,255,.45) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+  
   </style>
 </head>
 
@@ -1253,6 +1272,48 @@ if (!rRes.ok){
   throw new Error("Video generation timed out.");
 }
 
+
+function fmtMMSS(ms){
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
+
+/**
+ * videoUrl(objectURL)을 확실히 메모리에서 놓아주기 위한 만료 처리
+ * - 버튼 비활성 + 텍스트 변경
+ * - countdown 갱신 중지
+ * - URL.revokeObjectURL
+ * - <video> src 제거 + load()로 디코더/버퍼 해제 유도
+ */
+function expireVideoUI({ btn, timerEl, videoEl, videoUrl, intervalId }){
+  try { if (intervalId) clearInterval(intervalId); } catch(e){}
+
+  if (timerEl){
+    timerEl.textContent = "Expired";
+  }
+
+  if (btn){
+    btn.classList.add("expired");
+    btn.textContent = "Expired";
+    // href/remove는 pointer-events none이면 안 눌리지만, 안전하게 끊어줌
+    try { btn.removeAttribute("href"); } catch(e){}
+    try { btn.removeAttribute("download"); } catch(e){}
+    btn.setAttribute("aria-disabled", "true");
+  }
+
+  // video 리소스 해제
+  if (videoEl){
+    try { videoEl.pause(); } catch(e){}
+    try { videoEl.removeAttribute("src"); } catch(e){}
+    try { videoEl.load(); } catch(e){}
+  }
+
+  // objectURL 해제
+  try { URL.revokeObjectURL(videoUrl); } catch(e){}
+}
+  
 /* =========================
    appendMsg (updated: supports video + generate link under image)
    ========================= */
@@ -1347,8 +1408,8 @@ function appendMsg(role, text, imageUrl, videoUrl, opts = {}){
     }
   }
 
-  // video
-  // video
+
+// video
 if (videoUrl){
   const v = document.createElement("video");
   v.src = videoUrl;
@@ -1356,7 +1417,7 @@ if (videoUrl){
   v.playsInline = true;
   bubble.appendChild(v);
 
-  // ✅ download button
+  // ✅ actions row (Download + timer)
   const act = document.createElement("div");
   act.className = "videoActionsRow";
 
@@ -1370,19 +1431,58 @@ if (videoUrl){
   a.style.alignItems = "center";
   a.style.justifyContent = "center";
 
-  // ✅ (핵심) 다운로드 클릭 후에 revoke — 너무 빨리 revoke하면 다운로드 실패함
-  a.addEventListener("click", () => {
-    setTimeout(() => {
-      try { URL.revokeObjectURL(videoUrl); } catch(e){}
-    }, 60_000); // 60초 후 메모리 해제 (안전)
-  });
+  // ✅ countdown label
+  const timer = document.createElement("span");
+  timer.className = "dlTimer";
+  timer.textContent = "Downloadable for 03:00";
 
   act.appendChild(a);
+  act.appendChild(timer);
   bubble.appendChild(act);
 
-  // ❌ 여기서는 v.onended revoke 하지 마세요.
-  // v.onended = () => URL.revokeObjectURL(videoUrl);
+  // ✅ expiry logic: either download-click OR 3 minutes after showing
+  const createdAt = Date.now();
+  const expireAt = createdAt + 3 * 60 * 1000; // 3 min
+  let expired = false;
+
+  const doExpire = () => {
+    if (expired) return;
+    expired = true;
+    expireVideoUI({
+      btn: a,
+      timerEl: timer,
+      videoEl: v,
+      videoUrl,
+      intervalId
+    });
+  };
+
+  // tick countdown
+  const intervalId = setInterval(() => {
+    const left = expireAt - Date.now();
+    if (left <= 0){
+      doExpire();
+      return;
+    }
+    timer.textContent = `Downloadable for ${fmtMMSS(left)}`;
+  }, 1000);
+
+  // ✅ (핵심) 다운로드 "완료"는 감지 불가 → 클릭=다운로드 시작으로 간주
+  // 다운로드 시작을 보장하기 위해 아주 짧게 지연 후 만료 처리
+  a.addEventListener("click", (e) => {
+    if (expired) {
+      e.preventDefault();
+      return;
+    }
+    // 너무 빨리 revoke하면 브라우저가 다운로드를 못 잡을 수 있어서 짧게 지연
+    setTimeout(() => {
+      doExpire();
+    }, 1200);
+  });
+
+  // (선택) 비디오 재생이 끝났다고 바로 revoke하는 건 하지 않음 (요구사항과 충돌)
 }
+
 
   msg.appendChild(who);
   msg.appendChild(bubble);
@@ -1704,6 +1804,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
