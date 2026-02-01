@@ -2053,7 +2053,6 @@ if (!nicknameVal){
     : { unit: wu, value: wRaw };
 
   // ✅ session object (properties only)
-    // ✅ session object (properties only)
   const session = {
     name,
     nickname: $("#nickname").value.trim(),
@@ -2075,38 +2074,28 @@ if (!nicknameVal){
     createdAt: Date.now()
   };
 
-  // =========================
-  // ✅ NEW: 새 탭 이동을 위한 "전달 키"
-  // =========================
-  const TRANSFER_KEY = "roleplay-chat_transfer_v1";
 
-  // ✅ paid 키: local + session 둘 다 세팅 (안전)
-  try{
-    localStorage.setItem("roleplay-chat_paid_v1", "paid");
-    localStorage.setItem("roleplay-chat_imagechat_paid_v1", "paid");
-    localStorage.setItem("roleplay-chat_imagechat_unlimited_paid_v1", "paid");
+// 🔓 FREE PASS: 무조건 paid
+  sessionStorage.setItem("roleplay-chat_paid_v1", "paid");
+  sessionStorage.setItem("roleplay-chat_imagechat_paid_v1", "paid");
+  sessionStorage.setItem("roleplay-chat_imagechat_unlimited_paid_v1", "paid");
 
-    sessionStorage.setItem("roleplay-chat_paid_v1", "paid");
-    sessionStorage.setItem("roleplay-chat_imagechat_paid_v1", "paid");
-    sessionStorage.setItem("roleplay-chat_imagechat_unlimited_paid_v1", "paid");
-  }catch(e){}
+  // 세션 저장
+  saveSession(session);
 
-  // ✅ 새 탭 전달용으로 localStorage에 session 임시 저장
-  try{
-    localStorage.setItem(TRANSFER_KEY, JSON.stringify(session));
-  }catch(e){}
+  // 🚀 tier별 즉시 이동
+  if (tier === "imagechat"){
+    window.location.href = "/imagechat/";
+    return;
+  }
 
-  // ✅ 새 탭으로 열 URL 결정
-  let targetUrl = "/";
-  if (tier === "imagechat") targetUrl = "/imagechat/";
-  else if (tier === "imagechat_unlimited") targetUrl = "/imagechat_unlimited";
-  else targetUrl = "/"; // general/uncensored도 새 탭
+  if (tier === "imagechat_unlimited"){
+    window.location.href = "/imagechat_unlimited";
+    return;
+  }
 
-  // ✅ 새 탭 열기
-  window.open(targetUrl, "_blank", "noopener");
-
-  // ✅ (선택) 현재 탭은 그대로 setup 화면 유지하고 싶으면 여기서 return
-  return;
+  // general / uncensored
+  enterChat(session);
 });
 
 // ✅ submit 밖으로 빼야 정상 동작하는 버튼들
@@ -2331,49 +2320,6 @@ function setupKeyboardBar(){
     <button id="aaCloseBtn">Enjoy your time [close]</button>
   </div>
 </div>
-
-<script>
-(function restoreTransferredSession(){
-  const TRANSFER_KEY = "roleplay-chat_transfer_v1";
-  const SESSION_KEY  = "roleplay-chat_session_v1";
-
-  try{
-    // ✅ 이미 이 탭에 세션이 있으면(기존 수신 로직이 이미 처리한 경우) 건드리지 않음
-    if (sessionStorage.getItem(SESSION_KEY)) return;
-
-    const raw = localStorage.getItem(TRANSFER_KEY);
-    if (!raw) return;
-
-    // ✅ 복원
-    sessionStorage.setItem(SESSION_KEY, raw);
-
-    // ✅ paid 보장 (원하면 이것도 "없을 때만" 세팅 가능)
-    if (!sessionStorage.getItem("roleplay-chat_paid_v1"))
-      sessionStorage.setItem("roleplay-chat_paid_v1", "paid");
-    if (!sessionStorage.getItem("roleplay-chat_imagechat_paid_v1"))
-      sessionStorage.setItem("roleplay-chat_imagechat_paid_v1", "paid");
-    if (!sessionStorage.getItem("roleplay-chat_imagechat_unlimited_paid_v1"))
-      sessionStorage.setItem("roleplay-chat_imagechat_unlimited_paid_v1", "paid");
-
-    // ✅ 1회용 삭제
-    localStorage.removeItem(TRANSFER_KEY);
-  }catch(e){
-    console.error("Session restore failed", e);
-  }
-})();
-</script>
-
+  
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
