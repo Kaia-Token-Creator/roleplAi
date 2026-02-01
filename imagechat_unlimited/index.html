@@ -638,6 +638,25 @@
   font-style: italic;
   opacity: 0.85; /* 살짝 부드럽게 */
 }
+
+    /* ✅ Downloadable countdown */
+.dlTimer{
+  font-size: 11px;
+  color: rgba(255,255,255,.65);
+  user-select:none;
+}
+
+/* ✅ Expired style */
+.dlBtn.expired{
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.18) !important;
+  color: rgba(255,255,255,.45) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  pointer-events: none !important;
+}
+
+  
   </style>
 </head>
 
@@ -693,7 +712,7 @@
 
     <div style="display:flex; align-items:flex-start; justify-content:space-between; width:100%;">
       <sup style="color:#ffcc00; font-size:10px; font-weight:bold; user-select:none;">
-        Unlimited access while this tab is open.
+        Unlimited access while this tab is open.<br>The latest 50 Msgs shown for the tab.
       </sup>
 
       <div align="right">
@@ -994,9 +1013,35 @@ if (session?.fontColor){
 const chatBox = document.getElementById("chatBox");
 const input = document.getElementById("chatInput");
 const sendBtn = document.getElementById("sendBtn");
+  
+const MAX_HISTORY = 60; // ✅ 유저 + assistant 말풍선 합쳐서 최대 60개
 
 let history = loadHistory();
+pruneHistoryAndUI();
 
+function pruneHistoryAndUI(){
+  // 1) in-memory history prune
+  if (Array.isArray(history) && history.length > MAX_HISTORY){
+    history = history.slice(-MAX_HISTORY);
+  }
+
+  // 2) DOM prune: chatBox의 말풍선도 MAX_HISTORY개로 유지
+  if (chatBox){
+    while (chatBox.children.length > MAX_HISTORY){
+      const first = chatBox.firstElementChild;
+      if (!first) break;
+
+      // ✅ 혹시 남아있는 비디오 objectURL이 있으면 여기서 해제하고 싶다면,
+      // (추가 구현 가능) first 안의 video/src 검사해서 revoke 가능.
+      first.remove();
+    }
+  }
+
+  // 3) persist
+  saveHistory(history);
+}
+
+  
 function escapeText(s){
   return (s ?? "").toString();
 }
@@ -1236,11 +1281,11 @@ if (!rRes.ok){
   const objectUrl = URL.createObjectURL(blob);
 
   // 화면에만 표시 (Blob URL)
-  appendMsg("assistant", "Here you are. Save your video now before it’s deleted.", undefined, objectUrl, { animate: true });
+  appendMsg("assistant", "Here you are. Save your video now before it’s deleted. Video is available for 3 min", undefined, objectUrl, { animate: true });
 
   // history에는 비디오 저장 금지 (텍스트만)
-  history.push({ role: "assistant", content: "Here you are. Save your video now before it’s deleted." });
-  saveHistory(history);
+  history.push({ role: "assistant", content: "Expired video (03:00 passed)👻" });
+pruneHistoryAndUI();
 
   return;
 }
@@ -1253,6 +1298,48 @@ if (!rRes.ok){
   throw new Error("Video generation timed out.");
 }
 
+
+function fmtMMSS(ms){
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
+
+/**
+ * videoUrl(objectURL)을 확실히 메모리에서 놓아주기 위한 만료 처리
+ * - 버튼 비활성 + 텍스트 변경
+ * - countdown 갱신 중지
+ * - URL.revokeObjectURL
+ * - <video> src 제거 + load()로 디코더/버퍼 해제 유도
+ */
+function expireVideoUI({ btn, timerEl, videoEl, videoUrl, intervalId }){
+  try { if (intervalId) clearInterval(intervalId); } catch(e){}
+
+  if (timerEl){
+    timerEl.textContent = "Expired";
+  }
+
+  if (btn){
+    btn.classList.add("expired");
+    btn.textContent = "Expired";
+    // href/remove는 pointer-events none이면 안 눌리지만, 안전하게 끊어줌
+    try { btn.removeAttribute("href"); } catch(e){}
+    try { btn.removeAttribute("download"); } catch(e){}
+    btn.setAttribute("aria-disabled", "true");
+  }
+
+  // video 리소스 해제
+  if (videoEl){
+    try { videoEl.pause(); } catch(e){}
+    try { videoEl.removeAttribute("src"); } catch(e){}
+    try { videoEl.load(); } catch(e){}
+  }
+
+  // objectURL 해제
+  try { URL.revokeObjectURL(videoUrl); } catch(e){}
+}
+  
 /* =========================
    appendMsg (updated: supports video + generate link under image)
    ========================= */
@@ -1347,8 +1434,8 @@ function appendMsg(role, text, imageUrl, videoUrl, opts = {}){
     }
   }
 
-  // video
-  // video
+
+// video
 if (videoUrl){
   const v = document.createElement("video");
   v.src = videoUrl;
@@ -1356,7 +1443,7 @@ if (videoUrl){
   v.playsInline = true;
   bubble.appendChild(v);
 
-  // ✅ download button
+  // ✅ actions row (Download + timer)
   const act = document.createElement("div");
   act.className = "videoActionsRow";
 
@@ -1370,19 +1457,58 @@ if (videoUrl){
   a.style.alignItems = "center";
   a.style.justifyContent = "center";
 
-  // ✅ (핵심) 다운로드 클릭 후에 revoke — 너무 빨리 revoke하면 다운로드 실패함
-  a.addEventListener("click", () => {
-    setTimeout(() => {
-      try { URL.revokeObjectURL(videoUrl); } catch(e){}
-    }, 60_000); // 60초 후 메모리 해제 (안전)
-  });
+  // ✅ countdown label
+  const timer = document.createElement("span");
+  timer.className = "dlTimer";
+  timer.textContent = "Downloadable for 03:00";
 
   act.appendChild(a);
+  act.appendChild(timer);
   bubble.appendChild(act);
 
-  // ❌ 여기서는 v.onended revoke 하지 마세요.
-  // v.onended = () => URL.revokeObjectURL(videoUrl);
+  // ✅ expiry logic: either download-click OR 3 minutes after showing
+  const createdAt = Date.now();
+  const expireAt = createdAt + 3 * 60 * 1000; // 3 min
+  let expired = false;
+
+  const doExpire = () => {
+    if (expired) return;
+    expired = true;
+    expireVideoUI({
+      btn: a,
+      timerEl: timer,
+      videoEl: v,
+      videoUrl,
+      intervalId
+    });
+  };
+
+  // tick countdown
+  const intervalId = setInterval(() => {
+    const left = expireAt - Date.now();
+    if (left <= 0){
+      doExpire();
+      return;
+    }
+    timer.textContent = `Downloadable for ${fmtMMSS(left)}`;
+  }, 1000);
+
+  // ✅ (핵심) 다운로드 "완료"는 감지 불가 → 클릭=다운로드 시작으로 간주
+  // 다운로드 시작을 보장하기 위해 아주 짧게 지연 후 만료 처리
+  a.addEventListener("click", (e) => {
+    if (expired) {
+      e.preventDefault();
+      return;
+    }
+    // 너무 빨리 revoke하면 브라우저가 다운로드를 못 잡을 수 있어서 짧게 지연
+    setTimeout(() => {
+      doExpire();
+    }, 1200);
+  });
+
+  // (선택) 비디오 재생이 끝났다고 바로 revoke하는 건 하지 않음 (요구사항과 충돌)
 }
+
 
   msg.appendChild(who);
   msg.appendChild(bubble);
@@ -1390,6 +1516,7 @@ if (videoUrl){
   chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "auto" });
 }
 
+  
 function renderHistory(){
   if (!Array.isArray(history)) history = [];
   for (const m of history){
@@ -1439,20 +1566,40 @@ async function bootstrapFirstMessage(){
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+// ✅ 여기부터 디버그용
+const raw = await res.text().catch(() => "");
+let data = {};
+try {
+  data = raw ? JSON.parse(raw) : {};
+} catch {
+  data = { raw };
+}
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || data.error || `HTTP ${res.status}`);
+if (!res.ok) {
+  appendMsg(
+    "assistant",
+    `Error ${res.status}: ${JSON.stringify(data)}`
+  );
+  throw new Error(data.detail || data.error || `HTTP ${res.status}`);
+};
 
     const reply = (data && typeof data.reply === "string") ? data.reply : "(no text)";
+let imageUrl = "";
 
-    let imageUrl = "";
-    if (data && data.image && typeof data.image.b64 === "string" && typeof data.image.mime === "string"){
-      imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
-    }
+if (data && data.image && typeof data.image.b64 === "string" && typeof data.image.mime === "string"){
+  imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
+}
 
-    appendMsg("assistant", reply, imageUrl || undefined, undefined, { animate: true });
-    history.push({ role: "assistant", content: reply, imageUrl });
-    saveHistory(history);
+appendMsg("assistant", reply, imageUrl || undefined, undefined, { animate: true });
+
+if (!imageUrl && data && data.image_error){
+  appendMsg("assistant", `Image failed (debug): ${JSON.stringify(data.image_error)}`);
+}
+
+// ✅ history 저장도 같이 (지금 bootstrapFirstMessage에도 있어야 함)
+history.push({ role: "assistant", content: reply, imageUrl });
+pruneHistoryAndUI();
+
 
   } catch(e){
     appendMsg("assistant", `Error: ${prettyErr(e)}`);
@@ -1490,7 +1637,7 @@ async function send(){
   });
 
   history.push({ role: "user", content: text });
-  saveHistory(history);
+pruneHistoryAndUI(); // ✅ 여기서 저장까지 함
 
   if (!session || !session.name){
     appendMsg("assistant", "Error: No character session found. Please create a character first.");
@@ -1538,22 +1685,41 @@ async function send(){
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.detail || data.error || `HTTP ${res.status}`);
-    }
+// ✅ 여기부터 디버그용
+const raw = await res.text().catch(() => "");
+let data = {};
+try {
+  data = raw ? JSON.parse(raw) : {};
+} catch {
+  data = { raw };
+}
 
-    const reply = (data && typeof data.reply === "string") ? data.reply : "";
+if (!res.ok) {
+  appendMsg(
+    "assistant",
+    `Error ${res.status}: ${JSON.stringify(data)}`
+  );
+  throw new Error(data.detail || data.error || `HTTP ${res.status}`);
+}
 
-    let imageUrl = "";
-    if (data && data.image && typeof data.image.b64 === "string" && typeof data.image.mime === "string"){
-      imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
-    }
+    const reply = (data && typeof data.reply === "string") ? data.reply : "(no text)";
+let imageUrl = "";
 
-    const shownText = reply || "(no text)";
-    appendMsg("assistant", shownText, imageUrl || undefined, undefined, { animate: true });
-    history.push({ role: "assistant", content: shownText, imageUrl });
-    saveHistory(history);
+if (data && data.image && typeof data.image.b64 === "string" && typeof data.image.mime === "string"){
+  imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
+}
+
+appendMsg("assistant", reply, imageUrl || undefined, undefined, { animate: true });
+
+if (!imageUrl && data && data.image_error){
+  appendMsg("assistant", `Image failed (debug): ${JSON.stringify(data.image_error)}`);
+}
+
+// ✅ history 저장도 같이 (지금 bootstrapFirstMessage에도 있어야 함)
+history.push({ role: "assistant", content: reply, imageUrl });
+pruneHistoryAndUI();
+
+
 
   }catch(e){
     appendMsg("assistant", `Error: ${prettyErr(e)}`);
