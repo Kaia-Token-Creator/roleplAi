@@ -263,6 +263,44 @@ padding: 5px 8px;
     0 0 44px rgba(255, 204, 0, .28),
     var(--shadow);
 }
+
+/* ===== GOLD CARD (All-access Pass only) ===== */
+.card.gold{
+  background:
+    radial-gradient(900px 240px at 20% 0%, rgba(255,204,0,.25), transparent 60%),
+    radial-gradient(700px 260px at 80% 30%, rgba(255,160,0,.18), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+  border-color: rgba(255,204,0,.55);
+  box-shadow:
+    0 0 0 1px rgba(255,204,0,.20),
+    0 0 24px rgba(255,204,0,.22),
+    0 0 60px rgba(255,140,0,.10),
+    var(--shadow);
+}
+
+.card.gold .tag{
+  background: rgba(255,204,0,.14);
+  color: rgba(255,204,0,.95);
+  border: 1px solid rgba(255,204,0,.28);
+}
+
+.card.gold .price{
+  color: #ffcc00; /* gold */
+  text-shadow:
+    0 0 10px rgba(255,204,0,.25),
+    0 0 22px rgba(255,160,0,.18);
+}
+
+.card.gold .cta{
+  background: linear-gradient(180deg, rgba(255,204,0,.18), rgba(255,204,0,.10));
+  border-color: rgba(255,204,0,.45);
+}
+
+.card.gold .cta:hover{
+  background: linear-gradient(180deg, rgba(255,204,0,.24), rgba(255,204,0,.12));
+  transform: translateY(-1px);
+}
+    
   </style>
 </head>
 
@@ -393,6 +431,22 @@ padding: 5px 8px;
       <a class="cta" href="https://roleplay-chat.com/" rel="noopener noreferrer">Go unlimited</a>
     </div>
 
+    <div class="card unlimited gold">
+  <span class="tag">⭐ Ultimate</span>
+  <h3>All-access Pass</h3>
+  <div class="price">$99</div>
+  <div class="features">
+    • Life-time access (1 device / 1 browser)<br>
+    • Unlimited character creation · Fully uncensored<br>
+    • No login · Private & anonymous<br>
+    • All features unlocked (video generation extra)<br>
+    • Access stays active even after closing the tab
+  </div>
+  <a class="cta" href="https://roleplay-chat.com/" rel="noopener noreferrer">
+    Get full access
+  </a>
+</div>
+
   </div>
 
   <footer>
@@ -447,6 +501,7 @@ if (infoBtn && infoMenu){
  </script> 
 </body>
 </html>
+
 
 
 
