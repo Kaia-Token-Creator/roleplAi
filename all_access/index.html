@@ -2272,30 +2272,26 @@ function setupKeyboardBar(){
   </script>
 <script>
 (function showAllAccessWelcome(){
-  const KEY = "ALL_ACCESS_WELCOME_SHOWN_V1";
-
   try{
-    if (!sessionStorage.getItem(KEY)){
-      const modal = document.getElementById("allAccessModal");
-      modal.classList.add("active");
+    const modal = document.getElementById("allAccessModal");
+    if (!modal) return;
 
-      document.getElementById("aaCloseBtn").onclick = () => {
-        modal.classList.remove("active");
-      };
+    modal.classList.add("active");
 
-      // URL 클릭 시 자동 복사
-      document.getElementById("aaUrl").onclick = async () => {
-        try{
-          await navigator.clipboard.writeText("https://roleplay-chat.com/all_access");
-          document.getElementById("aaUrl").textContent = "Copied ✓";
-        }catch(e){}
-      };
+    document.getElementById("aaCloseBtn").onclick = () => {
+      modal.classList.remove("active");
+    };
 
-      sessionStorage.setItem(KEY, "yes");
-    }
+    document.getElementById("aaUrl").onclick = async () => {
+      try{
+        await navigator.clipboard.writeText("https://roleplay-chat.com/all_access");
+        document.getElementById("aaUrl").textContent = "Copied ✓";
+      }catch(e){}
+    };
   }catch(e){}
 })();
 </script>
+
 
 <div id="allAccessModal" class="aa-overlay">
   <div class="aa-modal">
@@ -2314,7 +2310,7 @@ function setupKeyboardBar(){
     <ul class="aa-notes">
       <li><b>Do NOT clear browser data</b> (cache, cookies, site data).</li>
       <li>Clearing data will permanently remove your access.</li>
-      <li>Characters are saved <b>per tab</b>. Do not close your active chat tab.</li>
+      <li>Characters are saved <b>per tab</b>. Do not close your active chat tab to keep them.</li>
     </ul>
 
     <button id="aaCloseBtn">Enjoy your time [close]</button>
@@ -2323,3 +2319,4 @@ function setupKeyboardBar(){
   
 </body>
 </html>
+
