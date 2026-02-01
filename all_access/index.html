@@ -852,6 +852,76 @@ body.chatMode #viewChat .chatFooter{
     }
   }    
 
+    .aa-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.aa-overlay.active{
+  display: flex;
+}
+
+.aa-modal{
+  width: min(460px, 92%);
+  background: rgba(15,15,15,.95);
+  border-radius: 20px;
+  border: 1px solid rgba(255,204,0,.4);
+  box-shadow: 0 0 40px rgba(255,204,0,.25);
+  padding: 22px;
+  text-align: center;
+}
+
+.aa-modal h2{
+  margin: 0 0 14px;
+  color: #ffcc00;
+}
+
+.aa-desc{
+  font-size: 14px;
+  color: rgba(255,255,255,.85);
+  line-height: 1.5;
+}
+
+.aa-url{
+  margin: 14px 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,204,0,.12);
+  border: 1px solid rgba(255,204,0,.55);
+  color: #ffcc00;
+  font-weight: 800;
+  word-break: break-all;
+  cursor: pointer;
+}
+
+.aa-url:hover{
+  background: rgba(255,204,0,.2);
+}
+
+.aa-notes{
+  text-align: left;
+  font-size: 13px;
+  color: rgba(255,255,255,.75);
+  margin: 12px 0 16px;
+  padding-left: 18px;
+}
+
+#aaCloseBtn{
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: none;
+  background: #ffcc00;
+  color: #000;
+  font-weight: 900;
+  cursor: pointer;
+}
+
   </style>
 </head>
 
@@ -2200,8 +2270,60 @@ function setupKeyboardBar(){
 
     
   </script>
+<script>
+(function showAllAccessWelcome(){
+  const KEY = "ALL_ACCESS_WELCOME_SHOWN_V1";
+
+  try{
+    if (!sessionStorage.getItem(KEY)){
+      const modal = document.getElementById("allAccessModal");
+      modal.classList.add("active");
+
+      document.getElementById("aaCloseBtn").onclick = () => {
+        modal.classList.remove("active");
+      };
+
+      // URL 클릭 시 자동 복사
+      document.getElementById("aaUrl").onclick = async () => {
+        try{
+          await navigator.clipboard.writeText("https://roleplay-chat.com/all_access");
+          document.getElementById("aaUrl").textContent = "Copied ✓";
+        }catch(e){}
+      };
+
+      sessionStorage.setItem(KEY, "yes");
+    }
+  }catch(e){}
+})();
+</script>
+
+<div id="allAccessModal" class="aa-overlay">
+  <div class="aa-modal">
+    <h2>🎟 Welcome! All-access Pass Activated</h2>
+
+    <p class="aa-desc">
+      Please save the private access URL below.<br>
+      This URL allows unlimited access on <b>this device & browser</b>,
+      even after closing and reopening the browser.
+    </p>
+
+    <div class="aa-url" id="aaUrl">
+      https://roleplay-chat.com/all_access
+    </div>
+
+    <ul class="aa-notes">
+      <li><b>Do NOT clear browser data</b> (cache, cookies, site data).</li>
+      <li>Clearing data will permanently remove your access.</li>
+      <li>Characters are saved <b>per tab</b>. Do not close your active chat tab.</li>
+    </ul>
+
+    <button id="aaCloseBtn">Enjoy your time [close]</button>
+  </div>
+</div>
+  
 </body>
 </html>
+
 
 
 
