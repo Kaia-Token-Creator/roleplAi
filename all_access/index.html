@@ -2270,28 +2270,6 @@ function setupKeyboardBar(){
 
     
   </script>
-<script>
-(function showAllAccessWelcome(){
-  try{
-    const modal = document.getElementById("allAccessModal");
-    if (!modal) return;
-
-    modal.classList.add("active");
-
-    document.getElementById("aaCloseBtn").onclick = () => {
-      modal.classList.remove("active");
-    };
-
-    document.getElementById("aaUrl").onclick = async () => {
-      try{
-        await navigator.clipboard.writeText("https://roleplay-chat.com/all_access");
-        document.getElementById("aaUrl").textContent = "Copied ✓";
-      }catch(e){}
-    };
-  }catch(e){}
-})();
-</script>
-
 
 <div id="allAccessModal" class="aa-overlay">
   <div class="aa-modal">
@@ -2316,7 +2294,28 @@ function setupKeyboardBar(){
     <button id="aaCloseBtn">Enjoy your time [close]</button>
   </div>
 </div>
-  
+<script>
+(function showAllAccessWelcome(){
+  try{
+    const modal = document.getElementById("allAccessModal");
+    if (!modal) return;
+
+    modal.classList.add("active");
+
+    document.getElementById("aaCloseBtn").onclick = () => {
+      modal.classList.remove("active");
+    };
+
+    document.getElementById("aaUrl").onclick = async () => {
+      try{
+        await navigator.clipboard.writeText("https://roleplay-chat.com/all_access");
+        document.getElementById("aaUrl").textContent = "Copied ✓";
+      }catch(e){}
+    };
+  }catch(e){}
+})();
+</script>  
 </body>
 </html>
+
 
