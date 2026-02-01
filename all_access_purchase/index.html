@@ -566,7 +566,7 @@
       onApprove: async (data, actions) => {
         await actions.order.capture();
 
-        const paidKey = generatePaidKey();
+        const paidKey = paid
         localStorage.setItem(STORAGE_KEY, paidKey);
 
         const url = "https://roleplay-chat.com/all_access?key=" + encodeURIComponent(paidKey);
@@ -576,6 +576,7 @@
   </script>
 </body>
 </html>
+
 
 
 
