@@ -1096,7 +1096,7 @@ function saveHistory(list){
     }catch(e){}
 
     // ✅ local 백업(탭ID별): 텍스트만 + 최대 60개 정도
-    const slim = sanitized.slice(-60).map(m => ({
+    const slim = sanitized.slice(-100).map(m => ({
   role: m.role,
   content: m.content
 }));
@@ -1131,7 +1131,7 @@ const chatBox = document.getElementById("chatBox");
 const input = document.getElementById("chatInput");
 const sendBtn = document.getElementById("sendBtn");
   
-const MAX_HISTORY = 60; // ✅ 유저 + assistant 말풍선 합쳐서 최대 60개
+const MAX_HISTORY = 100; // ✅ 유저 + assistant 말풍선 합쳐서 최대 100개
 
 let history = loadHistory();
 Promise.resolve().then(pruneHistoryAndUI);
@@ -2068,6 +2068,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
