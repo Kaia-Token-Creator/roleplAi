@@ -712,10 +712,42 @@ function loadHistory(){
   catch { return []; }
 }
 
-function saveHistory(list){
-  try { sessionStorage.setItem(IMAGECHAT_HISTORY_KEY, JSON.stringify(list)); }
-  catch(e){ console.error(e); }
+
+function trimHistoryLimits(list, {
+  maxMessages = 120,
+  maxImages = 18
+} = {}) {
+  if (!Array.isArray(list)) return [];
+
+  // 메시지 개수 제한
+  if (list.length > maxMessages) list = list.slice(list.length - maxMessages);
+
+  // 이미지 개수 제한 (오래된 이미지부터 제거)
+  let imgCount = 0;
+  for (let i = list.length - 1; i >= 0; i--) {
+    if (list[i]?.imageUrl) {
+      imgCount++;
+      if (imgCount > maxImages) list[i].imageUrl = "";
+    }
+  }
+  return list;
 }
+  
+function saveHistory(list){
+  try {
+    sessionStorage.setItem(IMAGECHAT_HISTORY_KEY, JSON.stringify(list));
+  } catch(e) {
+    // ✅ 용량 초과 등으로 저장 실패하면: 이미지 제거 후 텍스트만이라도 저장 재시도
+    try {
+      const slim = (Array.isArray(list) ? list : []).map(m => ({ ...m, imageUrl: "" }));
+      sessionStorage.setItem(IMAGECHAT_HISTORY_KEY, JSON.stringify(slim));
+      console.warn("History saved without images due to quota.");
+    } catch(e2) {
+      console.error("History save failed completely", e2);
+    }
+  }
+}
+
 
 
 if (!paid){
@@ -748,6 +780,55 @@ let history = loadHistory(); // ✅ refresh에도 남음
 function escapeText(s){
   return (s ?? "").toString();
 }
+
+async function compressDataUrl(dataUrl, {
+  maxW = 768,      // 저장용 최대 가로폭 (추천: 512~1024)
+  maxH = 768,      // 저장용 최대 세로폭
+  quality = 0.72,  // JPEG/WebP 품질 (0~1)
+  mime = "image/webp" // "image/jpeg" 또는 "image/webp"
+} = {}) {
+  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) return dataUrl;
+
+  const img = new Image();
+  img.decoding = "async";
+
+  const loaded = new Promise((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("Image load failed"));
+  });
+  img.src = dataUrl;
+  await loaded;
+
+  let { width: w, height: h } = img;
+
+  // 이미 충분히 작으면 그대로
+  if (w <= maxW && h <= maxH) return dataUrl;
+
+  // 비율 유지 리사이즈
+  const scale = Math.min(maxW / w, maxH / h);
+  const nw = Math.max(1, Math.round(w * scale));
+  const nh = Math.max(1, Math.round(h * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = nw;
+  canvas.height = nh;
+
+  const ctx = canvas.getContext("2d", { alpha: false });
+  // 다운스케일 퀄리티
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, nw, nh);
+
+  // webp 지원 안 되면 jpeg로 폴백
+  let out = "";
+  try {
+    out = canvas.toDataURL(mime, quality);
+  } catch {
+    out = canvas.toDataURL("image/jpeg", quality);
+  }
+  return out || dataUrl;
+}
+
 
 async function typewriter(el, text, speed=14){
   el.textContent = "";
@@ -918,8 +999,23 @@ async function bootstrapFirstMessage(){
     }
 
     appendMsg("assistant", reply, imageUrl || undefined, { animate: true });
-    history.push({ role: "assistant", content: reply, imageUrl });
-    saveHistory(history);
+
+// ✅ 저장용만 압축
+const storedImageUrl = imageUrl ? await compressDataUrl(imageUrl, {
+  maxW: 768,
+  maxH: 768,
+  quality: 0.72,
+  mime: "image/webp"
+}) : "";
+
+// ✅ history에 저장 (압축본)
+history.push({ role: "assistant", content: reply, imageUrl: storedImageUrl });
+
+// ✅ (선택) 너무 쌓이면 정리
+history = trimHistoryLimits(history, { maxMessages: 120, maxImages: 18 });
+
+saveHistory(history);
+
 
   } catch(e){
     appendMsg("assistant", `Error: ${String(e?.message || e)}`);
@@ -1040,8 +1136,22 @@ if (data && data.image && typeof data.image.b64 === "string" && typeof data.imag
 
 const shownText = reply || "(no text)";
 appendMsg("assistant", shownText, imageUrl || undefined, { animate: true });
-history.push({ role: "assistant", content: shownText, imageUrl }); // ✅ imageUrl 추가
+
+// ✅ 저장용만 압축
+const storedImageUrl = imageUrl ? await compressDataUrl(imageUrl, {
+  maxW: 512,
+  maxH: 512,
+  quality: 0.72,
+  mime: "image/webp"
+}) : "";
+
+history.push({ role: "assistant", content: shownText, imageUrl: storedImageUrl });
+
+// ✅ (선택) 너무 쌓이면 정리
+history = trimHistoryLimits(history, { maxMessages: 120, maxImages: 18 });
+
 saveHistory(history);
+
 
 
   }catch(e){
@@ -1223,43 +1333,6 @@ async function ensurePayPalUnlimitedButtons(){
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
