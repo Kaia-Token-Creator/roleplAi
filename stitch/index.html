@@ -24,10 +24,8 @@
       --radius2: 22px;
 
       --gold:#ffcc00;
-      --hot:#FF69B4;
-      --ok:#38d16a;
-      --warn:#ffcc00;
-      --bad:#ff5b5b;
+      --good:#36d399;
+      --bad:#ff6b6b;
     }
 
     *{ box-sizing:border-box; }
@@ -133,7 +131,7 @@
       stroke-linejoin: round;
     }
 
-    /* ✅ Info 버튼: 노란 글로우 */
+    /* ✅ Info button: yellow glow */
     #infoBtn{
       border-color: rgba(255, 204, 0, .55);
       box-shadow:
@@ -184,383 +182,319 @@
     }
 
     /* =========================
-       Stitch page content
-       ========================= */
-    .content{
-      display:grid;
-      gap: 12px;
-      padding: 6px;
-    }
-
-    .hero{
-      border-radius: var(--radius2);
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      box-shadow: var(--shadow);
-      padding: 16px 14px;
-    }
-
-    .title{
-      font-family: "Baloo 2", Inter, sans-serif;
-      font-weight: 700;
-      letter-spacing: .2px;
-      font-size: clamp(18px, 5.2vw, 28px);
-      margin: 0 0 6px;
-      line-height: 1.05;
-    }
-
-    .subtitle{
-      margin: 0 0 10px;
-      color: rgba(255,255,255,.70);
-      font-size: 13px;
-    }
-
-    .ctaLinkRow{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .textLink{
-      text-decoration: none; /* no underline */
-      color: rgba(255,255,255,.92);
-      font-weight: 700;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: 0 10px 22px rgba(0,0,0,.35);
-      transition: .15s ease;
-      user-select:none;
-      white-space: nowrap;
-    }
-    .textLink:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.10);
-      border-color: rgba(255,255,255,.20);
-    }
-
-    .mp4Only{
-      font-size: 12px;
-      color: rgba(255,255,255,.65);
-      padding-left: 2px;
-      display:flex;
-      align-items:center;
-      gap: 6px;
-      user-select:none;
-    }
-    .dot{
-      width: 7px; height: 7px; border-radius: 99px;
-      background: rgba(255,204,0,.9);
-      box-shadow: 0 0 16px rgba(255,204,0,.35);
-      display:inline-block;
-    }
+       Stitch page (new content)
+    ========================= */
 
     .panel{
       border-radius: var(--radius2);
       border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.02);
-      box-shadow: var(--shadow);
-      padding: 14px;
-      overflow:hidden;
-    }
-
-    .panelHead{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .panelTitle{
-      font-weight: 800;
-      letter-spacing: .2px;
-      margin: 0;
-      font-size: 14px;
-      color: rgba(255,255,255,.92);
-    }
-
-    .hint{
-      margin: 0;
-      font-size: 12px;
-      color: rgba(255,255,255,.60);
-    }
-
-    /* Slots layout:
-       - Mobile: 2 columns grid (so 10 slots => 2 x 5)
-       - Desktop: single-row horizontal strip (continuous to the right)
-    */
-    .slots{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    @media (min-width: 740px){
-      .slots{
-        display:flex;
-        gap: 10px;
-        overflow-x: auto;
-        padding-bottom: 6px;
-        scroll-snap-type: x mandatory;
-      }
-      .slots::-webkit-scrollbar{ height: 8px; }
-      .slots::-webkit-scrollbar-thumb{
-        background: rgba(255,255,255,.12);
-        border-radius: 999px;
-      }
-    }
-
-    .slot{
-      position: relative;
-      border-radius: 18px;
-      border: 1px dashed rgba(255,255,255,.18);
       background: rgba(255,255,255,.03);
-      height: 130px;
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow: 0 10px 26px rgba(0,0,0,.35);
-      transition: .15s ease;
-      user-select:none;
-      cursor:pointer;
+      box-shadow: var(--shadow);
+      overflow: hidden;
     }
 
-    @media (min-width: 740px){
-      .slot{
-        width: 170px;
-        flex: 0 0 auto;
-        scroll-snap-align: start;
-      }
+    .panelInner{
+      padding: 14px 12px 12px;
+      display: grid;
+      gap: 10px;
     }
 
-    .slot:hover{
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.05);
-      border-color: rgba(255,255,255,.24);
-    }
-
-    .slot.dragover{
-      border-color: rgba(255,204,0,.65);
-      box-shadow:
-        0 0 0 1px rgba(255,204,0,.20),
-        0 0 28px rgba(255,204,0,.22),
-        0 10px 26px rgba(0,0,0,.35);
-      background: rgba(255,204,0,.06);
-    }
-
-    .slotNumber{
-      position:absolute;
-      inset: 0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+    .heroTitle{
+      text-align: center;
       font-family: "Baloo 2", Inter, sans-serif;
-      font-weight: 800;
-      font-size: 44px;
-      color: rgba(255,255,255,.10);
-      pointer-events:none;
+      font-weight: 700;
+      letter-spacing: .2px;
+      font-size: clamp(18px, 4.3vw, 28px);
+      margin: 2px 0 0;
     }
 
-    .slotLabel{
-      position:absolute;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
+    .heroTitle .stitch{
+      color: var(--gold);
+      text-shadow:
+        0 0 12px rgba(255,204,0,.22),
+        0 0 24px rgba(255,204,0,.12);
+    }
+
+    .heroSub{
+      text-align: center;
+      color: rgba(255,255,255,.72);
+      font-size: 12px;
+      margin-top: -2px;
+    }
+
+    .chatLink{
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,.88);
+    }
+    .chatLink a{
+      text-decoration: none; /* no underline */
+      color: rgba(255,204,0,.95);
+      font-weight: 700;
+      padding: 2px 4px;
+      border-radius: 8px;
+      background: rgba(255,204,0,.10);
+      border: 1px solid rgba(255,204,0,.22);
+      box-shadow: 0 10px 22px rgba(0,0,0,.35);
+      transition: .15s ease;
+    }
+    .chatLink a:hover{
+      transform: translateY(-1px);
+      background: rgba(255,204,0,.14);
+      border-color: rgba(255,204,0,.30);
+    }
+
+    .hintRow{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 8px;
-      pointer-events:none;
+      gap: 10px;
+      padding: 10px 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
     }
 
-    .slotText{
+    .miniHint{
+      color: rgba(255,255,255,.70);
       font-size: 12px;
-      color: rgba(255,255,255,.72);
-      line-height: 1.15;
-      max-width: 75%;
+      line-height: 1.25;
     }
+    .miniHint b{ color: rgba(255,255,255,.92); }
 
-    .slotBadge{
+    .statusPill{
       font-size: 11px;
-      font-weight: 800;
       color: rgba(255,255,255,.88);
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.14);
-      padding: 4px 8px;
+      padding: 6px 10px;
       border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
       white-space: nowrap;
     }
 
-    .plusSlot{
-      border-style: solid;
-      border-color: rgba(255,255,255,.14);
-      background: rgba(255,255,255,.02);
+    /* Slots: desktop = horizontal, mobile = grid */
+    .slotsWrap{
+      padding: 10px 12px 12px;
     }
-    .plusIcon{
-      font-family: "Baloo 2", Inter, sans-serif;
-      font-weight: 900;
-      font-size: 44px;
-      color: rgba(255,255,255,.75);
-      text-shadow: 0 0 18px rgba(255,255,255,.12);
-      transform: translateY(-2px);
+
+    .slots{
+      display:flex;
+      gap: 10px;
+      overflow-x:auto;
+      padding-bottom: 2px;
+      scrollbar-width: thin;
     }
-    .plusHelp{
-      position:absolute;
-      bottom: 10px;
-      left: 10px;
-      right: 10px;
-      font-size: 12px;
-      color: rgba(255,255,255,.62);
+
+    .slot{
+      width: 160px;
+      height: 118px;
+      border-radius: 18px;
+      border: 1px dashed rgba(255,255,255,.18);
+      background: rgba(255,255,255,.03);
+      box-shadow: 0 10px 22px rgba(0,0,0,.35);
+      position: relative;
+      flex: 0 0 auto;
+      cursor: pointer;
+      user-select:none;
+      overflow: hidden;
+      transition:.15s ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       text-align:center;
-      pointer-events:none;
+      padding: 10px;
+    }
+    .slot:hover{ background: rgba(255,255,255,.06); transform: translateY(-1px); }
+    .slot.dragover{
+      border-color: rgba(255,204,0,.65);
+      box-shadow:
+        0 0 0 1px rgba(255,204,0,.25),
+        0 0 18px rgba(255,204,0,.22),
+        0 10px 22px rgba(0,0,0,.35);
+    }
+
+    .slotNum{
+      position:absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 12px;
+      color: rgba(255,255,255,.28);
+      font-weight: 700;
+    }
+
+    .slotPlus{
+      font-size: 30px;
+      line-height: 1;
+      color: rgba(255,255,255,.55);
+      font-weight: 800;
+    }
+
+    .slotLabel{
+      font-size: 12px;
+      color: rgba(255,255,255,.65);
+      line-height: 1.25;
     }
 
     .thumb{
       position:absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: saturate(1.05) contrast(1.02);
-      opacity: 0;
-      transition: opacity .15s ease;
+      inset:0;
+      background-size: cover;
+      background-position: center;
+      filter: contrast(1.05) saturate(1.05);
+      opacity: 1;
     }
-    .slot.filled .thumb{ opacity: 1; }
-    .slot.filled{
-      border-style: solid;
-      border-color: rgba(255,255,255,.16);
-      background: rgba(255,255,255,.02);
+    .thumbOverlay{
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(to top, rgba(0,0,0,.86), rgba(0,0,0,.10) 55%, rgba(0,0,0,.25));
     }
 
-    .removeBtn{
+    .fileMeta{
       position:absolute;
-      top: 8px;
-      right: 8px;
-      width: 30px;
-      height: 30px;
-      border-radius: 12px;
+      left: 10px;
+      right: 10px;
+      bottom: 9px;
+      display:flex;
+      gap: 8px;
+      align-items:flex-end;
+      justify-content:space-between;
+    }
+    .fileName{
+      font-size: 11px;
+      color: rgba(255,255,255,.88);
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 120px;
+    }
+    .removeBtn{
       border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.35);
-      backdrop-filter: blur(6px);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.85);
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      cursor:pointer;
       display:flex;
       align-items:center;
       justify-content:center;
-      cursor:pointer;
       transition:.15s ease;
-      z-index: 5;
     }
-    .removeBtn:hover{ background: rgba(0,0,0,.55); transform: translateY(-1px); }
-    .removeBtn svg{
-      width: 14px; height: 14px;
-      stroke: rgba(255,255,255,.9);
-      stroke-width: 2.2;
-      stroke-linecap: round;
-    }
+    .removeBtn:hover{ background: rgba(255,107,107,.14); border-color: rgba(255,107,107,.32); }
 
-    .controls{
+    .actions{
       display:flex;
+      gap: 10px;
       align-items:center;
       justify-content:space-between;
-      gap: 10px;
-      margin-top: 12px;
+      padding: 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
       flex-wrap: wrap;
     }
 
-    .stitchBtn{
+    .primaryBtn{
       appearance:none;
-      border: 1px solid rgba(255,204,0,.55);
-      background: rgba(255,204,0,.10);
-      color: rgba(255,255,255,.95);
-      font-weight: 900;
+      border: 1px solid rgba(255,204,0,.36);
+      background: rgba(255,204,0,.12);
+      color: rgba(255,255,255,.92);
+      font-weight: 800;
       letter-spacing: .2px;
-      border-radius: 16px;
-      padding: 12px 14px;
+      padding: 10px 14px;
+      border-radius: 14px;
       cursor:pointer;
-      transition:.15s ease;
       box-shadow:
-        0 0 0 1px rgba(255,204,0,.18),
-        0 0 22px rgba(255,204,0,.22),
-        var(--shadow);
+        0 0 0 1px rgba(255,204,0,.12),
+        0 10px 24px rgba(0,0,0,.45);
+      transition:.15s ease;
       display:flex;
       align-items:center;
-      gap: 10px;
-      user-select:none;
+      gap: 8px;
+      min-width: 160px;
+      justify-content:center;
     }
-    .stitchBtn:hover{ transform: translateY(-1px); background: rgba(255,204,0,.14); }
-    .stitchBtn:active{ transform: translateY(0px); }
-    .stitchBtn[disabled]{
+    .primaryBtn:hover{ transform: translateY(-1px); background: rgba(255,204,0,.16); }
+    .primaryBtn:disabled{
+      opacity:.45;
       cursor:not-allowed;
-      opacity:.65;
       transform:none !important;
-      filter: grayscale(.2);
     }
 
-    .status{
-      flex: 1 1 240px;
-      min-height: 42px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      box-shadow: 0 10px 26px rgba(0,0,0,.28);
-      padding: 10px 12px;
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      color: rgba(255,255,255,.80);
-      font-size: 12px;
-    }
-
-    .pill{
-      font-size: 11px;
-      font-weight: 900;
-      padding: 4px 8px;
-      border-radius: 999px;
+    .ghostBtn{
+      appearance:none;
       border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.86);
-      white-space: nowrap;
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.82);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor:pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+      transition:.15s ease;
     }
-    .pill.ok{ border-color: rgba(56,209,106,.35); background: rgba(56,209,106,.10); }
-    .pill.warn{ border-color: rgba(255,204,0,.35); background: rgba(255,204,0,.10); }
-    .pill.bad{ border-color: rgba(255,91,91,.35); background: rgba(255,91,91,.10); }
+    .ghostBtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.06); }
 
-    .progressBar{
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.10);
-      overflow:hidden;
+    .progressLine{
       width: 100%;
-      margin-top: 10px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      overflow:hidden;
       display:none;
     }
+    .progressLine.active{ display:block; }
     .progressFill{
       height: 100%;
       width: 0%;
-      background: rgba(255,204,0,.70);
-      box-shadow: 0 0 22px rgba(255,204,0,.28);
+      background: rgba(255,204,0,.55);
+      border-radius: 999px;
+      transition: width .12s linear;
     }
 
-    .note{
-      margin-top: 10px;
-      font-size: 12px;
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      background: rgba(10,10,10,.88);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: var(--shadow);
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: rgba(255,255,255,.92);
+      font-size: 13px;
+      display:none;
+      z-index: 999999;
+      max-width: min(520px, calc(100vw - 24px));
+    }
+    .toast.show{ display:block; }
+    .toast b{ color: var(--gold); }
+
+    .finePrint{
       color: rgba(255,255,255,.55);
-      line-height: 1.35;
+      font-size: 11px;
+      padding: 0 12px 12px;
+      line-height: 1.3;
     }
 
-    .kbd{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 8px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.85);
-      white-space: nowrap;
+    /* Mobile: make slots a 2x grid when tight */
+    @media (max-width: 640px){
+      .slots{
+        display:grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        overflow: visible;
+      }
+      .slot{
+        width: 100%;
+      }
+      .actions{
+        gap: 8px;
+      }
+      .primaryBtn, .ghostBtn{
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -570,16 +504,15 @@
     <div class="shell">
 
       <header>
-        <!-- ✅ 2줄 스택 컨테이너 -->
+        <!-- ✅ 2-line stack container -->
         <div style="display:block; width:100%;">
 
-          <!-- ✅ 1줄: 기존 헤더 내용 -->
+          <!-- ✅ 1st line: header (kept) -->
           <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
             <a href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer" class="logo">
               <span class="logoRole">Roleplay-chat</span><span class="logoDot">.com</span>
             </a>
 
-            <!-- ✅ 공유 영역 묶기 -->
             <div class="shareWrap">
               <div class="bookmarkHint">
                 Bookmark<br>&amp; Share
@@ -595,7 +528,6 @@
                 </svg>
               </button>
 
-              <!-- ✅ Info 버튼(최우측) -->
               <button class="shareBtn" id="infoBtn" type="button" aria-label="Info" title="Info">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <circle cx="12" cy="12" r="9"></circle>
@@ -604,7 +536,6 @@
                 </svg>
               </button>
 
-              <!-- ✅ Info 메뉴 -->
               <div class="infoMenu" id="infoMenu" role="menu" aria-label="Info menu">
                 <a href="https://chat-with-stranger.com" target="_blank" rel="noopener noreferrer" style="color: #FF69B4; font-weight: bold; text-decoration: none;">Chat with stranger</a>
                 <a href="https://roleplay-chat.com/human" target="_blank" rel="noopener noreferrer" style="color: #FFD700; font-weight: bold; text-decoration: none;">Chat with real human</a>
@@ -622,7 +553,7 @@
             </div>
           </div>
 
-          <!-- ✅ 2줄: Chatango 라인(오른쪽) -->
+          <!-- ✅ 2nd line: Chatango (kept) -->
           <div align="right">
             <sup>
               <a href="https://roleplay-chat.com/human" target="_blank" style="text-decoration:none">
@@ -647,75 +578,63 @@
       <div class="sub">Create the most human-like character, Enjoy roleplay.<br>no-login. Private & Safe.</div>
 
       <!-- =========================
-           Stitch content
-           ========================= -->
-      <div class="content">
+           Stitch page content
+      ========================= -->
+      <section class="panel" aria-label="Stitch videos">
+        <div class="panelInner">
+          <h1 class="heroTitle">
+            Stitch your chat videos into one long video
+            <span class="stitch"> — Stitch</span>
+          </h1>
+          <div class="heroSub">(Extend your Video Chat creations by stitching them into a longer video.)</div>
 
-        <div class="hero">
-          <h1 class="title">Stitch your chat-made clips into one long video</h1>
-          <p class="subtitle">Extend the videos you made in Video Chat mode by stitching them together.</p>
-
-          <div class="ctaLinkRow">
-            <a class="textLink" href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer">
-              Make videos while chatting →
-            </a>
-
-            <div class="mp4Only" title="MP4 only">
-              <span class="dot"></span>
-              MP4 only
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panelHead">
-            <div>
-              <p class="panelTitle">Drop clips in order (2 to 10)</p>
-              <p class="hint">Tap a slot to upload, or drag & drop MP4 files into slots.</p>
-            </div>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <span class="pill warn" id="countPill">0 / 10</span>
-            </div>
+          <div class="chatLink">
+            Want to create more clips first?
+            <a href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer">Create videos in chat</a>
           </div>
 
-          <div class="slots" id="slots"></div>
+          <div class="hintRow">
+            <div class="miniHint">
+              <b>MP4 only.</b> Add 2–10 clips in order, then press <b>Stitch</b>.<br>
+              Tip: Drag & drop directly into slots.
+            </div>
+            <div class="statusPill" id="statusPill">Ready</div>
+          </div>
 
-          <div class="controls">
-            <button class="stitchBtn" id="stitchBtn" type="button">
-              <span style="font-family:'Baloo 2', Inter, sans-serif; font-size: 18px; letter-spacing:.2px;">Stitch</span>
-              <span class="pill" id="enginePill">Ready</span>
+          <div class="slotsWrap">
+            <div class="slots" id="slots"></div>
+          </div>
+
+          <div class="actions">
+            <button class="primaryBtn" id="stitchBtn" disabled>
+              <span>Stitch</span>
+              <span style="opacity:.75; font-size:12px;">(MP4)</span>
             </button>
 
-            <div class="status" id="statusBox" aria-live="polite">
-              <span class="pill warn" id="statusPill">Tip</span>
-              <div id="statusText">Add at least <b>2</b> MP4 clips, then press <b>Stitch</b>. Your stitched video will download automatically.</div>
+            <button class="ghostBtn" id="resetBtn" type="button">Reset</button>
+
+            <div style="flex:1 1 200px; min-width: 180px;">
+              <div class="progressLine" id="progressLine" aria-label="Progress">
+                <div class="progressFill" id="progressFill"></div>
+              </div>
+              <div style="margin-top:8px; color: rgba(255,255,255,.62); font-size:12px;" id="progressText"></div>
             </div>
           </div>
 
-          <div class="progressBar" id="progressBar" aria-hidden="true">
-            <div class="progressFill" id="progressFill"></div>
-          </div>
-
-          <div class="note">
-            Notes:
-            <br>• Stitching runs in your browser (no upload to server).
-            <br>• If a clip fails, re-export it as MP4 (H.264 + AAC) and try again.
-            <br>• Desktop: clips flow to the right (scroll). Mobile: grid stays finger-friendly.
+          <div class="finePrint">
+            Stitching runs locally in your browser (no upload). Large files may take time or fail due to memory limits.
+            Best results when clips share similar encoding settings.
           </div>
         </div>
-
-      </div>
+      </section>
 
     </div>
   </div>
 
-  <!-- FFmpeg (loaded only when needed in JS, but script tag keeps it simple) -->
-<script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script data-cfasync="false">
-    // =========================
-    // Header: Share + Info menu (unchanged behavior)
-    // =========================
+  <script>
+    // Share button
     const shareBtn = document.querySelector("#shareBtn");
     if (shareBtn){
       shareBtn.addEventListener("click", async () => {
@@ -729,464 +648,430 @@
             setTimeout(() => (shareBtn.title = "Share"), 900);
           }
         }catch(e){
-          // user cancelled / blocked
+          // cancelled / blocked
         }
       });
     }
 
+    // Info menu
     const infoBtn = document.querySelector("#infoBtn");
     const infoMenu = document.querySelector("#infoMenu");
-
-    function closeInfoMenu(){
-      if (infoMenu) infoMenu.classList.remove("active");
-    }
-
+    function closeInfoMenu(){ if (infoMenu) infoMenu.classList.remove("active"); }
     if (infoBtn && infoMenu){
-      infoBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        infoMenu.classList.toggle("active");
-      });
-
-      infoMenu.addEventListener("click", (e) => {
-        e.stopPropagation();
-      });
-
+      infoBtn.addEventListener("click", (e) => { e.stopPropagation(); infoMenu.classList.toggle("active"); });
+      infoMenu.addEventListener("click", (e) => e.stopPropagation());
       document.addEventListener("click", closeInfoMenu);
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeInfoMenu();
-      });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeInfoMenu(); });
     }
 
     // =========================
-    // Stitch UI + Logic
+    // Stitch App
     // =========================
     const MAX = 10;
-
     const slotsEl = document.getElementById("slots");
     const stitchBtn = document.getElementById("stitchBtn");
-    const statusBox = document.getElementById("statusBox");
-    const statusText = document.getElementById("statusText");
+    const resetBtn = document.getElementById("resetBtn");
     const statusPill = document.getElementById("statusPill");
-    const countPill = document.getElementById("countPill");
-    const enginePill = document.getElementById("enginePill");
-
-    const progressBar = document.getElementById("progressBar");
+    const toast = document.getElementById("toast");
+    const progressLine = document.getElementById("progressLine");
     const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
 
-    // state
-    let openCount = 2; // starts with 2 slots
-    const files = new Array(MAX).fill(null);  // File objects
-    const urls  = new Array(MAX).fill(null);  // blob URLs for previews
+    // Slots data: { file: File|null, url: string|null, thumb: string|null }
+    let openCount = 2; // start with 2 slots
+    let items = Array.from({length: MAX}, () => ({ file: null, url: null, thumb: null, name: "" }));
 
-    function setStatus(kind, msgHtml){
-      statusPill.classList.remove("ok","warn","bad");
-      if (kind === "ok") statusPill.classList.add("ok");
-      if (kind === "warn") statusPill.classList.add("warn");
-      if (kind === "bad") statusPill.classList.add("bad");
-      statusPill.textContent = (kind === "ok" ? "Done" : kind === "bad" ? "Error" : "Tip");
-      statusText.innerHTML = msgHtml;
+    function showToast(msg, ms=2200){
+      toast.innerHTML = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), ms);
     }
 
-    function setProgress(pct){
-      const clamped = Math.max(0, Math.min(100, pct));
-      progressBar.style.display = "block";
-      progressFill.style.width = clamped.toFixed(1) + "%";
+    function setStatus(text){
+      statusPill.textContent = text;
     }
 
-    function hideProgress(){
-      progressBar.style.display = "none";
-      progressFill.style.width = "0%";
-    }
-
-    function countFilled(){
-      return files.filter(Boolean).length;
-    }
-
-    function updateCountPill(){
-      countPill.textContent = `${countFilled()} / ${MAX}`;
-    }
-
-    function revokeUrl(i){
-      if (urls[i]){
-        URL.revokeObjectURL(urls[i]);
-        urls[i] = null;
+    function setProgress(pct, text){
+      if (pct == null){
+        progressLine.classList.remove("active");
+        progressFill.style.width = "0%";
+        progressText.textContent = "";
+        return;
       }
-    }
-
-    function clearSlot(i){
-      files[i] = null;
-      revokeUrl(i);
-      render();
-      updateCountPill();
+      progressLine.classList.add("active");
+      progressFill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+      progressText.textContent = text || "";
     }
 
     function isMp4(file){
-      // Most reliable: mime type may be empty on some devices, so also check extension.
-      const nameOk = (file && typeof file.name === "string" && file.name.toLowerCase().endsWith(".mp4"));
-      const typeOk = (file && typeof file.type === "string" && file.type.toLowerCase() === "video/mp4");
-      return !!(typeOk || nameOk);
+      // Some browsers provide empty type; fall back to extension
+      const typeOk = (file.type || "").toLowerCase().includes("mp4");
+      const nameOk = (file.name || "").toLowerCase().endsWith(".mp4");
+      return typeOk || nameOk;
     }
 
-    function setFile(i, file){
-      if (!file) return;
-      if (!isMp4(file)){
-        setStatus("bad", "MP4 only. Please select a <span class='kbd'>.mp4</span> file.");
-        return;
-      }
-      files[i] = file;
-      revokeUrl(i);
-      urls[i] = URL.createObjectURL(file);
-      setStatus("warn", "Nice. Add more clips (2 to 10), then press <b>Stitch</b>.");
-      render();
-      updateCountPill();
+    function cleanupItem(i){
+      const it = items[i];
+      if (it.url) URL.revokeObjectURL(it.url);
+      items[i] = { file: null, url: null, thumb: null, name: "" };
     }
 
-    function makeSlot(i){
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.setAttribute("role","button");
-      slot.setAttribute("tabindex","0");
-      slot.setAttribute("aria-label", `Slot ${i+1} - upload MP4`);
+    async function makeThumbnail(file){
+      // Create a quick thumbnail by seeking a hidden video and drawing to canvas
+      const url = URL.createObjectURL(file);
+      try{
+        const v = document.createElement("video");
+        v.src = url;
+        v.muted = true;
+        v.playsInline = true;
+        v.preload = "metadata";
 
-      const number = document.createElement("div");
-      number.className = "slotNumber";
-      number.textContent = String(i+1);
-
-      // hidden file input
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "video/mp4,.mp4";
-      input.style.display = "none";
-
-      input.addEventListener("change", (e) => {
-        const f = e.target.files && e.target.files[0];
-        if (f) setFile(i, f);
-        input.value = ""; // allow re-selecting same file
-      });
-
-      slot.addEventListener("click", () => input.click());
-      slot.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " "){
-          e.preventDefault();
-          input.click();
-        }
-      });
-
-      // drag & drop
-      slot.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        slot.classList.add("dragover");
-      });
-      slot.addEventListener("dragleave", () => slot.classList.remove("dragover"));
-      slot.addEventListener("drop", (e) => {
-        e.preventDefault();
-        slot.classList.remove("dragover");
-        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-        if (f) setFile(i, f);
-      });
-
-      const label = document.createElement("div");
-      label.className = "slotLabel";
-
-      const left = document.createElement("div");
-      left.className = "slotText";
-      left.innerHTML = "Tap or drop<br><span style='color:rgba(255,255,255,.55)'>MP4</span>";
-
-      const right = document.createElement("div");
-      right.className = "slotBadge";
-      right.textContent = "MP4";
-
-      label.appendChild(left);
-      label.appendChild(right);
-
-      slot.appendChild(number);
-      slot.appendChild(label);
-      slot.appendChild(input);
-
-      // If filled: show thumbnail video + remove button
-      if (files[i]){
-        slot.classList.add("filled");
-
-        const vid = document.createElement("video");
-        vid.className = "thumb";
-        vid.src = urls[i];
-        vid.muted = true;
-        vid.playsInline = true;
-        vid.preload = "metadata";
-        vid.loop = true;
-        vid.autoplay = true;
-
-        // Some mobile browsers block autoplay; that's fine. Still shows first frame after metadata.
-        vid.addEventListener("loadedmetadata", () => {
-          // Try to seek a tiny bit to get a visible frame quickly
-          try { vid.currentTime = Math.min(0.1, (vid.duration || 1) / 10); } catch {}
+        await new Promise((res, rej) => {
+          v.onloadedmetadata = () => res();
+          v.onerror = () => rej(new Error("Video metadata error"));
         });
 
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "removeBtn";
-        remove.setAttribute("aria-label", `Remove clip from slot ${i+1}`);
-        remove.innerHTML = `
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M18 6L6 18"></path>
-            <path d="M6 6l12 12"></path>
-          </svg>
-        `;
-
-        remove.addEventListener("click", (e) => {
-          e.stopPropagation();
-          clearSlot(i);
-          setStatus("warn", "Removed. You can re-add a clip anytime.");
+        // Seek slightly in
+        const t = Math.min(0.12, (v.duration || 1) * 0.1);
+        await new Promise((res, rej) => {
+          v.currentTime = t;
+          v.onseeked = () => res();
+          v.onerror = () => rej(new Error("Video seek error"));
         });
 
-        slot.appendChild(vid);
-        slot.appendChild(remove);
+        const canvas = document.createElement("canvas");
+        const w = Math.max(240, v.videoWidth || 240);
+        const h = Math.max(160, v.videoHeight || 160);
+        // Keep it light: scale down
+        const scale = Math.min(1, 320 / w);
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
 
-        // overlay label becomes subtle
-        left.innerHTML = "Clip ready<br><span style='color:rgba(255,255,255,.55)'>Tap to replace</span>";
-        right.textContent = "OK";
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+        return { dataUrl, tempUrl: url };
+      }catch(e){
+        URL.revokeObjectURL(url);
+        return { dataUrl: null, tempUrl: null };
       }
-
-      return slot;
     }
 
-    function makePlusSlot(){
-      const slot = document.createElement("div");
-      slot.className = "slot plusSlot";
-      slot.setAttribute("role","button");
-      slot.setAttribute("tabindex","0");
-      slot.setAttribute("aria-label","Add another slot");
+    function countSelected(){
+      return items.slice(0, openCount).filter(x => x.file).length;
+    }
 
-      const plus = document.createElement("div");
-      plus.className = "plusIcon";
-      plus.textContent = "+";
-
-      const help = document.createElement("div");
-      help.className = "plusHelp";
-      help.innerHTML = "Add slot<br><span style='color:rgba(255,255,255,.45)'>up to 10</span>";
-
-      function add(){
-        if (openCount < MAX){
-          openCount += 1;
-          setStatus("warn", `Slot <b>${openCount}</b> added. Keep going (up to 10).`);
-          render();
-        }
-      }
-
-      slot.addEventListener("click", add);
-      slot.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " "){
-          e.preventDefault();
-          add();
-        }
-      });
-
-      slot.appendChild(plus);
-      slot.appendChild(help);
-      return slot;
+    function updateButtons(){
+      const n = countSelected();
+      stitchBtn.disabled = n < 2;
     }
 
     function render(){
       slotsEl.innerHTML = "";
 
-      // Render opened slots
-      for (let i = 0; i < openCount; i++){
-        slotsEl.appendChild(makeSlot(i));
+      // Render open slots
+      for (let i=0; i<openCount; i++){
+        const it = items[i];
+
+        const slot = document.createElement("div");
+        slot.className = "slot";
+        slot.dataset.idx = String(i);
+        slot.setAttribute("role", "button");
+        slot.setAttribute("tabindex", "0");
+        slot.setAttribute("aria-label", `Slot ${i+1}`);
+
+        const num = document.createElement("div");
+        num.className = "slotNum";
+        num.textContent = String(i+1);
+        slot.appendChild(num);
+
+        // hidden file input
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "video/mp4,.mp4";
+        input.style.display = "none";
+        input.addEventListener("change", async () => {
+          const f = input.files && input.files[0];
+          if (!f) return;
+          await handleFile(i, f);
+          input.value = "";
+        });
+
+        slot.appendChild(input);
+
+        // Content
+        if (it.file && it.thumb){
+          const thumb = document.createElement("div");
+          thumb.className = "thumb";
+          thumb.style.backgroundImage = `url("${it.thumb}")`;
+          slot.appendChild(thumb);
+
+          const overlay = document.createElement("div");
+          overlay.className = "thumbOverlay";
+          slot.appendChild(overlay);
+
+          const meta = document.createElement("div");
+          meta.className = "fileMeta";
+
+          const name = document.createElement("div");
+          name.className = "fileName";
+          name.textContent = it.name || "clip.mp4";
+
+          const rm = document.createElement("button");
+          rm.className = "removeBtn";
+          rm.type = "button";
+          rm.title = "Remove";
+          rm.innerHTML = "✕";
+          rm.addEventListener("click", (e) => {
+            e.stopPropagation();
+            cleanupItem(i);
+            setStatus("Ready");
+            showToast("Removed.");
+            render();
+          });
+
+          meta.appendChild(name);
+          meta.appendChild(rm);
+          slot.appendChild(meta);
+        }else{
+          const label = document.createElement("div");
+          label.className = "slotLabel";
+          label.innerHTML = `
+            <div style="font-weight:800; color: rgba(255,255,255,.86); margin-bottom:6px;">Tap / Drop MP4</div>
+            <div style="color: rgba(255,255,255,.58); font-size:11px;">Slot ${i+1}</div>
+          `;
+          slot.appendChild(label);
+        }
+
+        // click opens picker
+        slot.addEventListener("click", () => input.click());
+        slot.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); }
+        });
+
+        // drag & drop
+        slot.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          slot.classList.add("dragover");
+        });
+        slot.addEventListener("dragleave", () => slot.classList.remove("dragover"));
+        slot.addEventListener("drop", async (e) => {
+          e.preventDefault();
+          slot.classList.remove("dragover");
+          const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (!f) return;
+          await handleFile(i, f);
+        });
+
+        slotsEl.appendChild(slot);
       }
 
-      // Add "+" slot if more available
+      // Plus slot if not max
       if (openCount < MAX){
-        slotsEl.appendChild(makePlusSlot());
+        const plus = document.createElement("div");
+        plus.className = "slot";
+        plus.setAttribute("role", "button");
+        plus.setAttribute("tabindex", "0");
+        plus.setAttribute("aria-label", "Add slot");
+
+        plus.innerHTML = `
+          <div class="slotPlus">+</div>
+          <div class="slotLabel" style="margin-top:6px;">Add another slot<br><span style="font-size:11px; color: rgba(255,255,255,.52);">Up to ${MAX} clips</span></div>
+        `;
+
+        plus.addEventListener("click", () => {
+          openCount = Math.min(MAX, openCount + 1);
+          showToast(`Slot ${openCount} added.`);
+          render();
+        });
+        plus.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openCount = Math.min(MAX, openCount + 1);
+            showToast(`Slot ${openCount} added.`);
+            render();
+          }
+        });
+
+        slotsEl.appendChild(plus);
       }
+
+      updateButtons();
     }
 
-    render();
-    updateCountPill();
+    async function handleFile(i, file){
+      if (!isMp4(file)){
+        setStatus("MP4 only");
+        showToast(`<b>MP4 only.</b> Please upload an .mp4 file.`, 2600);
+        return;
+      }
+      setStatus("Loading thumbnail...");
+      // cleanup old
+      cleanupItem(i);
 
+      const { dataUrl, tempUrl } = await makeThumbnail(file);
+      const url = tempUrl || URL.createObjectURL(file);
 
- async function loadFFmpegUMD(){
-  if (window.FFmpeg) return;
+      items[i] = {
+        file,
+        url,
+        thumb: dataUrl,
+        name: file.name || `clip_${i+1}.mp4`
+      };
 
-  await new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js";
-    s.async = true;
-    s.onload = resolve;
-    s.onerror = () => reject(new Error("Failed to load ffmpeg.min.js from CDN"));
-    document.head.appendChild(s);
-  });
+      setStatus("Ready");
+      showToast(`Added: <b>Slot ${i+1}</b>`);
+      render();
+    }
 
-  if (!window.FFmpeg) {
-    throw new Error("FFmpeg script loaded but window.FFmpeg is still missing (likely blocked by CSP).");
-  }
-}
-   
+    // Reset
+    resetBtn.addEventListener("click", () => {
+      for (let i=0; i<MAX; i++) cleanupItem(i);
+      openCount = 2;
+      setProgress(null);
+      setStatus("Ready");
+      showToast("Reset done.");
+      render();
+    });
+
     // =========================
-    // Stitch with FFmpeg.wasm
+    // FFmpeg Stitch (browser)
     // =========================
     let ffmpeg = null;
-let ffmpegLoading = false;
+    let ffmpegLoaded = false;
 
-async function ensureFFmpeg(){
-  if (ffmpeg) return ffmpeg;
+    async function loadFFmpeg(){
+      if (ffmpegLoaded) return;
+      setStatus("Loading FFmpeg...");
+      setProgress(3, "Loading Stitch engine...");
 
-  if (ffmpegLoading){
-    while (ffmpegLoading) await new Promise(r => setTimeout(r, 120));
-    return ffmpeg;
-  }
+      // Use ESM modules from jsDelivr (works well on HTTPS)
+      // Single-thread core (no crossOriginIsolated requirement)
+      const { FFmpeg } = await import("https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/esm/index.js");
+      const { toBlobURL, fetchFile } = await import("https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.2/dist/esm/index.js");
 
-  ffmpegLoading = true;
-  enginePill.textContent = "Loading…";
-  enginePill.classList.remove("ok","bad","warn");
-  enginePill.classList.add("warn");
-  setStatus("warn", "Loading Stitch engine… (first run can take a moment)");
+      ffmpeg = new FFmpeg();
 
-  
-  try{
-    await loadFFmpegUMD();
-    const API = window.FFmpeg;
-    if (!API) throw new Error("FFmpeg library not loaded (window.FFmpeg missing).");
+      // Optional logs (silent by default)
+      ffmpeg.on("progress", ({ progress }) => {
+        // progress is 0..1
+        const pct = Math.round(progress * 100);
+        setProgress(Math.max(8, pct), `Stitching... ${pct}%`);
+      });
 
-    const { FFmpeg, fetchFile } = API;
-    if (typeof FFmpeg !== "function") throw new Error("FFmpeg class not found.");
+      const baseURL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm";
+      await ffmpeg.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      });
 
-    ffmpeg = new FFmpeg();
+      // store helper
+      loadFFmpeg.fetchFile = fetchFile;
 
-    ffmpeg.on("progress", ({ progress }) => {
-      setProgress((progress || 0) * 100);
-    });
+      ffmpegLoaded = true;
+      setProgress(null);
+      setStatus("Ready");
+      showToast("Stitch engine loaded.");
+    }
 
-    await ffmpeg.load();
-    ffmpeg._fetchFile = fetchFile;
+    function getSelectedFiles(){
+      // Keep order by slot index. Ignore empty ones.
+      return items.slice(0, openCount).map((x, idx) => ({...x, idx})).filter(x => x.file);
+    }
 
-    enginePill.textContent = "Engine ready";
-    enginePill.classList.remove("warn","bad");
-    enginePill.classList.add("ok");
-    setStatus("warn", "Engine ready. Press <b>Stitch</b> to combine your clips.");
-    return ffmpeg;
-  }catch(err){
-    console.error("FFmpeg load error:", err);
-    enginePill.textContent = "Engine failed";
-    enginePill.classList.remove("warn","ok");
-    enginePill.classList.add("bad");
-    setStatus("bad", "Failed to load the Stitch engine. Open Console for details.");
-    throw err;
-  }finally{
-    ffmpegLoading = false;
-  }
-}
-
-
-    function getOrderedFiles(){
-      // Only take opened slots, keep order
-      const arr = [];
-      for (let i = 0; i < openCount; i++){
-        if (files[i]) arr.push({ idx: i, file: files[i] });
+    stitchBtn.addEventListener("click", async () => {
+      const selected = getSelectedFiles();
+      if (selected.length < 2){
+        showToast("Add at least <b>2</b> MP4 clips.");
+        return;
       }
-      return arr;
-    }
 
-    function downloadBlob(blob, filename){
-      const a = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 2500);
-    }
+      stitchBtn.disabled = true;
+      resetBtn.disabled = true;
 
-    async function stitchNow(){
-  const ordered = getOrderedFiles();
-  if (ordered.length < 2){
-    setStatus("bad", "You need at least <b>2</b> MP4 clips to Stitch.");
-    return;
-  }
+      try{
+        await loadFFmpeg();
 
-  stitchBtn.disabled = true;
-  hideProgress();
-  setProgress(0);
+        setStatus("Stitching...");
+        setProgress(6, "Preparing files...");
 
-  try{
-    const ff = await ensureFFmpeg();
-
-    setStatus("warn", "Preparing clips…");
-    setProgress(2);
-
-    // 1) write inputs
-    const listLines = [];
-    for (let n = 0; n < ordered.length; n++){
-      const name = `input_${n+1}.mp4`;
-      const data = await ff._fetchFile(ordered[n].file);
-      await ff.writeFile(name, data);
-      listLines.push(`file ${name}`);
-    }
-    await ff.writeFile("list.txt", new TextEncoder().encode(listLines.join("\n")));
-
-    setStatus("warn", "Stitching… (this runs locally in your browser)");
-    setProgress(6);
-
-    // 2) stitch (re-encode for compatibility)
-    await ff.exec([
-      "-f","concat","-safe","0",
-      "-i","list.txt",
-      "-c:v","libx264","-preset","veryfast","-crf","23",
-      "-c:a","aac","-b:a","192k",
-      "-movflags","+faststart",
-      "output.mp4"
-    ]);
-
-    const out = await ff.readFile("output.mp4");
-    const blob = new Blob([out.buffer], { type: "video/mp4" });
-
-    setStatus("ok", "Completed. Your stitched video is downloading now.");
-    downloadBlob(blob, "stitched.mp4");
-
-    // 3) cleanup (best-effort)
-    try { await ff.deleteFile("output.mp4"); } catch {}
-    try { await ff.deleteFile("list.txt"); } catch {}
-    for (let n = 0; n < ordered.length; n++){
-      try { await ff.deleteFile(`input_${n+1}.mp4`); } catch {}
-    }
-
-  }catch(err){
-    console.error("Stitch error:", err);
-    setStatus("bad", "Stitch failed. Open DevTools Console to see the exact FFmpeg error.");
-  }finally{
-    stitchBtn.disabled = false;
-    setTimeout(() => hideProgress(), 1400);
-  }
-}
-
-
-    stitchBtn.addEventListener("click", stitchNow);
-
-    // Small quality-of-life: if user drops a file anywhere, put it into the first empty opened slot.
-    document.addEventListener("dragover", (e) => e.preventDefault());
-    document.addEventListener("drop", (e) => {
-      // If dropping over a slot, slot handler already ran.
-      if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files[0]) return;
-      const f = e.dataTransfer.files[0];
-      // If target is inside a slot, ignore.
-      if (e.target && e.target.closest && e.target.closest(".slot")) return;
-
-      // find first empty opened slot
-      for (let i = 0; i < openCount; i++){
-        if (!files[i]){
-          setFile(i, f);
-          break;
+        // Write files into FFmpeg FS
+        // We'll concat via demuxer with safe=0
+        // For best compatibility we re-mux to mp4 (copy) or re-encode if needed.
+        // Start with fast attempt: stream copy
+        const listLines = [];
+        for (let k=0; k<selected.length; k++){
+          const it = selected[k];
+          const inName = `in_${k+1}.mp4`;
+          const data = await loadFFmpeg.fetchFile(it.file);
+          await ffmpeg.writeFile(inName, data);
+          listLines.push(`file '${inName}'`);
         }
+        await ffmpeg.writeFile("concat.txt", new TextEncoder().encode(listLines.join("\n")));
+
+        setProgress(10, "Stitching...");
+
+        // Fast path: copy streams (works if codecs/params compatible)
+        // If it fails, fallback to re-encode.
+        let usedFallback = false;
+
+        try{
+          await ffmpeg.exec([
+            "-f","concat","-safe","0",
+            "-i","concat.txt",
+            "-c","copy",
+            "output.mp4"
+          ]);
+        }catch(err){
+          usedFallback = true;
+          // fallback: re-encode to H.264/AAC for compatibility
+          setProgress(12, "Compatibility mode (re-encoding)...");
+          await ffmpeg.exec([
+            "-f","concat","-safe","0",
+            "-i","concat.txt",
+            "-c:v","libx264",
+            "-preset","veryfast",
+            "-crf","23",
+            "-c:a","aac",
+            "-b:a","192k",
+            "-movflags","+faststart",
+            "output.mp4"
+          ]);
+        }
+
+        setProgress(96, "Finalizing...");
+
+        const out = await ffmpeg.readFile("output.mp4");
+        const blob = new Blob([out.buffer], { type: "video/mp4" });
+        const dlUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = dlUrl;
+        a.download = `stitched_${selected.length}_clips.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        // Cleanup object URL later
+        setTimeout(() => URL.revokeObjectURL(dlUrl), 8000);
+
+        setProgress(null);
+        setStatus("Completed");
+        showToast(`<b>Completed.</b> Download started. ${usedFallback ? " (Compatibility mode used)" : ""}`, 3200);
+      }catch(e){
+        console.error(e);
+        setProgress(null);
+        setStatus("Error");
+        showToast(`<b>Error.</b> Try smaller clips or fewer files.`, 3200);
+      }finally{
+        resetBtn.disabled = false;
+        updateButtons();
       }
     });
+
+    // Initial render
+    render();
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
