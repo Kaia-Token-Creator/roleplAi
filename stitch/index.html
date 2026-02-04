@@ -1112,17 +1112,40 @@
         setStatus("warn", "Stitching… (this runs locally in your browser)");
         setProgress(6);
 
-        // Re-encode for reliability across mismatched clips
-        // - concat demuxer for order
-        // - H.264 + AAC output
-        await ff.run(
-          "-f","concat","-safe","0",
-          "-i","list.txt",
-          "-c:v","libx264","-preset","veryfast","-crf","23",
-          "-c:a","aac","-b:a","192k",
-          "-movflags","+faststart",
-          "output.mp4"
-        );
+        // 1) Normalize each clip to identical spec
+const normNames = [];
+for (let n = 0; n < ordered.length; n++){
+  const inName = `input_${n+1}.mp4`;
+  const outName = `norm_${n+1}.mp4`;
+  normNames.push(outName);
+
+  // Force same fps, same size, always has audio (silent if missing)
+  await ff.run(
+    "-i", inName,
+    "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,fps=30",
+    "-c:v", "libx264",
+    "-preset", "veryfast",
+    "-crf", "23",
+    "-c:a", "aac",
+    "-b:a", "192k",
+    "-ar", "44100",
+    "-ac", "2",
+    "-movflags", "+faststart",
+    outName
+  );
+}
+
+// 2) Concat normalized clips
+const listLines2 = normNames.map(nm => `file ${nm}`).join("\n");
+ff.FS("writeFile", "list2.txt", new TextEncoder().encode(listLines2));
+
+await ff.run(
+  "-f","concat","-safe","0",
+  "-i","list2.txt",
+  "-c","copy",
+  "output.mp4"
+);
+
 
         setProgress(100);
 
@@ -1170,3 +1193,4 @@
   </script>
 </body>
 </html>
+
