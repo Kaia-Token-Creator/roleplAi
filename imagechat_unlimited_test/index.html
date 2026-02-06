@@ -944,37 +944,39 @@ function getQueryParam(name){
 }
 
 // ✅ URL 우선(tabId > tab) → 없으면 이 탭에서만 새로 생성
+// ✅ URL 우선(tabId > tab) → 없으면 sessionStorage → 없으면 window.name → 없으면 새로 생성
 function getOrCreateTabId(){
   const fromUrl = getQueryParam("tabId") || getQueryParam("tab");
   if (fromUrl) {
     try { sessionStorage.setItem(TAB_ID_KEY, fromUrl); } catch(e){}
-    try { window.name = fromUrl; } catch(e){}               // ✅ 추가
+    try { window.name = "rpc_tabid:" + fromUrl; } catch(e){} // ✅ mirror
     return fromUrl;
   }
 
-  // ✅ 1) sessionStorage
-  const existingSS = (() => {
+  // ✅ sessionStorage fallback
+  const existing = (() => {
     try { return sessionStorage.getItem(TAB_ID_KEY); } catch(e){ return null; }
   })();
-  if (existingSS) {
-    try { window.name = existingSS; } catch(e){}            // ✅ 추가
-    return existingSS;
+  if (existing){
+    try { window.name = "rpc_tabid:" + existing; } catch(e){} // ✅ mirror
+    return existing;
   }
 
-  // ✅ 2) window.name (per-tab, survives sessionStorage.clear + reload)
-  const existingWN = (() => {
-    try { return (window.name && String(window.name).startsWith("tab_")) ? window.name : null; }
-    catch(e){ return null; }
-  })();
-  if (existingWN) {
-    try { sessionStorage.setItem(TAB_ID_KEY, existingWN); } catch(e){}
-    return existingWN;
-  }
+  // ✅ window.name fallback (sessionStorage 지워져도 탭 유지 중이면 복구됨)
+  try{
+    if (window.name && window.name.startsWith("rpc_tabid:")){
+      const t = window.name.slice("rpc_tabid:".length);
+      if (t){
+        try { sessionStorage.setItem(TAB_ID_KEY, t); } catch(e){} // ✅ restore
+        return t;
+      }
+    }
+  }catch(e){}
 
-  // ✅ 3) generate new
+  // ✅ generate new
   const gen = "tab_" + Math.random().toString(36).slice(2) + "_" + Date.now().toString(36);
   try { sessionStorage.setItem(TAB_ID_KEY, gen); } catch(e){}
-  try { window.name = gen; } catch(e){}                     // ✅ 추가
+  try { window.name = "rpc_tabid:" + gen; } catch(e){} // ✅ mirror
   return gen;
 }
 
@@ -2280,6 +2282,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
