@@ -947,22 +947,37 @@ function getQueryParam(name){
 function getOrCreateTabId(){
   const fromUrl = getQueryParam("tabId") || getQueryParam("tab");
   if (fromUrl) {
-    // URL로 들어온 탭꼬리표는 이 탭 sessionStorage에도 고정
     try { sessionStorage.setItem(TAB_ID_KEY, fromUrl); } catch(e){}
+    try { window.name = fromUrl; } catch(e){}               // ✅ 추가
     return fromUrl;
   }
 
-  // URL에 없으면 현재 탭 sessionStorage에 있나 확인
-  const existing = (() => {
+  // ✅ 1) sessionStorage
+  const existingSS = (() => {
     try { return sessionStorage.getItem(TAB_ID_KEY); } catch(e){ return null; }
   })();
-  if (existing) return existing;
+  if (existingSS) {
+    try { window.name = existingSS; } catch(e){}            // ✅ 추가
+    return existingSS;
+  }
 
-  // 이 탭 전용 생성
+  // ✅ 2) window.name (per-tab, survives sessionStorage.clear + reload)
+  const existingWN = (() => {
+    try { return (window.name && String(window.name).startsWith("tab_")) ? window.name : null; }
+    catch(e){ return null; }
+  })();
+  if (existingWN) {
+    try { sessionStorage.setItem(TAB_ID_KEY, existingWN); } catch(e){}
+    return existingWN;
+  }
+
+  // ✅ 3) generate new
   const gen = "tab_" + Math.random().toString(36).slice(2) + "_" + Date.now().toString(36);
   try { sessionStorage.setItem(TAB_ID_KEY, gen); } catch(e){}
+  try { window.name = gen; } catch(e){}                     // ✅ 추가
   return gen;
 }
+
 
 const TAB_ID = getOrCreateTabId();  
 const LS_BACKUP_KEY = LS_BACKUP_PREFIX + TAB_ID;
@@ -2265,6 +2280,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
