@@ -2492,8 +2492,15 @@ window.location.href =
 
 // ✅ submit 밖으로 빼야 정상 동작하는 버튼들
 resetBtn.addEventListener("click", () => {
-  window.open("/?new=1", "_blank");
+  const a = document.createElement("a");
+  a.href = "/secret_price";                 // 또는 "/?new=1"
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 });
+
 
 if (gameBtn){
   gameBtn.addEventListener("click", () => {
@@ -2786,6 +2793,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
