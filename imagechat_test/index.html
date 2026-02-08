@@ -11,8 +11,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 
-  <script src="https://unpkg.com/localforage/dist/localforage.min.js"></script>
-
   <style>
     :root{
       --bg:#000;
@@ -555,298 +553,77 @@ padding: 5px 8px;
 /* =========================
    Load character from main
    ========================= */
-// ✅ LocalForage (IndexedDB) instance
-const LF = (window.localforage)
-  ? localforage.createInstance({
-      name: "roleplay-chat",
-      storeName: "backups_v1",
-      description: "tab/session/paid/history backups"
-    })
-  : null;
 
-async function lfGet(key){ try { return LF ? await LF.getItem(key) : null; } catch(e){ return null; } }
-async function lfSet(key, val){ try { if (!LF) return false; await LF.setItem(key, val); return true; } catch(e){ return false; } }
-
-
-  
 const STORAGE_KEY = "roleplay-chat_session_v1";
 const IMAGECHAT_HISTORY_KEY = "roleplay-chat_imagechat_history_v1";
 const IMAGECHAT_PAID_KEY = "roleplay-chat_imagechat_paid_v1";
-const IMAGECHAT_UNLIMITED_KEY = "roleplay-chat_imagechat_unlimited_v1";  
-const TAB_ID_KEY = "roleplay-chat_tab_id_v1";
-const LS_BACKUP_PREFIX = "roleplay-chat_backup_v1:";
+const IMAGECHAT_UNLIMITED_KEY = "roleplay-chat_imagechat_unlimited_v1";
 
-function getQueryParam(name){
-  try{ return new URLSearchParams(location.search).get(name); }catch(e){ return null; }
-}
-
-function getOrCreateTabId(){
-  const fromUrl = getQueryParam("tabId") || getQueryParam("tab");
-  if (fromUrl){
-    try { sessionStorage.setItem(TAB_ID_KEY, fromUrl); } catch(e){}
-    try { window.name = "rpc_tabid:" + fromUrl; } catch(e){}
-    return fromUrl;
-  }
-
-  const fromSS = (() => { try { return sessionStorage.getItem(TAB_ID_KEY); } catch(e){ return null; } })();
-  if (fromSS){
-    try { window.name = "rpc_tabid:" + fromSS; } catch(e){}
-    return fromSS;
-  }
-
-  try{
-    if (window.name && window.name.startsWith("rpc_tabid:")){
-      const t = window.name.slice("rpc_tabid:".length);
-      if (t){
-        try { sessionStorage.setItem(TAB_ID_KEY, t); } catch(e){}
-        return t;
-      }
-    }
-  }catch(e){}
-
-  const gen = "tab_" + Math.random().toString(36).slice(2) + "_" + Date.now().toString(36);
-  try { sessionStorage.setItem(TAB_ID_KEY, gen); } catch(e){}
-  try { window.name = "rpc_tabid:" + gen; } catch(e){}
-  return gen;
-}
-
-const TAB_ID = getOrCreateTabId();
-const LS_BACKUP_KEY = LS_BACKUP_PREFIX + TAB_ID;
-
-(function ensureTabIdInUrl(){
-  try{
-    const u = new URL(location.href);
-    if (!u.searchParams.get("tabId") && !u.searchParams.get("tab")){
-      u.searchParams.set("tabId", TAB_ID);
-      history.replaceState(null, "", u.toString());
-    }
-  }catch(e){}
-})();
-
-async function readBackupAny(){
-  let lf = null, ls = null;
-
-  // 1) LF 읽기
-  try{
-    lf = await lfGet(LS_BACKUP_KEY);
-    if (lf && typeof lf === "object" && Object.keys(lf).length === 0) lf = null; // ✅ 빈 객체면 무시
-  }catch(e){ lf = null; }
-
-  // 2) LS 읽기
-  try{
-    const raw = localStorage.getItem(LS_BACKUP_KEY);
-    ls = raw ? JSON.parse(raw) : null;
-  }catch(e){ ls = null; }
-
-  // 3) 둘 다 없으면 null
-  if (!lf && !ls) return null;
-  if (lf && !ls) return lf;
-  if (!lf && ls) return ls;
-
-  // 4) 둘 다 있으면 updatedAt 큰 쪽(최신) 선택
-  const lfAt = Number(lf.updatedAt || 0);
-  const lsAt = Number(ls.updatedAt || 0);
-  const best = (lsAt >= lfAt) ? ls : lf;
-
-  // 5) ✅ best를 LF/LS에 동기화(선택이지만 강추)
-  try{ await lfSet(LS_BACKUP_KEY, best); }catch(e){}
-  try{ localStorage.setItem(LS_BACKUP_KEY, JSON.stringify(best)); }catch(e){}
-
-  return best;
+function readSession(){
+  const raw = sessionStorage.getItem(STORAGE_KEY);
+  try { return raw ? JSON.parse(raw) : null; }
+  catch { return null; }
 }
 
 
-async function writeBackupAny(patch){
-  const cur = (await readBackupAny()) || {};
-  const next = { ...cur, ...patch, updatedAt: Date.now(), tabId: TAB_ID };
+const session = readSession();
 
-  await lfSet(LS_BACKUP_KEY, next);
-  try{ localStorage.setItem(LS_BACKUP_KEY, JSON.stringify(next)); }catch(e){}
-  return next;
+  // ✅ Page title (browser tab)
+if (session?.name){
+  document.title = `Image chat with ${session.name} | roleplay-chat.com`;
+} else {
+  document.title = "Image chat | roleplay-chat.com";
 }
 
-async function migrateLsBackupToLfOnce(){
-  const MIG_KEY = "roleplay-chat_migrated_ls_to_lf_v1:" + TAB_ID;
-
-  try{ if (localStorage.getItem(MIG_KEY) === "1") return; }catch(e){}
-
-  const lf = await lfGet(LS_BACKUP_KEY);
-  if (!lf){
-    try{
-      const raw = localStorage.getItem(LS_BACKUP_KEY);
-      if (raw){
-        const obj = JSON.parse(raw);
-        if (obj && typeof obj === "object") await lfSet(LS_BACKUP_KEY, obj);
-      }
-    }catch(e){}
-  }
-  try{ localStorage.setItem(MIG_KEY, "1"); }catch(e){}
-}
-
-// ✅ "paid" 문자열로 넘어와도: 최초 1회만 expiresAt 고정 (연장 금지)
-async function setImagechatPaid24hAnchored(){
+  
+function setImagechatPaid24hLocal(){
   const now = Date.now();
-
-  // 1) sessionStorage에 payload 있으면 그대로 사용
-  try{
-    const raw = sessionStorage.getItem(IMAGECHAT_PAID_KEY);
-    if (raw && raw !== "paid"){
-      const p = JSON.parse(raw);
-      if (p?.status === "paid" && p.expiresAt) return p;
-    }
-  }catch(e){}
-
-  // 2) backup에 payload 있으면 그대로 사용
-  const b = await readBackupAny();
-  if (b?.paid?.status === "paid" && b.paid.expiresAt){
-    try{ sessionStorage.setItem(IMAGECHAT_PAID_KEY, JSON.stringify(b.paid)); }catch(e){}
-    return b.paid;
-  }
-
-  // 3) 아무것도 없을 때만 최초 생성
   const payload = { status:"paid", paidAt: now, expiresAt: now + 24*60*60*1000 };
-  try{ sessionStorage.setItem(IMAGECHAT_PAID_KEY, JSON.stringify(payload)); }catch(e){}
-  await writeBackupAny({ paid: payload });
+  sessionStorage.setItem(IMAGECHAT_PAID_KEY, JSON.stringify(payload));
   return payload;
 }
 
-async function readImagechatPaidAnchored(){
-  // 1) sessionStorage
-  try{
-    const raw = sessionStorage.getItem(IMAGECHAT_PAID_KEY);
-    if (!raw) return null;
+function readImagechatPaid(){
+  const raw = sessionStorage.getItem(IMAGECHAT_PAID_KEY);
+  if (!raw) return null;
 
-    if (raw === "paid"){
-      return await setImagechatPaid24hAnchored();
-    }
+  // ✅ 메인에서 "paid" 문자열만 저장해도: 첫 진입 순간 24h 티켓으로 업그레이드
+  if (raw === "paid") return setImagechatPaid24hLocal();
 
-    const p = JSON.parse(raw);
-    if (p?.status === "paid" && p.expiresAt) return p;
-  }catch(e){}
-
-  // 2) backup
-  const b = await readBackupAny();
-  if (b?.paid?.status === "paid" && b.paid.expiresAt){
-    try{ sessionStorage.setItem(IMAGECHAT_PAID_KEY, JSON.stringify(b.paid)); }catch(e){}
-    return b.paid;
-  }
-
-  return null;
+  try { return JSON.parse(raw); } catch { return null; }
 }
-
-async function isImagechatPaidValidAnchored(){
-  const p = await readImagechatPaidAnchored();
-  if (!p || p.status !== "paid" || !p.expiresAt) return false;
-
-  if (Date.now() >= p.expiresAt){
-    try{ sessionStorage.removeItem(IMAGECHAT_PAID_KEY); }catch(e){}
-    await writeBackupAny({ paid: { ...p, status:"expired" } }); // optional
-    return false;
-  }
-  return true;
-}
-  
-
-
-let session = null;
-let history = [];
-let paid = false;
-let BOOT_DONE = false;
- 
-
-(async function boot(){
-  await migrateLsBackupToLfOnce();
-
-  // 1) session: sessionStorage → backup
-  session = await (async () => {
-    try{
-      const raw = sessionStorage.getItem(STORAGE_KEY);
-      const s = raw ? JSON.parse(raw) : null;
-      if (s?.name) return s;
-    }catch(e){}
-    const b = await readBackupAny();
-    if (b?.session?.name){
-      try{ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(b.session)); }catch(e){}
-      return b.session;
-    }
-    return null;
-  })();
-
-  if (session?.name) await writeBackupAny({ session });
-
- // ✅ 2) unlimited 먼저 복구 (paid 계산 전에!)
-const b0 = await readBackupAny();
-if (b0?.unlimited){
-  try{ sessionStorage.setItem(IMAGECHAT_UNLIMITED_KEY, "1"); }catch(e){}
-}
-
-// ✅ 2-1) paid 계산 (unlimited면 무조건 true)
-paid = isUnlimited() ? true : await isImagechatPaidValidAnchored();
-
-  // 3) history: sessionStorage → backup
-  history = await (async () => {
-    try{
-      const raw = sessionStorage.getItem(IMAGECHAT_HISTORY_KEY);
-      const h = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(h)) return h;
-    }catch(e){}
-    const b = await readBackupAny();
-    if (b && Array.isArray(b.history)){
-      try{ sessionStorage.setItem(IMAGECHAT_HISTORY_KEY, JSON.stringify(b.history)); }catch(e){}
-      return b.history;
-    }
-    return [];
-  })();
-
-  // ✅ 여기서부터는 "paid/session 확정" 이후에만 실행해야 함
-  if (!paid){
-    alert("Image chat is locked. Please complete payment first.");
-    location.href = "https://roleplay-chat.com/";
-    return;
-  }
-  if (!session || !session.name){
-    alert("No character session found. Please create a character first.");
-    location.href = "https://roleplay-chat.com/";
-    return;
-  }
-
-  // title / color
-  if (session?.name){
-    document.title = `Image chat with ${session.name} | roleplay-chat.com`;
-  }
-  if (session?.fontColor){
-    document.documentElement.style.setProperty("--chatColor", session.fontColor);
-  }
-
-  // top bar title
-  const titleEl = document.getElementById("imgChatTitle");
-  if (titleEl){
-    titleEl.textContent = session?.name ? `Image chat with ${session.name}` : "Image chat";
-  }
-
-  BOOT_DONE = true;
-  
-  startHeaderCountdown();
-  renderHistory();
-  bootstrapFirstMessage();
-  
-})();
-
-
-
 
 function isUnlimited(){
   return sessionStorage.getItem(IMAGECHAT_UNLIMITED_KEY) === "1";
 }
 
-async function setUnlimited(){
+function setUnlimited(){
   sessionStorage.setItem(IMAGECHAT_UNLIMITED_KEY, "1");
+  // 24h 티켓은 의미 없어지니 지워도 OK
   sessionStorage.removeItem(IMAGECHAT_PAID_KEY);
-
-  // ✅ 백업에도 저장 (탭 복구용)
-  await writeBackupAny({ unlimited: true });
 }
- 
+
+
+function isImagechatPaidValid(){
+  // ✅ Unlimited면 만료 개념 자체가 없음
+  if (isUnlimited()) return true;
+
+  const p = readImagechatPaid();
+  if (!p || p.status !== "paid" || !p.expiresAt) return false;
+
+  if (Date.now() >= p.expiresAt){
+    sessionStorage.removeItem(IMAGECHAT_PAID_KEY);
+    return false;
+  }
+  return true;
+}
+
+// ✅ paid 상태 확정 (Unlimited 포함)
+const paid = isImagechatPaidValid();
+
+// ✅ 헤더 타이머/문구 UI 시작
+startHeaderCountdown();
+  
 
 function formatRemaining(ms){
   const sec = Math.max(0, Math.floor(ms/1000));
@@ -857,13 +634,7 @@ function formatRemaining(ms){
   return `${pad(h)}:${pad(m)}:${pad(s)}`;
 }
 
-let HEADER_TIMER_RUNNING = false;
-let HEADER_TIMER_ID = null;
-
-  
 function startHeaderCountdown(){
-  if (HEADER_TIMER_RUNNING) return;     // ✅ 중복 실행 방지
-  HEADER_TIMER_RUNNING = true;
   const holder = document.getElementById("paidTimer");
   const bold = holder?.querySelector("b");
   const goLink = document.getElementById("goUnlimitedLink");
@@ -874,22 +645,13 @@ function startHeaderCountdown(){
     if (holder) holder.style.display = "none";
     if (goLink) goLink.style.display = "none";
     if (note) note.style.display = "inline";
-    
-    HEADER_TIMER_RUNNING = false;         // ✅ 추가
-  if (HEADER_TIMER_ID) { clearInterval(HEADER_TIMER_ID); HEADER_TIMER_ID = null; } // ✅ 추가
     return;
   }
 
-  if (!holder || !bold){
-  HEADER_TIMER_RUNNING = false;
-  return;
-}
+  if (!holder || !bold) return;
 
-  // ✅ tick은 anchored paid를 읽어야 하므로 async
-  async function tick(){
-    // ✅ 24h 앵커 paid 읽기 (sessionStorage → backup → 최초생성(only once))
-    const p = await readImagechatPaidAnchored();
-
+  function tick(){
+    const p = readImagechatPaid();
     if (!p || p.status !== "paid" || !p.expiresAt){
       holder.style.display = "none";
       if (goLink) goLink.style.display = "none";
@@ -899,10 +661,7 @@ function startHeaderCountdown(){
 
     const remain = p.expiresAt - Date.now();
     if (remain <= 0){
-      try{ sessionStorage.removeItem(IMAGECHAT_PAID_KEY); }catch(e){}
-      // optional: 백업에 expired 기록
-      await writeBackupAny({ paid: { ...p, status:"expired" } });
-
+      sessionStorage.removeItem(IMAGECHAT_PAID_KEY);
       holder.style.display = "none";
       if (goLink) goLink.style.display = "none";
       if (note) note.style.display = "none";
@@ -920,22 +679,8 @@ function startHeaderCountdown(){
     return true;
   }
 
-  // ✅ async tick 호출 방식
-tick();
-
-// ✅ 기존 interval 있으면 제거 후 다시 시작
-if (HEADER_TIMER_ID) clearInterval(HEADER_TIMER_ID);
-
-HEADER_TIMER_ID = setInterval(() => {
-  tick().then(ok => {
-    if (!ok && HEADER_TIMER_ID){
-      clearInterval(HEADER_TIMER_ID);
-      HEADER_TIMER_ID = null;
-      HEADER_TIMER_RUNNING = false; // ✅ 다음에 다시 시작 가능
-    }
-  });
-}, 1000);
-
+  tick();
+  const id = setInterval(() => { if (!tick()) clearInterval(id); }, 1000);
 
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) tick();
@@ -944,6 +689,14 @@ HEADER_TIMER_ID = setInterval(() => {
 
 
 
+
+  // ✅ Top bar title + New character button
+const titleEl = document.getElementById("imgChatTitle");
+if (titleEl){
+  titleEl.textContent = session?.name
+    ? `Image chat with ${session.name}`
+    : "Image chat";
+}
 
 const imgResetBtn = document.getElementById("imgResetBtn");
 if (imgResetBtn){
@@ -955,7 +708,6 @@ if (imgResetBtn){
     a.click();
   });
 }
-
 
 
 function loadHistory(){
@@ -989,7 +741,7 @@ function saveHistory(list){
   try {
     sessionStorage.setItem(IMAGECHAT_HISTORY_KEY, JSON.stringify(list));
   } catch(e) {
-    // 기존 코드
+    // ✅ 용량 초과 등으로 저장 실패하면: 이미지 제거 후 텍스트만이라도 저장 재시도
     try {
       const slim = (Array.isArray(list) ? list : []).map(m => ({ ...m, imageUrl: "" }));
       sessionStorage.setItem(IMAGECHAT_HISTORY_KEY, JSON.stringify(slim));
@@ -998,23 +750,26 @@ function saveHistory(list){
       console.error("History save failed completely", e2);
     }
   }
-
-  // 🔴 바로 여기 (catch 끝난 뒤, 함수 끝나기 직전)
-
-  // ✅ boot 완료 전에는 backup 쓰지 않음 (race 방지)
-  if (!BOOT_DONE) return;
-
-  (async () => {
-    const slim = (Array.isArray(list) ? list : []).slice(-120).map(m => ({
-      role: m.role,
-      content: m.content,
-      imageUrl: m.imageUrl || ""
-    }));
-    await writeBackupAny({ history: slim });
-  })();
-
 }
 
+
+
+if (!paid){
+  alert("Image chat is locked. Please complete payment first.");
+  location.href = "https://roleplay-chat.com/";
+}
+
+
+if (!session || !session.name){
+  alert("No character session found. Please create a character first.");
+  location.href = "https://roleplay-chat.com/";
+}
+
+
+/* Apply font color */
+if (session?.fontColor){
+  document.documentElement.style.setProperty("--chatColor", session.fontColor);
+}
 
 /* =========================
    Chat UI helpers
@@ -1024,6 +779,7 @@ const chatBox = document.getElementById("chatBox");
 const input = document.getElementById("chatInput");
 const sendBtn = document.getElementById("sendBtn");
 
+let history = loadHistory(); // ✅ refresh에도 남음
 
 function escapeText(s){
   return (s ?? "").toString();
@@ -1193,6 +949,7 @@ function renderHistory(){
 );
   }
 }
+renderHistory();
 
 async function bootstrapFirstMessage(){
   // 이미 대화가 있으면(새로고침 등) 첫 인사 다시 안 함
@@ -1273,6 +1030,8 @@ saveHistory(history);
   }
 }
 
+// ✅ 렌더 후 첫 인사 요청
+bootstrapFirstMessage();
 
 
 /* =========================
@@ -1578,10 +1337,6 @@ async function ensurePayPalUnlimitedButtons(){
 
 </body>
 </html>
-
-
-
-
 
 
 
