@@ -1129,46 +1129,39 @@ if (infoBtn && infoMenu){
       body.className = "cardBody";
 
       // ✅ top wrapper (PC에서 이미지 왼쪽/정보 오른쪽)
-const top = document.createElement("div");
-top.className = "charTop";
+      const top = document.createElement("div");
+      top.className = "charTop";
 
-// ✅ square media container
-const media = document.createElement("div");
-media.className = "charMedia";
+      // ✅ square media container
+      const media = document.createElement("div");
+      media.className = "charMedia";
 
-const img = document.createElement("img");
-img.className = "charImg";
-img.alt = char.name;
-img.loading = "lazy";
-img.decoding = "async";
-img.src = `https://roleplay-chat.com/characters/pic/${char.id}.jpg`;
+      const img = document.createElement("img");
+      img.className = "charImg";
+      img.alt = char.name;
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.src = `https://roleplay-chat.com/characters/pic/${char.id}.jpg`;
 
-media.appendChild(img);
-top.appendChild(media);
+      media.appendChild(img);
+      top.appendChild(media);
 
-// ✅ info wrapper (기존 fields를 이 안에)
-const info = document.createElement("div");
-info.className = "charInfo";
-top.appendChild(info);
+      // ✅ info wrapper (기존 fields를 이 안에)
+      const info = document.createElement("div");
+      info.className = "charInfo";
+      top.appendChild(info);
 
-// fields
-const fields = document.createElement("div");
-fields.style.display = "flex";
-fields.style.flexDirection = "column";
-fields.style.gap = "8px";
-
-// ✅ fields는 이제 info에 붙임
-info.appendChild(fields);
-
-// ✅ 마지막에 top을 body에 붙임
-body.appendChild(top);
-
-
-      // fields
+      // ✅ fields (딱 1번만!)
       const fields = document.createElement("div");
       fields.style.display = "flex";
       fields.style.flexDirection = "column";
       fields.style.gap = "8px";
+
+      // ✅ fields는 info에 붙임
+      info.appendChild(fields);
+
+      // ✅ top을 body에 붙임
+      body.appendChild(top);
 
       fields.innerHTML = `
         <div class="field"><b>Character Name</b>: ${esc(char.name)}</div>
@@ -1265,6 +1258,7 @@ body.appendChild(top);
       chatBtn.textContent = `Chat with ${char.name}`;
       fields.appendChild(chatBtn);
 
+      // ✅ body를 card에 붙임 (원래 유지)
       card.appendChild(body);
 
       // click handler: use the SAME key schema as original
@@ -1447,9 +1441,3 @@ body.appendChild(top);
   </script>
 </body>
 </html>
-
-
-
-
-
-
