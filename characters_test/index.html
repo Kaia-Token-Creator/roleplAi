@@ -1125,6 +1125,24 @@ if (infoBtn && infoMenu){
     }
 
     function buildCard(char){
+
+      function imgToDataURL(url){
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0);
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
+    };
+    image.onerror = reject;
+    image.src = url;
+  });
+}
+
       const card = document.createElement("section");
       card.className = "card";
 
@@ -1275,10 +1293,11 @@ if (!isSamsung) {
       card.appendChild(body);
 
       // click handler: use the SAME key schema as original
-      chatBtn.addEventListener("click", () => {
+      chatBtn.addEventListener("click", async () => {
         const tier = (card.querySelector(`input[name="tier_${char.id}"]:checked`) || {}).value || "general";
         const { selectedColor, selectedColorName } = getColorState();
 
+        const avatarData = await imgToDataURL(img.src);
         const session = {
           name: char.name,
           nickname: (nick.value || "you").trim() || "you",
@@ -1296,7 +1315,7 @@ if (!isSamsung) {
 
           fontColor: selectedColor,
           fontColorName: selectedColorName,
-          avatarDataUrl: "",
+          avatarDataUrl: avatarData,
 
           tier,
           createdAt: Date.now()
@@ -1454,6 +1473,7 @@ if (!isSamsung) {
   </script>
 </body>
 </html>
+
 
 
 
