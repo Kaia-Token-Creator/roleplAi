@@ -322,25 +322,33 @@ padding: 5px 8px;
     /* ✅ 이미지 영역을 "정사각 컨테이너"로 고정 */
 .charMedia{
   width: 100%;
-  aspect-ratio: 1 / 1;
   border-radius: 18px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.05);
   overflow: hidden;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  /* ✅ 모바일 fallback: aspect-ratio 없어도 정사각형 유지 */
+  position: relative;
 }
 
-/* ✅ 이미지는 잘리지 않게 */
+/* ✅ 정사각형 높이 강제 (fallback) */
+.charMedia::before{
+  content:"";
+  display:block;
+  padding-top: 100%;
+}
+
+/* ✅ 이미지가 컨테이너를 꽉 채우도록 absolute */
 .charImg{
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;    /* cover -> contain 으로 변경 */
+  object-fit: contain;
   object-position: center;
   display:block;
 }
+
 
 /* ✅ PC에서 사진은 작게, 옆에 정보 나오게 */
 .charTop{
@@ -1441,3 +1449,4 @@ if (infoBtn && infoMenu){
   </script>
 </body>
 </html>
+
