@@ -319,14 +319,51 @@ padding: 5px 8px;
       gap: 14px;
     }
 
-    .charImg{
-      width:100%;
-      height: 260px;
-      border-radius: 18px;
-      object-fit: cover;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
-    }
+    /* ✅ 이미지 영역을 "정사각 컨테이너"로 고정 */
+.charMedia{
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  overflow: hidden;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* ✅ 이미지는 잘리지 않게 */
+.charImg{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;    /* cover -> contain 으로 변경 */
+  object-position: center;
+  display:block;
+}
+
+/* ✅ PC에서 사진은 작게, 옆에 정보 나오게 */
+.charTop{
+  display:flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 900px){
+  .charTop{
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .charMedia{
+    width: 180px;
+    flex: 0 0 180px;
+  }
+  .charInfo{
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
 
     .field{
       font-size: 13px;
@@ -1091,11 +1128,41 @@ if (infoBtn && infoMenu){
       const body = document.createElement("div");
       body.className = "cardBody";
 
-      const img = document.createElement("img");
-      img.className = "charImg";
-      img.alt = char.name;
-      img.src = `https://roleplay-chat.com/characters/pic/${char.id}.jpg`;
-      body.appendChild(img);
+      // ✅ top wrapper (PC에서 이미지 왼쪽/정보 오른쪽)
+const top = document.createElement("div");
+top.className = "charTop";
+
+// ✅ square media container
+const media = document.createElement("div");
+media.className = "charMedia";
+
+const img = document.createElement("img");
+img.className = "charImg";
+img.alt = char.name;
+img.loading = "lazy";
+img.decoding = "async";
+img.src = `https://roleplay-chat.com/characters/pic/${char.id}.jpg`;
+
+media.appendChild(img);
+top.appendChild(media);
+
+// ✅ info wrapper (기존 fields를 이 안에)
+const info = document.createElement("div");
+info.className = "charInfo";
+top.appendChild(info);
+
+// fields
+const fields = document.createElement("div");
+fields.style.display = "flex";
+fields.style.flexDirection = "column";
+fields.style.gap = "8px";
+
+// ✅ fields는 이제 info에 붙임
+info.appendChild(fields);
+
+// ✅ 마지막에 top을 body에 붙임
+body.appendChild(top);
+
 
       // fields
       const fields = document.createElement("div");
@@ -1198,7 +1265,6 @@ if (infoBtn && infoMenu){
       chatBtn.textContent = `Chat with ${char.name}`;
       fields.appendChild(chatBtn);
 
-      body.appendChild(fields);
       card.appendChild(body);
 
       // click handler: use the SAME key schema as original
@@ -1381,6 +1447,7 @@ if (infoBtn && infoMenu){
   </script>
 </body>
 </html>
+
 
 
 
