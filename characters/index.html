@@ -245,7 +245,7 @@ padding: 5px 8px;
       overflow:hidden;
     }
     .fixedInner{
-      padding: 12px;
+      padding: 10px;
       display:flex;
       flex-direction:column;
       gap: 10px;
@@ -312,6 +312,12 @@ padding: 5px 8px;
     }
     .pill:hover{ background: rgba(255,255,255,.06); }
     .pill input{ width:auto; margin:0; }
+/* 젠더 라디오 pill 더 컴팩트 */
+.filterRow .pill{
+  padding: 6px 10px;
+  font-size: 12px;
+  gap: 6px;
+}
 
     /* ===== Cards ===== */
     .list{
@@ -636,6 +642,20 @@ padding: 5px 8px;
   opacity: .85;
 }
 
+
+/* 검색창 컴팩트 */
+#searchInput{
+  height: 34px;
+  padding: 0 10px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+/* 라디오 동그라미 살짝 작게 */
+.filterRow input[type="radio"]{
+  transform: scale(0.88);
+  margin: 0;
+}    
   </style>
 
   <script>
@@ -2150,6 +2170,7 @@ applySearchFilter();
   </script>
 </body>
 </html>
+
 
 
 
