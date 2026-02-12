@@ -286,24 +286,35 @@
 
     /* Modal */
     .modal{
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.72);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-    }
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  display:none;
+
+  align-items:flex-start;        /* center → flex-start */
+  justify-content:center;
+
+  overflow-y:auto;               /* ✅ 모달이 스크롤을 먹게 */
+  -webkit-overflow-scrolling:touch;
+
+  padding: 24px 0;               /* 위아래 여백 */
+  z-index:9999;
+}
+
     .modal.active{display:flex}
 
     .modalBox{
-      width:min(420px,92%);
-      background:#050505;
-      border-radius:20px;
-      border:1px solid rgba(255,204,0,.45);
-      box-shadow:var(--shadow);
-      padding:22px;
-    }
+  width:min(420px,92%);
+  background:#050505;
+  border-radius:20px;
+  border:1px solid rgba(255,204,0,.45);
+  box-shadow:var(--shadow);
+  padding:22px;
+
+  max-height: calc(100dvh - 48px);   /* ✅ 화면보다 길어지면 */
+  overflow:auto;                     /* ✅ 내부 스크롤 허용 */
+}
+
 
     .modalTitle{
       font-family:"Baloo 2",sans-serif;
@@ -635,6 +646,7 @@
   </script>
 </body>
 </html>
+
 
 
 
