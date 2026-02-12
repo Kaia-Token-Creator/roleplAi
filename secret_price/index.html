@@ -517,6 +517,9 @@ padding: 5px 8px;
       justify-content:center;
       padding: 18px 14px;
       z-index: 9999;
+      overflow: auto;                 /* 핵심 */
+  -webkit-overflow-scrolling: touch;
+  align-items: flex-start;        /* 중앙정렬이면 스크롤 체감이 이상해질 수 있음 */
     }
     .modalOverlay.active{ display:flex; }
     .modal{
@@ -526,6 +529,9 @@ padding: 5px 8px;
       background: rgba(10,10,10,.92);
       box-shadow: var(--shadow);
       overflow:hidden;
+      max-height: calc(100dvh - 36px);
+  display: flex;
+  flex-direction: column;
     }
     .modalHeader{
       padding: 14px 16px;
@@ -627,6 +633,9 @@ padding: 5px 8px;
       font-size: 12px;
       color: var(--muted);
       margin: 0 0 10px;
+      overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
     }
     .error{
       margin-top: 10px;
@@ -936,7 +945,13 @@ body.chatMode #viewChat .chatFooter{
       0 10px 30px rgba(0,0,0,.55);
   }
 }    
-    
+
+
+/* ✅ 모달 열리면 뒤 페이지 스크롤 잠금 */
+body.modalOpen{
+  overflow: hidden;
+  height: 100dvh;
+}    
 
   </style>
 
@@ -1880,10 +1895,12 @@ setUnlockUIVisibility();
     function openPayModal(){
       payErr.style.display = "none";
       payOk.style.display = "none";
+      document.body.classList.add("modalOpen");   // ✅ 추가
       payModal.classList.add("active");
     }
     function closePayModal(){
       payModal.classList.remove("active");
+      document.body.classList.remove("modalOpen"); // ✅ 추가
       clearPending();
     }
     closePay.addEventListener("click", closePayModal);
@@ -1894,12 +1911,14 @@ setUnlockUIVisibility();
 function openImgPayModal(){
   if (imgPayErr) imgPayErr.style.display = "none";
   if (imgPayOk) imgPayOk.style.display = "none";
+  document.body.classList.add("modalOpen");   // ✅ 추가
   if (imgPayModal) imgPayModal.classList.add("active");
 }
 
 function closeImgPayModalFn(){
   if (imgPayModal) imgPayModal.classList.remove("active");
   // imagechat 결제는 pending을 유지해도 되지만, 닫으면 취소로 보고 지우는 게 깔끔
+  document.body.classList.remove("modalOpen"); // ✅ 추가
   clearPending();
 }
 
@@ -1915,11 +1934,13 @@ if (imgPayModal){
 function openImgUnlimitedPayModal(){
   if (imgUnlimitedPayErr) imgUnlimitedPayErr.style.display = "none";
   if (imgUnlimitedPayOk) imgUnlimitedPayOk.style.display = "none";
+  document.body.classList.add("modalOpen");   // ✅ 추가
   if (imgUnlimitedPayModal) imgUnlimitedPayModal.classList.add("active");
 }
 
 function closeImgUnlimitedPayModalFn(){
   if (imgUnlimitedPayModal) imgUnlimitedPayModal.classList.remove("active");
+  document.body.classList.remove("modalOpen"); // ✅ 추가
   clearPending();
 }
 
@@ -2805,6 +2826,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
