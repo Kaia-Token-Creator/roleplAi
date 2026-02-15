@@ -2037,6 +2037,14 @@ if (infoBtn && infoMenu){
     </div>
   `;
   fields.appendChild(tierWrap);
+
+      
+  const chatBtn = document.createElement("button");
+  chatBtn.className = "chatBtn";
+  chatBtn.type = "button";
+  chatBtn.textContent = `Chat with ${char.name}`;
+  fields.appendChild(chatBtn);
+      
   const note = document.createElement("div");
 note.className = "note";
 note.innerHTML = `
@@ -2060,11 +2068,6 @@ As long as you do not clear your browser data, it will remain accessible for a l
 fields.appendChild(note);
     
 
-  const chatBtn = document.createElement("button");
-  chatBtn.className = "chatBtn";
-  chatBtn.type = "button";
-  chatBtn.textContent = `Chat with ${char.name}`;
-  fields.appendChild(chatBtn);
 
   card.appendChild(body);
 
@@ -2240,6 +2243,7 @@ applySearchFilter();
   </script>
 </body>
 </html>
+
 
 
 
