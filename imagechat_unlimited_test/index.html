@@ -1049,13 +1049,23 @@ async function writeBackupAny(patch){
   const cur = (await readBackupAny()) || {};
   const next = { ...cur, ...patch, updatedAt: Date.now(), tabId: TAB_ID };
 
-  // 1) ✅ LocalForage write (best)
+  // 1) ✅ LocalForage write (full, can include images)
   await lfSet(LS_BACKUP_KEY, next);
 
-  // 2) localStorage write (secondary)
+  // 2) ✅ localStorage write (best-effort; may fail due to quota)
+  //    - try full first
+  //    - if quota error, fall back to text-only history
   try{
     localStorage.setItem(LS_BACKUP_KEY, JSON.stringify(next));
-  }catch(e){}
+  }catch(e){
+    try{
+      const lite = { ...next };
+      if (Array.isArray(lite.history)){
+        lite.history = lite.history.map(m => ({ role: m.role, content: m.content }));
+      }
+      localStorage.setItem(LS_BACKUP_KEY, JSON.stringify(lite));
+    }catch(_){}
+  }
 
   return next;
 }
@@ -1191,21 +1201,26 @@ async function saveHistory(list){
     const sanitized = Array.isArray(list)
       ? list.map(m => {
           if (!m || typeof m !== "object") return m;
-          const { videoUrl, ...rest } = m; // ✅ videoUrl 제거
+          const { videoUrl, ...rest } = m; // ✅ videoUrl 제거 (백업 금지 유지)
           return rest;
         })
       : [];
 
+    // ✅ 1) sessionStorage에는 (이미 pruneHistoryAndUI에서 300x300로 만든) sanitized 저장
     try{
       sessionStorage.setItem(IMAGECHAT_HISTORY_KEY, JSON.stringify(sanitized));
     }catch(e){}
 
-    const slim = sanitized.slice(-100).map(m => ({
+    // ✅ 2) 백업에는 "압축 이미지 포함" 저장 (LF는 OK, LS는 실패 시 자동 텍스트-only로 폴백)
+    //    - 그래도 너무 커지는 걸 방지하려고 최대 100개만
+    const backupHistory = sanitized.slice(-100).map(m => ({
       role: m.role,
-      content: m.content
+      content: m.content,
+      imageUrl: m.imageUrl || ""   // ✅ 압축 이미지 포함
+      // videoUrl은 위에서 제거됨
     }));
 
-    await writeBackupAny({ history: slim });
+    await writeBackupAny({ history: backupHistory });
 
   }catch(e){
     console.error("saveHistory failed:", e);
@@ -2260,6 +2275,7 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
 </body>
 </html>
+
 
 
 
