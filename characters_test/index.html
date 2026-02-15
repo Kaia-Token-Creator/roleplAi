@@ -915,6 +915,11 @@ padding: 5px 8px;
     const $ = (q) => document.querySelector(q);
     const $$ = (q) => Array.from(document.querySelectorAll(q));
 
+
+    function generateTabID(){
+  return "t_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+}
+
     // ===== Keys (same as original) =====
     const STORAGE_KEY = "roleplay-chat_session_v1";
     const PENDING_KEY = "roleplay-chat_pending_session_v1";
@@ -2104,9 +2109,12 @@ fields.appendChild(note);
       createdAt: Date.now()
     };
 
+    const tabID = generateTabID();
+session.tabID = tabID;
+
     if (tier === "general"){
       try{ saveSession(session); }catch(e){ console.error(e); }
-      window.location.replace("https://roleplay-chat.com/");
+      window.location.replace(`https://roleplay-chat.com/?tabID=${tabID}`);
       return;
     }
 
@@ -2126,7 +2134,7 @@ fields.appendChild(note);
         try{ saveSession(session); }catch(e){ console.error(e); }
 
         clearPending();
-        window.location.replace("https://roleplay-chat.com/");
+        window.location.replace(`https://roleplay-chat.com/?tabID=${tabID}`);
       }, "2.00", "Playing game");
       return;
     }
@@ -2142,7 +2150,7 @@ fields.appendChild(note);
         try{ saveSession(session); }catch(e){ console.error(e); }
 
         clearPending();
-        window.location.href = "https://roleplay-chat.com/imagechat/";
+        window.location.href = `https://roleplay-chat.com/imagechat/?tabID=${session.tabID}`;
       }, "6.90", "playing image game");
       return;
     }
@@ -2158,7 +2166,7 @@ fields.appendChild(note);
         try{ saveSession(session); }catch(e){ console.error(e); }
 
         clearPending();
-        window.location.href = "https://roleplay-chat.com/imagechat_unlimited";
+        window.location.href = `https://roleplay-chat.com/imagechat_unlimited/?tabID=${session.tabID}`;
       }, "25.00", "Upgrade game");
       return;
     }
@@ -2230,6 +2238,7 @@ applySearchFilter();
   </script>
 </body>
 </html>
+
 
 
 
