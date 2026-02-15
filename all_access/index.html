@@ -1438,10 +1438,15 @@ Deleting browser data will erase your character, chat history, and access permis
   }catch(e){}
 })();
 
-
     // --------- Helpers
     const $ = (q) => document.querySelector(q);
     const $$ = (q) => Array.from(document.querySelectorAll(q));
+
+    // ✅ tabID generator (query-string용)
+function generateTabID(){
+  // 짧고 충돌확률 낮게: time + random
+  return "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
 
     const DEFAULT_TITLE = "roleplay-chat.com | No-login AI Roleplay"; // (3) ADDED
     document.title = DEFAULT_TITLE; // (3) ADDED
@@ -2193,29 +2198,39 @@ if (!nicknameVal){
     createdAt: Date.now()
   };
 
+  const tabID = generateTabID();
+session.tabID = tabID;
 
-// 🔓 FREE PASS: 무조건 paid
-  sessionStorage.setItem("roleplay-chat_paid_v1", "paid");
-  sessionStorage.setItem("roleplay-chat_imagechat_paid_v1", "paid");
-  sessionStorage.setItem("roleplay-chat_imagechat_unlimited_paid_v1", "paid");
 
-  // 세션 저장
-  saveSession(session);
 
-  // 🚀 tier별 즉시 이동
-  if (tier === "imagechat"){
-    window.location.href = "/imagechat/";
-    return;
-  }
+  // 🔓 FREE PASS: 무조건 paid
+sessionStorage.setItem("roleplay-chat_paid_v1", "paid");
+sessionStorage.setItem("roleplay-chat_imagechat_paid_v1", "paid");
+sessionStorage.setItem("roleplay-chat_imagechat_unlimited_paid_v1", "paid");
 
-  if (tier === "imagechat_unlimited"){
-    window.location.href = "/imagechat_unlimited";
-    return;
-  }
+// ✅ tabID 생성 + 세션에 박기 + 탭에도 저장
+const tabID = generateTabID();
+session.tabID = tabID;
+sessionStorage.setItem("tabID", tabID);
 
-  // general / uncensored
-  enterChat(session);
-});
+// 세션 저장
+saveSession(session);
+
+// 🚀 tier별 즉시 이동 (+ tabID 붙이기)
+if (tier === "imagechat"){
+  window.location.href = `/imagechat/?tabID=${tabID}`;
+  return;
+}
+
+if (tier === "imagechat_unlimited"){
+  window.location.href = `/imagechat_unlimited/?tabID=${tabID}`;
+  return;
+}
+
+// ✅ general / uncensored → 메인으로 이동 (+ tabID 붙이기)
+window.location.href = `https://roleplay-chat.com/?tabID=${tabID}`;
+return;
+
 
 // ✅ submit 밖으로 빼야 정상 동작하는 버튼들
 resetBtn.addEventListener("click", () => {
@@ -2502,6 +2517,7 @@ function setupKeyboardBar(){
 </script>  
 </body>
 </html>
+
 
 
 
