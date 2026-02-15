@@ -583,26 +583,6 @@ const IMAGECHAT_HISTORY_KEY = "roleplay-chat_imagechat_history_v1";
 const IMAGECHAT_PAID_KEY = "roleplay-chat_imagechat_paid_v1";
 const IMAGECHAT_UNLIMITED_KEY = "roleplay-chat_imagechat_unlimited_v1";
 
-  // =========================
-// tabID: URL only (must exist)
-// =========================
-function getTabIDFromURLOnly(){
-  const u = new URL(window.location.href);
-  const tabID = (u.searchParams.get("tabID") || "").trim();
-
-  // tabID가 없으면 이 페이지는 성립이 안 하니까 홈으로 보내거나 에러 처리
-  if (!tabID){
-    alert("Missing tabID in URL. Please open image chat from the main page.");
-    window.location.href = "https://roleplay-chat.com/";
-    return null;
-  }
-  return tabID;
-}
-
-const TAB_ID = getTabIDFromURLOnly();
-if (!TAB_ID) throw new Error("Missing tabID"); // 위에서 리다이렉트되지만 안전장치
-
-
 function readSession(){
   const raw = sessionStorage.getItem(STORAGE_KEY);
   try { return raw ? JSON.parse(raw) : null; }
@@ -1383,6 +1363,7 @@ async function ensurePayPalUnlimitedButtons(){
 
 </body>
 </html>
+
 
 
 
