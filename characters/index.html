@@ -102,8 +102,7 @@
   top: 0;
   z-index: 60;
   background: rgba(0,0,0,.78);
-  backdrop-filter: blur(10px);
-    
+  backdrop-filter: blur(10px);    
 }
 
     .logo{
@@ -328,7 +327,8 @@ padding: 5px 8px;
     }
     .pill:hover{ background: rgba(255,255,255,.06); }
     .pill input{ width:auto; margin:0; }
-/* 젠더 라디오 pill 더 컴팩트 */
+
+    /* 젠더 라디오 pill 더 컴팩트 */
 .filterRow .pill{
   padding: 6px 10px;
   font-size: 12px;
@@ -649,6 +649,7 @@ padding: 5px 8px;
 @media (min-width: 900px){
   .charTop.compact .charMedia{ width: 180px; flex: 0 0 180px; }
 }
+
 .allAccessLink{
   display: inline-block;
   margin-top: 6px;
@@ -657,7 +658,7 @@ padding: 5px 8px;
   color: #ffcc00;
   text-decoration: none; /* ✅ 밑줄 제거 */
   opacity: .95;
-  text-align: right;   /* ← 오른쪽 정렬 핵심 */
+  text-align: right;
 }
 
 .allAccessLink:hover{
@@ -669,7 +670,6 @@ padding: 5px 8px;
   opacity: .85;
 }
 
-
 /* 검색창 컴팩트 */
 #searchInput{
   height: 34px;
@@ -678,11 +678,12 @@ padding: 5px 8px;
   border-radius: 10px;
 }
 
-/* 라디오 동그라미 살짝 작게 */
+
+    /* 라디오 동그라미 살짝 작게 */
 .filterRow input[type="radio"]{
   transform: scale(0.88);
   margin: 0;
-}    
+}
 
 .note{
   font-size: 12px;
@@ -693,6 +694,7 @@ padding: 5px 8px;
   border: 1px solid rgba(255,255,255,.14);
   color: rgba(255,255,255,.85);
 }
+
     
   </style>
 
@@ -794,8 +796,9 @@ padding: 5px 8px;
             <label class="pill"><input type="radio" name="genderFilter" value="Man"> Man</label>
             <label class="pill"><input type="radio" name="genderFilter" value="Woman"> Woman</label>
           </div>
+
           <a class="allAccessLink" href="https://roleplay-chat.com/all_access_purchase" target="_blank" rel="noopener noreferrer">
-  🔑All Access Pass $99 Lifetime
+  🔑 All Access Pass $99 Lifetime
 </a>
 
         </div>
@@ -911,6 +914,11 @@ padding: 5px 8px;
     // Helpers
     const $ = (q) => document.querySelector(q);
     const $$ = (q) => Array.from(document.querySelectorAll(q));
+
+
+    function generateTabID(){
+  return "t_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8);
+}
 
     // ===== Keys (same as original) =====
     const STORAGE_KEY = "roleplay-chat_session_v1";
@@ -2029,7 +2037,6 @@ if (infoBtn && infoMenu){
     </div>
   `;
   fields.appendChild(tierWrap);
-
   const note = document.createElement("div");
 note.className = "note";
 note.innerHTML = `
@@ -2102,9 +2109,12 @@ fields.appendChild(note);
       createdAt: Date.now()
     };
 
+    const tabID = generateTabID();
+session.tabID = tabID;
+
     if (tier === "general"){
       try{ saveSession(session); }catch(e){ console.error(e); }
-      window.location.replace("https://roleplay-chat.com/");
+      window.location.replace(`https://roleplay-chat.com/?tabID=${tabID}`);
       return;
     }
 
@@ -2124,7 +2134,7 @@ fields.appendChild(note);
         try{ saveSession(session); }catch(e){ console.error(e); }
 
         clearPending();
-        window.location.replace("https://roleplay-chat.com/");
+        window.location.replace(`https://roleplay-chat.com/?tabID=${tabID}`);
       }, "2.00", "Playing game");
       return;
     }
@@ -2140,7 +2150,7 @@ fields.appendChild(note);
         try{ saveSession(session); }catch(e){ console.error(e); }
 
         clearPending();
-        window.location.href = "https://roleplay-chat.com/imagechat/";
+        window.location.href = `https://roleplay-chat.com/imagechat/?tabID=${session.tabID}`;
       }, "6.90", "playing image game");
       return;
     }
@@ -2156,7 +2166,7 @@ fields.appendChild(note);
         try{ saveSession(session); }catch(e){ console.error(e); }
 
         clearPending();
-        window.location.href = "https://roleplay-chat.com/imagechat_unlimited";
+        window.location.href = `https://roleplay-chat.com/imagechat_unlimited/?tabID=${session.tabID}`;
       }, "25.00", "Upgrade game");
       return;
     }
@@ -2165,8 +2175,7 @@ fields.appendChild(note);
   return card;
 }
 
-
-    
+   
     // ===== Search + Filter =====
     const searchInput = $("#searchInput");
     let genderFilter = "all";
@@ -2229,25 +2238,6 @@ applySearchFilter();
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
