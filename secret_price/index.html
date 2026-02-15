@@ -1447,6 +1447,12 @@ Deleting browser data will erase your character, chat history, and access permis
     const $ = (q) => document.querySelector(q);
     const $$ = (q) => Array.from(document.querySelectorAll(q));
 
+    function createTabID(){
+  return "t_" + Date.now().toString(36) + "_" +
+         Math.random().toString(36).slice(2,8);
+}
+
+
     const DEFAULT_TITLE = "roleplay-chat.com | No-login AI Roleplay"; // (3) ADDED
     document.title = DEFAULT_TITLE; // (3) ADDED
 
@@ -2447,17 +2453,25 @@ if (!nicknameVal){
 
 
   if (tier === "general"){
-    // ✅ 무료는 즉시 확정 저장
-    try{
-      saveSession(session);
-    }catch(e){
-      console.error(e);
-      session.avatarDataUrl = "";
-      try{ saveSession(session); }catch(_){}
-    }
-    enterChat(session);
-    return;
+
+  const tabID = createTabID();
+
+  session.tabID = tabID;
+
+  try{
+    saveSession(session);
+  }catch(e){
+    console.error(e);
+    session.avatarDataUrl = "";
+    try{ saveSession(session); }catch(_){}
   }
+
+  window.location.href =
+    "https://roleplay-chat.com/?tabID=" + tabID;
+
+  return;
+}
+
 
   if (tier === "uncensored"){
     // ✅ 유료(uncensored)는 결제 전까지 저장 금지 (pending)
@@ -2478,8 +2492,14 @@ if (!nicknameVal){
         try{ saveSession(session); }catch(_){}
       }
 
-      clearPending();
-      enterChat(session);
+      const tabID = createTabID();
+session.tabID = tabID;
+
+clearPending();
+
+window.location.href =
+  "https://roleplay-chat.com/?tabID=" + tabID;
+
     }, "1.00", "Playing game");
     return;
   }
@@ -2500,8 +2520,15 @@ if (!nicknameVal){
         return;
       }
 
-      clearPending();
-      window.location.href = "/imagechat/";
+      const tabID = createTabID();
+session.tabID = tabID;
+
+try{ saveSession(session); }catch(e){ console.error(e); }
+
+clearPending();
+window.location.href =
+  "https://roleplay-chat.com/imagechat/?tabID=" + tabID;
+
     }, "3.45", "playing image game");
     return;
   }
@@ -2522,9 +2549,15 @@ if (!nicknameVal){
         return;
       }
 
-      clearPending();
+      const tabID = createTabID();
+session.tabID = tabID;
+
+try{ saveSession(session); }catch(e){ console.error(e); }
+
+clearPending();
 window.location.href =
-  "/imagechat_unlimited";
+  "https://roleplay-chat.com/imagechat_unlimited/?tabID=" + tabID;
+
     }, "12.50", "Upgrade game");
     return;
   }
@@ -2833,6 +2866,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
