@@ -1593,11 +1593,11 @@ const chatAvatar = $("#chatAvatar");
     const qs = new URLSearchParams(location.search);
     const id = (qs.get("tabID") || "").trim();
     if (id){
-      // window.name은 새 탭/새로고침에서도 유지되는 경우가 많아서 backup용으로 딱 좋음
-      window.name = id;
+      window.name = "rp_tab=" + id;
     }
   }catch(e){}
 })();
+
     
 
     // =========================
@@ -1620,9 +1620,10 @@ function getOrCreateTabID(){
 
   // ⭐ URL 없으면 window.name
   if (window.name){
-    id = String(window.name).trim();
-    if (id) return id;
-  }
+  const wn = String(window.name).trim();
+  if (wn.startsWith("rp_tab=")) return wn.slice("rp_tab=".length);
+  if (wn) return wn;
+}
 
   // ⭐ 둘 다 없을 때만 생성
   id = generateTabID();
@@ -1638,10 +1639,22 @@ function getOrCreateTabID(){
   return id;
 }
 
+function getCurrentTabID(){
+  const qs = new URLSearchParams(location.search);
+  const id = (qs.get("tabID") || "").trim();
+
+  // ✅ URL에 있으면 무조건 이걸 사용 (절대 생성 X)
+  if (id) return id;
+
+  // URL에 없을 때만 기존 로직 fallback
+  return getOrCreateTabID();
+}
+   
+
 
 // tabID 전용 저장 키
 function k(type){
-  const tabID = getOrCreateTabID();
+  const tabID = getCurrentTabID();   // ✅ 여기만 교체
   return `rpc_${type}_${tabID}`;
 }
 
@@ -3174,6 +3187,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
