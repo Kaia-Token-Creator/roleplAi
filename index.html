@@ -3097,7 +3097,10 @@ if (unlockBtn){
 
 // 🔎 DEBUG
 console.log("TAB_ID_FROM_URL:", __TAB_ID_FROM_URL__);
-console.log("CURRENT_TAB_ID:", getCurrentTabID());    
+console.log("CURRENT_TAB_ID:", getCurrentTabID());
+console.log("window.name:", window.name);
+console.log("ls session key:", k("session"));
+console.log("ls session value:", localStorage.getItem(k("session")));    
 
 // ✅ 결제 진행하다 닫았던 상태면: 셋업 화면 유지 (tabID 백업 복원 기반)
 (async function bootstrapByTabID(){
@@ -3195,4 +3198,5 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
