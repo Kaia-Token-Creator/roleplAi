@@ -3104,6 +3104,12 @@ console.log("ls session value:", localStorage.getItem(k("session")));
 
 // ✅ 결제 진행하다 닫았던 상태면: 셋업 화면 유지 (tabID 백업 복원 기반)
 (async function bootstrapByTabID(){
+
+  const incomingSession = loadPending();
+  if (incomingSession){
+    saveSession(incomingSession);
+    clearPending();
+  }
   
   // 세션/대기 복원 (이 함수들은 네가 앞에서 교체한 버전: localStorage 백업 포함)
   const existing = loadSession();
@@ -3198,5 +3204,6 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
