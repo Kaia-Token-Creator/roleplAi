@@ -75,10 +75,12 @@ if (bodyAny.type === "donation_gift") {
     ch.appearance || "",
     "wearing nothing",
     "All naked",
-    "random pose,",
     "highly detailed realistic photo,",
-    "cinematic lighting, shallow depth of field,",
-    "8k, ultra realistic, professional photography"
+"cinematic lighting, shallow depth of field,",
+"8k, ultra realistic, professional photography,",
+"full body, head to toe, feet visible,",
+"wide shot, long shot, medium shot, random shot,",
+"standing pose, natural pose, dynamic pose, random pose"
   ].join(" ");
 
   try {
@@ -982,6 +984,7 @@ async function callVeniceImageGenerate(
 
   return images[0];
 }
+
 
 
 
