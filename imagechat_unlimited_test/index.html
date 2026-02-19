@@ -1074,6 +1074,8 @@ let history = [];
     return;
   }
 
+  maybeShowSecretGift();
+  
   // 5) render history + prune
   renderHistory();
   await pruneHistoryAndUI();
@@ -2436,7 +2438,7 @@ if (secretLinkText){
 
 const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
 
-(function maybeShowSecretGift(){
+function maybeShowSecretGift(){
   try{
     if (!paid) return;
     if (sessionStorage.getItem(SECRET_POPUP_SHOWN_KEY) === "1") return;
@@ -2445,8 +2447,8 @@ const SECRET_POPUP_SHOWN_KEY = "roleplay-chat_secret_popup_shown_v1";
   }catch(e){
     if (paid) openSecretModal();
   }
-})();
-
+}
+  
 /* =========================
    Donate Modal logic
    ========================= */
@@ -2486,6 +2488,7 @@ donateModal?.addEventListener("click", e => {
 
 </body>
 </html>
+
 
 
 
