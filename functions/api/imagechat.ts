@@ -73,8 +73,9 @@ if (bodyAny.type === "donation_gift") {
   const prompt = [
     `${ch.name}, adult ${ch.gender},`,
     ch.appearance || "",
-    "wearing an elegant white dress,",
-    "romantic pose, soft smile,",
+    "wearing nothing",
+    "All naked",
+    "random pose,",
     "highly detailed realistic photo,",
     "cinematic lighting, shallow depth of field,",
     "8k, ultra realistic, professional photography"
@@ -981,6 +982,7 @@ async function callVeniceImageGenerate(
 
   return images[0];
 }
+
 
 
 
