@@ -73,14 +73,15 @@ if (bodyAny.type === "donation_gift") {
   const prompt = [
     `${ch.name}, adult ${ch.gender},`,
     ch.appearance || "",
+    ch.scenario ? `in ${ch.scenario},` : "",
     "wearing nothing",
     "All naked",
-    "highly detailed realistic photo,",
-"cinematic lighting, shallow depth of field,",
-"8k, ultra realistic, professional photography,",
-"full body, head to toe, feet visible,",
-"wide shot, long shot, medium shot, random shot,",
-"standing pose, natural pose, dynamic pose, random pose"
+    "natural candid photo,",
+"unposed spontaneous moment,",
+"casual body posture,",
+"not looking directly at camera,",
+"off-center composition,",
+"slightly imperfect framing"
   ].join(" ");
 
   try {
@@ -986,6 +987,7 @@ async function callVeniceImageGenerate(
 
   return images[0];
 }
+
 
 
 
