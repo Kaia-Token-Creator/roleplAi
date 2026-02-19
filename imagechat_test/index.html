@@ -526,8 +526,8 @@ padding: 5px 8px;
   <div class="imgChatTitle" id="imgChatTitle">Image chat</div>
 
   <div style="display:flex; gap:8px;">
-    <button class="xBtn donateBtn" id="donateBtn" type="button">Donate</button>
     <button class="xBtn" id="imgResetBtn" type="button">New character</button>
+    <button class="xBtn donateBtn" id="donateBtn" type="button">Donate</button>
   </div>
 </div>
 
@@ -614,16 +614,17 @@ padding: 5px 8px;
   ">
 
     <div style="display:flex; align-items:center; justify-content:space-between;">
-      <div style="font-family:'Baloo 2', Inter, sans-serif; font-weight:800; font-size:16px;">
-        Donate & Receive Secret Gift 🎁
-      </div>
+      <div id="donateTitle"
+     style="font-family:'Baloo 2', Inter, sans-serif; font-weight:800; font-size:16px;">
+  Donate & Receive Secret Gift 🎁
+</div>
       <button id="donateCloseBtn" class="xBtn">✕</button>
     </div>
 
     <div style="margin-top:10px; font-size:13px; color:rgba(255,255,255,.75);">
-      Support this project ❤️<br>
+      Thank you ❤️<br>
       Donate any amount (minimum $2).<br><br>
-      <span class="highlightCTA">Donate and receive a Secret gift.</span>
+      <span class="highlightCTA">Donate and receive a Secret gift🎁</span>
     </div>
 
     <div style="margin-top:12px;">
@@ -1630,6 +1631,11 @@ if (donateAmount){
   
 
 function openDonateModal(){
+  // ⭐ 제목 변경
+  const title = document.getElementById("donateTitle");
+  if (title && session?.name){
+    title.textContent = `Donate to ${session.name}`;
+  }
   document.body.classList.add("modalOpen");
   donateModal.style.display = "flex";
   ensurePayPalDonateButtons();
@@ -1683,7 +1689,7 @@ async function requestSecretGift(meta = {}){
       imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
     }
 
-    const giftText = "🎁 Secret gift for you.";
+    const giftText = "Secret gift for you♥";
 appendMsg("assistant", giftText, imageUrl || undefined, { animate: true });
 
 // ✅ 저장용만 압축
@@ -1721,6 +1727,7 @@ await saveHistoryAsync(history);
 
 </body>
 </html>
+
 
 
 
