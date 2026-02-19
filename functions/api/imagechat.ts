@@ -99,13 +99,15 @@ if (bodyAny.type === "donation_gift") {
     });
 
     return json(
-      {
-        image: { mime: "image/webp", b64: imgB64 },
-        type: "donation_gift"
-      },
-      200,
-      CORS
-    );
+  {
+    reply: "I sent you a secret gift… check it.",
+    image: { mime: "image/webp", b64: imgB64 },
+    type: "donation_gift"
+  },
+  200,
+  CORS
+);
+
 
   } catch (err) {
 
@@ -984,6 +986,7 @@ async function callVeniceImageGenerate(
 
   return images[0];
 }
+
 
 
 
