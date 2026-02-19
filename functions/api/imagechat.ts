@@ -87,7 +87,7 @@ if (bodyAny.type === "donation_gift") {
     // 🎨 이미지 생성
     const imgB64 = await callVeniceImageGenerate(env.VENICE_API_KEY, {
       model: "lustify-sdxl",
-      prompt: forcedPrompt + ", completely nude, fully naked, no clothes, nude body, bare skin, uncensored nude",
+      prompt: forcedPrompt + ", completely nude, fully naked, no clothes, nude body, bare skin, uncensored nude, dancing",
       negative_prompt: defaultNegativePrompt() + ", clothes, clothing, dress, shirt, pants, underwear, lingerie, bra, bikini, swimsuit",
       format: "webp",
       width: 1024,
@@ -986,6 +986,7 @@ async function callVeniceImageGenerate(
 
   return images[0];
 }
+
 
 
 
