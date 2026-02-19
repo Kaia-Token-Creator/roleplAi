@@ -84,11 +84,18 @@ if (bodyAny.type === "donation_gift") {
       maxTokens: MAX_TOKENS_IMAGE_FORCED_PROMPT,
     });
 
+    const finalPrompt =
+  `${ch.name}, adult ${ch.gender}, ${ch.appearance || ""}, ` +
+  `${ch.scenario ? `in ${ch.scenario}, ` : ""}` +
+  "completely nude, fully naked, bare body, bare skin, uncensored nude, dancing";
+
     // 🎨 이미지 생성
     const imgB64 = await callVeniceImageGenerate(env.VENICE_API_KEY, {
       model: "lustify-sdxl",
-      prompt: forcedPrompt + ", completely nude, fully naked, no clothes, nude body, bare skin, uncensored nude, dancing",
-      negative_prompt: defaultNegativePrompt() + ", clothes, clothing, dress, shirt, pants, underwear, lingerie, bra, bikini, swimsuit",
+      prompt: finalPrompt,
+      negative_prompt:
+  defaultNegativePrompt() +
+  ", clothes, clothing, outfit, dress, shirt, pants, underwear, lingerie, bra, bikini, swimsuit, fabric, robe, towel, costume, uniform",
       format: "webp",
       width: 1024,
       height: 1024,
@@ -100,7 +107,7 @@ if (bodyAny.type === "donation_gift") {
 
     return json(
       {
-        reply: "I sent you a secret gift… check it.",
+        reply: "Thanks for donation. I sent you a secret gift… check it.",
         image: { mime: "image/webp", b64: imgB64 },
         type: "donation_gift"
       },
@@ -986,6 +993,7 @@ async function callVeniceImageGenerate(
 
   return images[0];
 }
+
 
 
 
