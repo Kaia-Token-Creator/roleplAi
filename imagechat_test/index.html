@@ -308,16 +308,6 @@ padding: 5px 8px;
   backdrop-filter: blur(8px);
 }
 
-/* 버튼은 왼쪽에 붙게 */
-#imgResetBtn{
-  align-self: flex-start;     /* ✅ 혹시라도 영향받아도 왼쪽 고정 */
-  background: #e0b400;
-  border: 1px solid #c9a200;
-  color: #000;
-  font-weight: 800;
-}
-
-
 
 .imgChatTitle{
   font-family: "Baloo 2", Inter, sans-serif;
@@ -337,10 +327,12 @@ padding: 5px 8px;
     }
 
 /* ===== Image chat: New character button highlight ===== */
+/* 버튼은 왼쪽에 붙게 */
 #imgResetBtn{
-  background: #e0b400;          /* 노란 배경 */
-  border: 1px solid #c9a200;    /* 노란 테두리 */
-  color: #000;                  /* 검은 글씨 */
+  align-self: flex-start;     /* ✅ 혹시라도 영향받아도 왼쪽 고정 */
+  background: #e0b400;
+  border: 1px solid #c9a200;
+  color: #000;
   font-weight: 800;
 }
 
@@ -1495,6 +1487,7 @@ async function ensurePayPalUnlimitedButtons(){
 
 </body>
 </html>
+
 
 
 
