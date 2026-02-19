@@ -404,6 +404,23 @@ padding: 5px 8px;
   overflow: hidden !important;
 }
 
+
+/* ===== Donate button ===== */
+.donateBtn{
+  background: #ff2a8a;
+  border: 1px solid #d61a6b;
+  color: #fff;
+  font-weight: 800;
+}
+
+.donateBtn:hover{
+  background: #ff4aa1;
+}
+
+.donateBtn:active{
+  background: #d61a6b;
+}
+    
   </style>
 </head>
 
@@ -507,8 +524,13 @@ padding: 5px 8px;
   <!-- Image chat top bar -->
 <div class="imgChatTop">
   <div class="imgChatTitle" id="imgChatTitle">Image chat</div>
-  <button class="xBtn" id="imgResetBtn" type="button">New character</button>
+
+  <div style="display:flex; gap:8px;">
+    <button class="xBtn donateBtn" id="donateBtn" type="button">Donate</button>
+    <button class="xBtn" id="imgResetBtn" type="button">New character</button>
+  </div>
 </div>
+
 
   <!-- Chat -->
   <div class="chatShell">
@@ -569,6 +591,58 @@ padding: 5px 8px;
     </div>
   </div>
 </div>
+
+<!-- ✅ Donate PayPal Modal -->
+<div id="donateModal" style="
+  position:fixed; inset:0;
+  display:none;
+  align-items:flex-start;
+  justify-content:center;
+  overflow-y:auto;
+  padding:18px 0;
+  background:rgba(0,0,0,.65);
+  z-index:999999;
+">
+
+  <div style="
+    width:min(420px, calc(100vw - 28px));
+    background:rgba(12,12,12,.96);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:18px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.65);
+    padding:14px;
+  ">
+
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div style="font-family:'Baloo 2', Inter, sans-serif; font-weight:800; font-size:16px;">
+        Donate & Receive Secret Gift 🎁
+      </div>
+      <button id="donateCloseBtn" class="xBtn">✕</button>
+    </div>
+
+    <div style="margin-top:10px; font-size:13px; color:rgba(255,255,255,.75);">
+      Support this project ❤️<br>
+      Donate any amount (minimum $2).<br><br>
+      <span class="highlightCTA">Donate and receive a Secret gift.</span>
+    </div>
+
+    <div style="margin-top:12px;">
+      <label style="font-size:12px;">Amount (USD)</label>
+      <input id="donateAmount" type="number" min="2" step="1" value="5"
+        style="width:100%; margin-top:6px; padding:8px;
+        border-radius:10px; border:1px solid rgba(255,255,255,.2);
+        background:#000; color:#fff;">
+    </div>
+
+    <div style="margin-top:12px; padding:10px; border-radius:14px;
+                background:rgba(255,255,255,.06);
+                border:1px solid rgba(255,255,255,.12);">
+      <div id="paypalDonateButtons"></div>
+    </div>
+
+  </div>
+</div>
+  
 
 <script>
 
@@ -1481,12 +1555,173 @@ async function ensurePayPalUnlimitedButtons(){
   paypalUnlimitedReady = true;
 }
 
+/* =========================
+   PayPal Donate Buttons
+   ========================= */
+
+let paypalDonateReady = false;
+
+async function ensurePayPalDonateButtons(){
+  if (paypalDonateReady) return;
+
+  const mount = document.getElementById("paypalDonateButtons");
+  if (!mount) return;
+
+  await loadPayPalSdkOnce();
+
+  mount.innerHTML = "";
+
+  window.paypal.Buttons({
+
+    createOrder: (data, actions) => {
+
+      const amountInput = document.getElementById("donateAmount");
+      let value = parseFloat(amountInput.value || "0");
+
+      if (!value || value < 2) value = 2;
+
+      return actions.order.create({
+        purchase_units: [{
+          amount: { value: value.toFixed(2), currency_code: "USD" },
+          description: "Donation"
+        }]
+      });
+    },
+
+    onApprove: async (data, actions) => {
+
+  const details = await actions.order.capture();
+
+  closeDonateModal();
+
+  const paidValue =
+    details?.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value
+    || null;
+
+  await requestSecretGift({ paidValue, orderId: data?.orderID });
+
+},
+
+
+    onError: () => {
+      alert("Payment error. Please try again.");
+    }
+
+  }).render("#paypalDonateButtons");
+
+  paypalDonateReady = true;
+}
+    
+
+/* =========================
+   Donate Modal
+   ========================= */
+
+const donateBtn = document.getElementById("donateBtn");
+const donateModal = document.getElementById("donateModal");
+const donateCloseBtn = document.getElementById("donateCloseBtn");
+const donateAmount = document.getElementById("donateAmount");
+if (donateAmount){
+  donateAmount.addEventListener("blur", ()=>{
+    let v = parseFloat(donateAmount.value || "0");
+    if (!v || v < 2) donateAmount.value = "2";
+  });
+}
+  
+
+function openDonateModal(){
+  document.body.classList.add("modalOpen");
+  donateModal.style.display = "flex";
+  ensurePayPalDonateButtons();
+}
+
+function closeDonateModal(){
+  document.body.classList.remove("modalOpen");
+  donateModal.style.display = "none";
+}
+
+if (donateBtn) donateBtn.addEventListener("click", openDonateModal);
+if (donateCloseBtn) donateCloseBtn.addEventListener("click", closeDonateModal);
+document.addEventListener("keydown", (e)=>{
+  if (e.key === "Escape" && donateModal?.style.display === "flex"){
+    closeDonateModal();
+  }
+});
+
+
+if (donateModal){
+  donateModal.addEventListener("click", (e)=>{
+    if (e.target === donateModal) closeDonateModal();
+  });
+}
+
+    
+async function requestSecretGift(meta = {}){
+
+  try{
+
+    const payload = {
+  type: "donation_gift",
+  session: session,
+  tabID: TAB_ID,
+  meta
+};
+
+
+    const res = await fetch("/api/imagechat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Gift error");
+
+    let imageUrl = "";
+    if (data.image && data.image.b64){
+      imageUrl = `data:${data.image.mime};base64,${data.image.b64}`;
+    }
+
+    const giftText = "🎁 Secret gift for you.";
+appendMsg("assistant", giftText, imageUrl || undefined, { animate: true });
+
+// ✅ 저장용만 압축
+const storedImageUrl = imageUrl ? await compressDataUrl(imageUrl, {
+  maxW: 300,
+  maxH: 300,
+  quality: 0.72,
+  mime: "image/webp"
+}) : "";
+
+// ✅ history 저장
+history.push({ role: "assistant", content: giftText, imageUrl: storedImageUrl });
+history = trimHistoryLimits(history, { maxMessages: 120, maxImages: 18 });
+await saveHistoryAsync(history);
+
+
+  }catch(e){
+  const msg = `Error sending gift: ${String(e?.message || e)}`;
+  appendMsg("assistant", msg);
+
+  try{
+    history.push({ role: "assistant", content: msg, imageUrl: "" });
+    history = trimHistoryLimits(history, { maxMessages: 120, maxImages: 18 });
+    await saveHistoryAsync(history);
+  }catch(_){}
+}
+
+}
+    
     })();
+
+  
   
 </script>
 
 </body>
 </html>
+
 
 
 
