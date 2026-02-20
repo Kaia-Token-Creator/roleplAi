@@ -682,10 +682,6 @@ function getOrCreateTabId(){
     }
   }catch(e){}
 
-  if (!tabID){
-    const remembered = loadRememberedTabId();
-    if (remembered) tabID = remembered;
-  }
   
   if (!tabID){
     tabID = (crypto?.randomUUID ? crypto.randomUUID() : ("t" + Date.now() + "_" + Math.random().toString(16).slice(2)));
@@ -1873,6 +1869,7 @@ await saveHistoryAsync(history);
 
 </body>
 </html>
+
 
 
 
