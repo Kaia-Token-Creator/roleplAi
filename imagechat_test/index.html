@@ -697,7 +697,34 @@ function getOrCreateTabId(){
   return tabID;
 }
 
+
 const TAB_ID = getOrCreateTabId();
+
+const CURRENT_TABID_KEY = "rp_imagechat_current_tabid_v1";
+
+function resetSessionStorageForNewTabId(newTabId){
+  const prev = sessionStorage.getItem(CURRENT_TABID_KEY);
+  if (prev && prev === newTabId) return;
+
+  // ✅ tabID가 바뀌었으면: 이전 캐릭터의 sessionStorage 흔적 제거
+  const keysToClear = [
+    "roleplay-chat_session_v1",
+    "roleplay-chat_imagechat_history_v1",
+    "roleplay-chat_imagechat_paid_v1",
+    "roleplay-chat_imagechat_unlimited_v1",
+    "roleplay-chat_imagechat_paid_anchor_v1",
+    "appearanceProfile",
+  ];
+
+  for (const k of keysToClear){
+    try{ sessionStorage.removeItem(k); }catch(e){}
+  }
+
+  sessionStorage.setItem(CURRENT_TABID_KEY, newTabId);
+}
+
+resetSessionStorageForNewTabId(TAB_ID);
+    
 rememberTabId(TAB_ID);    
 const tkey = (base) => `${base}::${TAB_ID}`;
  
@@ -1869,6 +1896,7 @@ await saveHistoryAsync(history);
 
 </body>
 </html>
+
 
 
 
