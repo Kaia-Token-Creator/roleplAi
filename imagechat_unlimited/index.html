@@ -832,7 +832,7 @@
         <span class="toastMini" id="secretToast" style="display:none;">Copied!</span>
       </div>
 
-       <div class="secretNote">
+      <div class="secretNote">
         <b style="font-size:13px;">Copy it now and keep it for later.</b><br><br>
         You can use this secret price link <span class="offHighlight">50% off</span> forever to create a new character.<br><br>
         This link must be opened in a new, clean tab.<br><br>
@@ -1024,7 +1024,38 @@ function getOrCreateTabId(){
 }
 
 
-const TAB_ID = getOrCreateTabId();  
+const TAB_ID = getOrCreateTabId(); 
+const CURRENT_TABID_KEY = "rp_imagechat_current_tabid_v1";
+
+(function resetSessionStorageForNewTabId(newTabId){
+  let prev = null;
+  try{ prev = sessionStorage.getItem(CURRENT_TABID_KEY); }catch(e){}
+
+  // ✅ 첫 진입(prev 없음)에서는 절대 지우지 말고 그냥 현재 tabId만 기록
+  if (!prev){
+    try{ sessionStorage.setItem(CURRENT_TABID_KEY, newTabId); }catch(e){}
+    return;
+  }
+
+  // ✅ 같은 tabId면 그대로 유지
+  if (prev === newTabId) return;
+
+  // ✅ "같은 탭에서 tabId가 바뀐 경우"에만 초기화
+  const keysToClear = [
+    "roleplay-chat_session_v1",
+    "roleplay-chat_imagechat_history_v1",
+    "roleplay-chat_imagechat_unlimited_paid_v1",
+    "roleplay-chat_secret_popup_shown_v1",
+    "appearanceProfile",
+  ];
+
+  for (const k of keysToClear){
+    try{ sessionStorage.removeItem(k); }catch(e){}
+  }
+
+  try{ sessionStorage.setItem(CURRENT_TABID_KEY, newTabId); }catch(e){}
+})(TAB_ID);
+  
 const LS_BACKUP_KEY = LS_BACKUP_PREFIX + TAB_ID;
 
 let session = null;
@@ -2301,7 +2332,7 @@ async function requestSecretGift(){
 
     appendMsg(
       "assistant",
-      "Thank you. Preparing your special gift...",
+      "Thank you. Preparing my special gift...",
       undefined,
       undefined,
       { animate:true, italic:true }
@@ -2341,7 +2372,7 @@ if (!res.ok){
 
     appendMsg(
       "assistant",
-      "Thank you❤️ Here is your gift 🎁",
+      "Thank you❤️ Here is my gift 🎁",
       imageUrl || undefined,
       undefined,
       { animate:true }
@@ -2349,7 +2380,7 @@ if (!res.ok){
 
     history.push({
       role: "assistant",
-      content: "Thank you❤️ Here is your gift 🎁",
+      content: "Thank you❤️ Here is my gift 🎁",
       imageUrl
     });
 
@@ -2488,7 +2519,5 @@ donateModal?.addEventListener("click", e => {
 
 </body>
 </html>
-
-
 
 
