@@ -659,6 +659,15 @@ padding: 5px 8px;
    tabID (from URL) + key helpers
    ========================= */
 
+const LAST_TAB_KEY = "rp_last_imagechat_tabid_v1";       
+
+function rememberTabId(tabID){
+  try{ localStorage.setItem(LAST_TAB_KEY, tabID); }catch(e){}
+}
+function loadRememberedTabId(){
+  try{ return localStorage.getItem(LAST_TAB_KEY); }catch(e){ return null; }
+}
+    
 function getOrCreateTabId(){
   const u = new URL(window.location.href);
   let tabID = u.searchParams.get("tabID");
@@ -674,6 +683,11 @@ function getOrCreateTabId(){
   }catch(e){}
 
   if (!tabID){
+    const remembered = loadRememberedTabId();
+    if (remembered) tabID = remembered;
+  }
+  
+  if (!tabID){
     tabID = (crypto?.randomUUID ? crypto.randomUUID() : ("t" + Date.now() + "_" + Math.random().toString(16).slice(2)));
   }
 
@@ -688,7 +702,18 @@ function getOrCreateTabId(){
 }
 
 const TAB_ID = getOrCreateTabId();
+rememberTabId(TAB_ID);    
 const tkey = (base) => `${base}::${TAB_ID}`;
+ 
+
+// ✅ 여기 아래에 추가
+function ensureTabIdInUrl(tabID){
+  try{
+    const u = new URL(window.location.href);
+    u.searchParams.set("tabID", tabID);
+    history.replaceState(null, "", u.toString());
+  }catch(e){}
+}
 
 async function pget(base){
   const k = tkey(base);
@@ -1582,8 +1607,13 @@ async function ensurePayPalUnlimitedButtons(){
     onApprove: async (data, actions) => {
       const details = await actions.order.capture();
 
-      // ✅ 결제 성공 -> Unlimited 전환
-      setUnlimited();
+       // ✅ 결제 성공 -> Unlimited 전환
+  await setUnlimited();
+
+       // ✅ PayPal이 URL 쿼리 정리하면서 tabID 날리는 경우 → 즉시 복구
+  ensureTabIdInUrl(TAB_ID);
+  setTimeout(() => ensureTabIdInUrl(TAB_ID), 0);
+  setTimeout(() => ensureTabIdInUrl(TAB_ID), 300);
 
       // ✅ UI 갱신: 카운트/링크 숨기고 문구 표시
       const holder = document.getElementById("paidTimer");
@@ -1843,6 +1873,7 @@ await saveHistoryAsync(history);
 
 </body>
 </html>
+
 
 
 
