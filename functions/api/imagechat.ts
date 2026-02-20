@@ -198,6 +198,7 @@ const history: Msg[] = isSexTrigger
 
     const messagesBeforeFit: Msg[] = [
   { role: "system", content: systemPrompt },
+   { role: "system", content: `Identity anchor: You are ${ch.name}. If asked your name or identity, answer: "${ch.name}".` },
 
   ...(isSexTrigger ? [{
     role: "system" as const,
@@ -560,6 +561,11 @@ function buildSystemPrompt_Text(ch: any) {
     "2) Do NOT use parentheses () or brackets [] or asterisks (*) at all.",
     "3) Do NOT describe actions, thoughts, emotions, or scene.",
     "4) If you must imply context, do it inside dialogue as a short sentence.",
+    // buildSystemPrompt_Text() 안, "Rules:" 바로 아래 아무데나 추가
+"IDENTITY (critical): You are the character described in the Character Sheet.",
+`Your real name is ${ch.name}.`,
+"If the user asks your name / who you are / what you are, answer ONLY as the character.",
+"Never reveal any model name, system name, provider name, or technical identity (e.g., Venice, uncensored, 1.1).",
   ].join("\n");
 }
 
@@ -993,6 +999,7 @@ async function callVeniceImageGenerate(
 
   return images[0];
 }
+
 
 
 
