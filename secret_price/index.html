@@ -1983,7 +1983,7 @@ if (imgUnlimitedPayModal){
     
 
 // Image-chat 전용 PayPal 버튼 렌더 (기존 mountPayPalButtons와 거의 동일, 렌더 위치만 다름)
-function mountPayPalButtonsImageChat(onSuccess, priceUsd = "3.45", description = "Playing image game"){
+function mountPayPalButtonsImageChat(onSuccess, priceUsd = "3.45", description = "Playing secret image game"){
   const container = document.querySelector("#imgPaypalButtons");
   container.innerHTML = "";
 
@@ -2043,7 +2043,7 @@ function mountPayPalButtonsImageChat(onSuccess, priceUsd = "3.45", description =
 }
 
 
-function mountPayPalButtonsImageChatUnlimited(onSuccess, priceUsd = "12.50", description = "Upgrade game"){
+function mountPayPalButtonsImageChatUnlimited(onSuccess, priceUsd = "12.50", description = "Upgrade secret game"){
   const container = document.querySelector("#imgUnlimitedPaypalButtons");
   container.innerHTML = "";
 
@@ -2103,7 +2103,7 @@ function mountPayPalButtonsImageChatUnlimited(onSuccess, priceUsd = "12.50", des
 
 
     // --------- PayPal Buttons (client-only demo)
-function mountPayPalButtons(onSuccess, priceUsd = "1.00", description = "Playing game"){
+function mountPayPalButtons(onSuccess, priceUsd = "1.00", description = "Playing secret game"){
   const container = $("#paypalButtons");
   container.innerHTML = "";
   if (!window.paypal){
@@ -2881,6 +2881,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
