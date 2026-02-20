@@ -1024,7 +1024,30 @@ function getOrCreateTabId(){
 }
 
 
-const TAB_ID = getOrCreateTabId();  
+const TAB_ID = getOrCreateTabId(); 
+const CURRENT_TABID_KEY = "rp_imagechat_current_tabid_v1";
+
+(function resetSessionStorageForNewTabId(newTabId){
+  let prev = null;
+  try{ prev = sessionStorage.getItem(CURRENT_TABID_KEY); }catch(e){}
+
+  if (prev && prev === newTabId) return;
+
+  const keysToClear = [
+    "roleplay-chat_session_v1",
+    "roleplay-chat_imagechat_history_v1",
+    "roleplay-chat_imagechat_unlimited_paid_v1",
+    "roleplay-chat_secret_popup_shown_v1",
+    "appearanceProfile",
+  ];
+
+  for (const k of keysToClear){
+    try{ sessionStorage.removeItem(k); }catch(e){}
+  }
+
+  try{ sessionStorage.setItem(CURRENT_TABID_KEY, newTabId); }catch(e){}
+})(TAB_ID);
+  
 const LS_BACKUP_KEY = LS_BACKUP_PREFIX + TAB_ID;
 
 let session = null;
@@ -2488,6 +2511,7 @@ donateModal?.addEventListener("click", e => {
 
 </body>
 </html>
+
 
 
 
