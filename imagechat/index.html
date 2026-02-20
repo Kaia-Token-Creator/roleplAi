@@ -704,9 +704,17 @@ const CURRENT_TABID_KEY = "rp_imagechat_current_tabid_v1";
 
 function resetSessionStorageForNewTabId(newTabId){
   const prev = sessionStorage.getItem(CURRENT_TABID_KEY);
-  if (prev && prev === newTabId) return;
 
-  // ✅ tabID가 바뀌었으면: 이전 캐릭터의 sessionStorage 흔적 제거
+  // ✅ 처음 들어온 탭(아직 prev 없음) = 지우지 말고 그냥 기록만
+  if (!prev){
+    sessionStorage.setItem(CURRENT_TABID_KEY, newTabId);
+    return;
+  }
+
+  // ✅ 같은 tabID면 아무것도 안 함
+  if (prev === newTabId) return;
+
+  // ✅ tabID가 진짜 바뀐 경우에만: 이전 흔적 제거
   const keysToClear = [
     "roleplay-chat_session_v1",
     "roleplay-chat_imagechat_history_v1",
@@ -1896,6 +1904,8 @@ await saveHistoryAsync(history);
 
 </body>
 </html>
+
+
 
 
 
