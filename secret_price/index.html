@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+
   <meta name='impact-site-verification' value='f343b3c2-5405-4f62-a4ed-b9d389be3089'>
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9891583086388017"
@@ -1458,6 +1460,55 @@ Deleting browser data will erase your character, chat history, and access permis
 
 
   <script>
+
+    // =========================
+// TAB-ID based persistence (same style as main/all_access fix)
+// =========================
+const TABID_KEY = "roleplay-chat_tabID_v1"; // optional helper key
+
+function tabSessionKey(tabID){ return `roleplay-chat_session_v1__${tabID}`; }
+function tabHistoryKey(tabID){ return `roleplay-chat_history_v1__${tabID}`; }
+
+// 메인에서 tabID를 window.name으로도 복원한다면 이게 중요
+function persistTabID(tabID){
+  try{ window.name = tabID; }catch(e){}
+  try{ sessionStorage.setItem(TABID_KEY, tabID); }catch(e){}
+  try{ localStorage.setItem(TABID_KEY, tabID); }catch(e){}
+}
+
+// 메인과 동일하게: localStorage + localforage에 "tabID별"로 저장
+async function persistSessionForTab(tabID, sessionObj){
+  persistTabID(tabID);
+
+  // 1) localStorage (fast fallback)
+  try{
+    localStorage.setItem(tabSessionKey(tabID), JSON.stringify(sessionObj));
+    // 호환용(기존 키도 유지하고 싶으면)
+    localStorage.setItem("roleplay-chat_session_v1", JSON.stringify(sessionObj));
+  }catch(e){}
+
+  // 2) localforage (backup)
+  try{
+    if (window.localforage){
+      await localforage.setItem(tabSessionKey(tabID), sessionObj);
+    }
+  }catch(e){}
+}
+
+// 히스토리도 메인이 tabID로 찾는 구조면 같이 저장
+async function persistHistoryForTab(tabID, historyArr){
+  try{
+    localStorage.setItem(tabHistoryKey(tabID), JSON.stringify(historyArr || []));
+    localStorage.setItem("roleplay-chat_history_v1", JSON.stringify(historyArr || [])); // 호환용
+  }catch(e){}
+
+  try{
+    if (window.localforage){
+      await localforage.setItem(tabHistoryKey(tabID), historyArr || []);
+    }
+  }catch(e){}
+}
+    
     // --------- Helpers
     const $ = (q) => document.querySelector(q);
     const $$ = (q) => Array.from(document.querySelectorAll(q));
@@ -2468,21 +2519,18 @@ if (!nicknameVal){
 
 
   if (tier === "general"){
-
   const tabID = createTabID();
-
   session.tabID = tabID;
 
-  try{
-    saveSession(session);
-  }catch(e){
-    console.error(e);
-    session.avatarDataUrl = "";
-    try{ saveSession(session); }catch(_){}
-  }
-
-  window.location.href =
-    "https://roleplay-chat.com/?tabID=" + tabID;
+  // ✅ 메인과 동일한 방식으로 저장(핵심)
+  (async () => {
+    try{
+      await persistSessionForTab(tabID, session);
+      await persistHistoryForTab(tabID, []); // 처음 생성이니 빈 히스토리
+    }catch(e){}
+    // ✅ 같은 오리진이면 상대경로가 더 안전
+    window.location.assign("/?tabID=" + encodeURIComponent(tabID));
+  })();
 
   return;
 }
@@ -2494,20 +2542,26 @@ if (!nicknameVal){
 
     openPayModal();
     mountPayPalButtons(() => {
-      paymentStatus = "paid";
-      sessionStorage.setItem(PAYMENT_KEY, "paid");
+  paymentStatus = "paid";
 
-      // ✅ 결제 성공 시점에만 저장
-      session.tier = "uncensored";
-      try{
-        saveSession(session);
-      }catch(e){
-        console.error(e);
-        session.avatarDataUrl = "";
-        try{ saveSession(session); }catch(_){}
-      }
+  sessionStorage.setItem(PAYMENT_KEY, "paid");
+  try{ localStorage.setItem(PAYMENT_KEY, "paid"); }catch(e){} // ✅ 복원 대비
 
-      const tabID = createTabID();
+  session.tier = "uncensored";
+
+  const tabID = createTabID();
+  session.tabID = tabID;
+
+  (async () => {
+    try{
+      await persistSessionForTab(tabID, session);
+      await persistHistoryForTab(tabID, []);
+    }catch(e){}
+    clearPending();
+    window.location.assign("/?tabID=" + encodeURIComponent(tabID));
+  })();
+
+}, "1.00", "Playing game");
 session.tabID = tabID;
 
 clearPending();
@@ -2881,6 +2935,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
