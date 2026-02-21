@@ -3277,6 +3277,73 @@ if (unlockBtn){
   const existing = loadSession();
   const pending = loadPending();
 
+  (function devtoolsWarning(){
+  if (window.__rpc_warned__) return;
+  window.__rpc_warned__ = true;
+
+  const msg = [
+    "⚠️ STOP",
+    "Modifying payment flags (localStorage/sessionStorage) is unauthorized.",
+    "This may be considered theft/fraud and may result in legal action.",
+    "If you think there's a billing issue, contact support."
+  ].join("\n");
+
+  try{
+    console.clear?.();
+    console.log("%c" + msg, [
+      "color:#ffcc00",
+      "background:#000",
+      "padding:12px 14px",
+      "border:2px solid #ffcc00",
+      "border-radius:12px",
+      "font-size:14px",
+      "font-weight:900",
+      "line-height:1.4"
+    ].join(";"));
+  }catch(e){
+    console.log(msg);
+  }
+})();
+
+
+(function watchPaidTamper(){
+  const KEYS = [
+    "roleplay-chat_paid_v1",
+    "roleplay-chat_imagechat_paid_v1",
+    "roleplay-chat_imagechat_unlimited_paid_v1"
+  ];
+
+  function warn(k, v){
+    const msg =
+      `⚠️ Payment flag tampering detected\nkey: ${k}\nvalue: ${String(v).slice(0,120)}\nUnauthorized changes may result in legal action.`;
+
+    try{
+      console.log(
+        "%c" + msg,
+        "color:#ff3b3b;font-weight:900;font-size:13px;background:#000;padding:10px;border:2px solid #ff3b3b;border-radius:10px;"
+      );
+    }catch(e){
+      console.log(msg);
+    }
+  }
+
+  try{
+    const _set = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(k, v){
+      if (KEYS.includes(String(k))) warn(k, v);
+      return _set(k, v);
+    };
+  }catch(e){}
+
+  try{
+    const _setS = sessionStorage.setItem.bind(sessionStorage);
+    sessionStorage.setItem = function(k, v){
+      if (KEYS.includes(String(k))) warn(k, v);
+      return _setS(k, v);
+    };
+  }catch(e){}
+})();
+
   // 결제 상태도 tabID별 백업에서 복원
   const paidUnc = getPaid(PAYMENT_KEY);
   const paidImg = getPaid(IMAGECHAT_PAID_KEY);
@@ -3366,6 +3433,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
