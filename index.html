@@ -2930,7 +2930,7 @@ window.location.href = "/?tabID=" + tabID;
       }
 
       clearPending();
-      const tabID = generateTabID();
+      const tabID = getCurrentTabID();
 window.location.href = "/imagechat/?tabID=" + tabID;
     }, "6.90", "playing image game");
     return;
@@ -2954,7 +2954,7 @@ window.location.href = "/imagechat/?tabID=" + tabID;
 
       clearPending();
 clearPending();
-const tabID = generateTabID();
+const tabID = getCurrentTabID();
 window.location.href = "/imagechat_unlimited/?tabID=" + tabID;
     }, "25.00", "Upgrade game");
     return;
@@ -3352,3 +3352,4 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
