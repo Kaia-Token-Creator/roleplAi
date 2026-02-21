@@ -2893,7 +2893,7 @@ if (!nicknameVal){
       }
 
       clearPending();
-      const tabID = generateTabID();
+      const tabID = getCurrentTabID();   // ✅ 기존 tabID 유지
 window.location.href = "/test/?tabID=" + tabID;
     }, "2.00", "Playing game");
     return;
@@ -3338,6 +3338,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
