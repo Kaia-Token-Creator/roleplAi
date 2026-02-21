@@ -1607,6 +1607,9 @@ function TAB_SESSION_KEY(){
 function TAB_HISTORY_KEY(){
   return `rpc_history_${getCurrentTabID()}`;
 }
+function TAB_PAID_KEY(keyName){
+  return `rpc_paid_${keyName}_${getCurrentTabID()}`;
+}    
 
     const PENDING_KEY = "roleplay-chat_pending_session_v1";
     const MAX_HISTORY = 120;
@@ -2514,15 +2517,26 @@ function mountPayPalButtons(onSuccess, priceUsd = "2.00", description = "Playing
     let chatHistory = []; // {role:"user"|"assistant", content:string}
     const PAYMENT_KEY = "roleplay-chat_paid_v1";
     function setPaid(keyName, value){
-  sessionStorage.setItem(keyName, value);
-  lsSet(k(keyName), value);
+  const pk = TAB_PAID_KEY(keyName);
+
+  // ✅ tabID 스코프로만 저장
+  sessionStorage.setItem(pk, value);
+  lsSet(pk, value);
+
+  // ✅ (레거시) 예전 전역 paid가 남아있으면 제거해서 누수 방지
+  try{ sessionStorage.removeItem(keyName); }catch(e){}
 }
+
 function getPaid(keyName){
-  const s = sessionStorage.getItem(keyName);
+  const pk = TAB_PAID_KEY(keyName);
+
+  // ✅ tabID 스코프만 조회
+  const s = sessionStorage.getItem(pk);
   if (s) return s;
-  const b = lsGet(k(keyName));
+
+  const b = lsGet(pk);
   if (b){
-    sessionStorage.setItem(keyName, b);
+    sessionStorage.setItem(pk, b);
     return b;
   }
   return null;
@@ -2597,7 +2611,7 @@ function containsSexTrigger(text){
 // ✅ “결제 안 됨” 상태인지 판단 (general 채팅 + 아직 paid 아님)
 function isUnpaidGeneral(){
   const s = loadSession();
-  const isPaid = sessionStorage.getItem(PAYMENT_KEY) === "paid";
+  const isPaid = getPaid(PAYMENT_KEY) === "paid";
   return !!(s && s.tier === "general" && !isPaid);
 }
 
@@ -3182,7 +3196,7 @@ const pending = loadPending();
 
 function setUnlockUIVisibility(){
   const s = loadSession();
-  const isPaid = sessionStorage.getItem(PAYMENT_KEY) === "paid";
+  const isPaid = getPaid(PAYMENT_KEY) === "paid";
   const isGeneral = s && s.tier === "general";
   if (unlockBtn){
     unlockBtn.style.display = (isGeneral && !isPaid) ? "inline-flex" : "none";
@@ -3338,6 +3352,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
