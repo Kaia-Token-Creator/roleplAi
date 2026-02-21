@@ -2536,6 +2536,7 @@ if (!nicknameVal){
   if (tier === "general"){
   const tabID = createTabID();
   session.tabID = tabID;
+  persistTabID(tabID);  
 
     // ✅ (메인 페이지가 옛 키로 읽는 경우 대비: 호환 저장)
   try{ saveSession(session); }catch(e){}
@@ -2571,6 +2572,7 @@ if (!nicknameVal){
 
     const tabID = createTabID();
     session.tabID = tabID;
+    persistTabID(tabID);
 
     (async () => {
       try{
