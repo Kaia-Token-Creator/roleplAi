@@ -2326,71 +2326,31 @@ if (!nicknameVal){
 
 
 
-// ✅✅✅ HARD HANDOFF: 메인이 무엇을 보더라도 무조건 잡히게 저장
-async function hardHandoffToMain(session){
-  const ALL_ACCESS_KEY = "ROLEPLAY_CHAT_ALL_ACCESS_V1";
-  const PAID_KEYS = [
-    "roleplay-chat_paid_v1",
-    "roleplay-chat_imagechat_paid_v1",
-    "roleplay-chat_imagechat_unlimited_paid_v1",
+  // 🔓 FREE PASS: 무조건 paid
+sessionStorage.setItem("roleplay-chat_paid_v1", "paid");
+sessionStorage.setItem("roleplay-chat_imagechat_paid_v1", "paid");
+sessionStorage.setItem("roleplay-chat_imagechat_unlimited_paid_v1", "paid");
 
-    // ✅ 혹시 메인이 uncensored 전용 키를 따로 보면 이것도 같이 깔아둠(안 해도 되지만 보험)
-    "roleplay-chat_uncensored_paid_v1",
-    "roleplay-chat_text_uncensored_paid_v1"
-  ];
-
-  const STORAGE_KEY = "roleplay-chat_session_v1";
-  const PENDING_KEY = "roleplay-chat_pending_session_v1";
-
-  // 0) 탭 식별자도 같이(메인이 window.name을 볼 수도 있어서)
-  try{ window.name = session.tabID || ""; }catch(e){}
-
-  // 1) sessionStorage (같은 탭 이동이면 제일 확실)
-  try{
-    PAID_KEYS.forEach(k => sessionStorage.setItem(k, "paid"));
-    sessionStorage.setItem(ALL_ACCESS_KEY, "paid");
-    sessionStorage.setItem("tabID", session.tabID || "");
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    sessionStorage.setItem(PENDING_KEY, JSON.stringify(session));
-  }catch(e){}
-
-  // 2) localStorage (메인이 sessionStorage 안 보고 local만 보는 케이스 대비)
-  try{
-    PAID_KEYS.forEach(k => localStorage.setItem(k, "paid"));
-    localStorage.setItem(ALL_ACCESS_KEY, "paid");
-    localStorage.setItem("tabID", session.tabID || "");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    localStorage.setItem(PENDING_KEY, JSON.stringify(session));
-  }catch(e){}
-
-  // 3) localForage (메인이 localforage만 볼 때 대비)
-  try{
-    if (window.localforage){
-      const auth = localforage.createInstance({ name: "roleplay-chat", storeName: "auth" });
-      const lfSession = localforage.createInstance({ name: "roleplay-chat", storeName: "session" });
-
-      // auth store에 권한/결제 키
-      await auth.setItem(ALL_ACCESS_KEY, "paid").catch(()=>{});
-      await Promise.all(PAID_KEYS.map(k => auth.setItem(k, "paid").catch(()=>{})));
-
-      // session store에 세션/펜딩/탭
-      await lfSession.setItem("tabID", session.tabID || "").catch(()=>{});
-      await lfSession.setItem(STORAGE_KEY, session).catch(()=>{});
-      await lfSession.setItem(PENDING_KEY, session).catch(()=>{});
-    }
-  }catch(e){}
-}
-
-
-// 🔓 FREE PASS + tabID 생성 + 세션 저장 + 강제 handoff
+// ✅ tabID 생성 + 세션에 박기 + 탭에도 저장
 const tabID = generateTabID();
 session.tabID = tabID;
+sessionStorage.setItem("tabID", tabID);
 
-// ✅ 세션 객체는 기존 로직대로 saveSession도 유지 (sessionStorage용)
+// 세션 저장
 saveSession(session);
 
-// ✅ 핵심: 메인이 어디서 읽든 "paid + session + pending + tabID"가 무조건 존재하게
-hardHandoffToMain(session).catch(()=>{});
+// ✅ [ADD] 메인 페이지가 sessionStorage를 안 볼 수도 있으니 handoff용 pending을 localStorage/localForage에도 저장
+try{
+  localStorage.setItem("roleplay-chat_pending_session_v1", JSON.stringify(session));
+}catch(e){}
+
+try{
+  if (window.localforage){
+    const lfSession = localforage.createInstance({ name: "roleplay-chat", storeName: "session" });
+    lfSession.setItem("roleplay-chat_pending_session_v1", session).catch(()=>{});
+  }
+}catch(e){}  
+
 
 // 🚀 tier별 즉시 이동 (+ tabID 붙이기)
 if (tier === "imagechat"){
@@ -2697,4 +2657,3 @@ function setupKeyboardBar(){
 </script>  
 </body>
 </html>
-
