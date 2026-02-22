@@ -2352,17 +2352,21 @@ try{
 
   
 
-// ✅ [ADD] 메인 페이지가 sessionStorage를 안 볼 수도 있으니 handoff용 pending을 localStorage/localForage에도 저장
-try{
-  localStorage.setItem("roleplay-chat_pending_session_v1", JSON.stringify(session));
-}catch(e){}
+// ✅ handoff용 pending을 SS + LS + LF(session) 모두에 저장
+(function savePendingEverywhere(sess){
+  const k = "roleplay-chat_pending_session_v1";
+  const raw = JSON.stringify(sess);
 
-try{
-  if (window.localforage){
-    const lfSession = localforage.createInstance({ name: "roleplay-chat", storeName: "session" });
-    lfSession.setItem("roleplay-chat_pending_session_v1", session).catch(()=>{});
-  }
-}catch(e){}  
+  try{ sessionStorage.setItem(k, raw); }catch(e){}
+  try{ localStorage.setItem(k, raw); }catch(e){}
+
+  try{
+    if (window.localforage){
+      const lfSession = localforage.createInstance({ name: "roleplay-chat", storeName: "session" });
+      lfSession.setItem(k, sess).catch(()=>{});
+    }
+  }catch(e){}
+})(session);
 
 // 🚀 tier별 즉시 이동 (+ tabID 붙이기)
 if (tier === "imagechat"){
@@ -2376,7 +2380,9 @@ if (tier === "imagechat_unlimited"){
 }
 
 // ✅ general / uncensored → 메인으로 이동 (+ tabID 붙이기)
-window.location.href = `https://roleplay-chat.com/?tabID=${tabID}`;
+setTimeout(() => {
+  window.location.href = `https://roleplay-chat.com/?tabID=${tabID}`;
+}, 30);
 return;
 
 });  
@@ -2669,6 +2675,7 @@ function setupKeyboardBar(){
 </script>  
 </body>
 </html>
+
 
 
 
