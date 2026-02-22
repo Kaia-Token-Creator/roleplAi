@@ -1588,6 +1588,27 @@ Deleting browser data will erase your character, chat history, and access permis
     const $ = (q) => document.querySelector(q);
     const $$ = (q) => Array.from(document.querySelectorAll(q));
 
+    // ✅ legacy-compatible session loader (많은 함수가 loadSession()을 호출함)
+function loadSession(){
+  // scoped storage key(STORAGE_KEY)에 저장된 세션을 동기적으로 읽는다
+  // (지금 코드에서 loadSession()을 async로 바꾸면 다른 곳 다 깨짐)
+  try{
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  }catch(e){}
+
+  // 혹시 sessionStorage에 없으면 localStorage 백업도 확인
+  try{
+    const raw2 = localStorage.getItem(STORAGE_KEY);
+    if (raw2) {
+      try{ sessionStorage.setItem(STORAGE_KEY, raw2); }catch(e){}
+      return JSON.parse(raw2);
+    }
+  }catch(e){}
+
+  return null;
+}
+
    // =========================
 // ✅ Scope = urlScope + tabID (NO MIX)
 // =========================
@@ -2473,9 +2494,16 @@ try{ window.name = "rp_tab=" + tabID; }catch(e){}
 // ✅ scoped session 저장 (SS+LS+LF)
 saveSessionScoped(session);
 
-
-
 savePendingScoped(session);
+
+try{
+  sessionStorage.setItem("roleplay-chat_session_v1", JSON.stringify(session));
+}catch(e){}  
+
+// ✅ imagechat / imagechat_unlimited 페이지가 "일반 키"로 세션을 찾는 경우 대비 백업
+try{
+  localStorage.setItem("roleplay-chat_session_v1", JSON.stringify(session));
+}catch(e){}  
 
 // 🚀 tier별 즉시 이동 (+ tabID 붙이기)
 if (tier === "imagechat"){
@@ -2795,6 +2823,7 @@ function setupKeyboardBar(){
 </script>  
 </body>
 </html>
+
 
 
 
