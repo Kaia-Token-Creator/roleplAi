@@ -636,15 +636,13 @@
   window.__rpc_warned__ = true;
 
   const msg = [
-    "🚫 SECURITY WARNING",
-    "",
+    "🚨 SECURITY WARNING",
+    "🚫 MODIFYING THIS CONSOLE IS A CRIMINAL OFFENSE.",
     "Do not modify or interfere with this site's code or security mechanisms.",
     "Unauthorized tampering may constitute fraud / theft of service.",
-    "",
     "This site can log abuse signals (device/browser fingerprints, timestamps, IP/network metadata where available).",
     "Evidence may be preserved and used for chargebacks disputes, account/device bans, and legal action.",
-    "",
-    "If you have a billing issue, contact support instead of tampering."
+     "If you have a billing issue, contact support instead of tampering."
   ].join("\n");
 
   try{
@@ -675,8 +673,8 @@
       "🚨 TAMPERING DETECTED",
       `key: ${k}`,
       `value: ${String(v).slice(0,120)}`,
-      "",
-      "Stop now.",
+      "STOP NOW.",
+      "🚫 MODIFYING THIS CONSOLE IS A CRIMINAL OFFENSE.",
       "Unauthorized modification may be treated as fraud/theft of service.",
       "This device/browser may be blocked and evidence may be preserved for disputes or legal action."
     ].join("\n");
@@ -776,6 +774,7 @@ if(modalCloseBtn){
   </script>
 </body>
 </html>
+
 
 
 
