@@ -3,10 +3,16 @@ export const onRequestPost: PagesFunction<{
   ONESIGNAL_REST_API_KEY: string;
 }> = async ({ request, env }) => {
   // (선택) 외부에서 아무나 호출 못 하게 간단 토큰 보호
-  const auth = request.headers.get("authorization") || "";
-  if (auth !== `Bearer ${env.CRON_TOKEN}`) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+const auth = request.headers.get("authorization") || "";
+const gotToken = auth.toLowerCase().startsWith("bearer ")
+  ? auth.slice(7).trim()
+  : "";
+
+const expectedToken = String(env.CRON_TOKEN || "").trim();
+
+if (!gotToken || gotToken !== expectedToken) {
+  return new Response("Unauthorized", { status: 401 });
+}
 
   const payload = {
     app_id: env.ONESIGNAL_APP_ID,
@@ -30,3 +36,4 @@ export const onRequestPost: PagesFunction<{
   return new Response(text, { status: res.status, headers: { "Content-Type": "application/json" } });
 
 };
+
