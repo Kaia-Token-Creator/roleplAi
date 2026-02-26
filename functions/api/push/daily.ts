@@ -12,8 +12,8 @@ export const onRequestPost: PagesFunction<{
     app_id: env.ONESIGNAL_APP_ID,
     included_segments: ["Subscribed Users"],
     target_channel: "push",
-    headings: { en: "roleplay-chat" },
-    contents: { en: "Your character is here whenever you are 💬" },
+    headings: { en: "Roleplay-chat" },
+    contents: { en: "Your characters are wating for you 💬" },
     url: "https://roleplay-chat.com/",
   };
 
@@ -28,4 +28,5 @@ export const onRequestPost: PagesFunction<{
 
   const text = await res.text();
   return new Response(text, { status: res.status, headers: { "Content-Type": "application/json" } });
+
 };
