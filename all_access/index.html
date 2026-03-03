@@ -1528,8 +1528,7 @@ Deleting browser data will erase your character, chat history, and access permis
 
   <div class="row" style="gap:10px;">
     <button class="xBtn" id="resetBtn" type="button">New character</button>
-    <button class="xBtn" id="gameBtn" type="button">Game</button>
-    <button class="xBtn" id="vpnBtn" type="button">VPN</button>
+    <button class="xBtn" id="liveVideoBtn" type="button">Live Video</button>
   </div>
 </div>
 
@@ -1702,8 +1701,6 @@ const chatName = $("#chatName");
 const chatAvatar = $("#chatAvatar");
     
     const resetBtn = $("#resetBtn");
-    const gameBtn = $("#gameBtn");
-    const vpnBtn = $("#vpnBtn");
 
     // ✅ tabID+urlScope 기반으로 완전 분리
 const STORAGE_KEY = scopedKey("session_v1");
@@ -2539,15 +2536,15 @@ resetBtn.addEventListener("click", () => {
 });
 
 
-if (gameBtn){
-  gameBtn.addEventListener("click", () => {
-    window.open("https://2048global.com", "_blank", "noopener,noreferrer");
-  });
-}
+const liveVideoBtn = document.getElementById("liveVideoBtn");
 
-if (vpnBtn){
-  vpnBtn.addEventListener("click", () => {
-    window.open("https://www.2048global.com/vpn", "_blank", "noopener,noreferrer");
+if (liveVideoBtn){
+  liveVideoBtn.addEventListener("click", () => {
+    window.open(
+      "https://sweetdream.ai?via=roleplay-chat70",
+      "_blank",
+      "noopener,noreferrer"
+    );
   });
 }
 
@@ -2822,6 +2819,7 @@ function setupKeyboardBar(){
 </script>  
 </body>
 </html>
+
 
 
 
