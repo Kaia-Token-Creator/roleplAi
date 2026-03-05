@@ -1570,6 +1570,7 @@ const vidPrompt = document.getElementById("vidPrompt");
 
 let selectedImageDataUrl = "";
 let selectedImageCaption = ""; // optional future use
+let lastVideoOrderID = ""; // ✅ PayPal orderID 저장용
 
 function openVideoPayModal(){
   if (!videoPayModal) return;
@@ -1638,6 +1639,7 @@ function renderPayPalButtons(){
   let capture;
   try {
     capture = await actions.order.capture();
+    lastVideoOrderID = data.orderID || "";
   } catch (e) {
     appendMsg("assistant", `Capture error: ${prettyErr(e)}`, undefined, undefined, { persist: false });
     throw e; // PayPal에 실패로 알려줌
@@ -1684,7 +1686,7 @@ document.addEventListener("change", (e) => {
 });
 
 /* =========================
-   ✅ Venice video generation flow (via /api/video)
+   ✅ Venice video generation flow (via /api/video2)
    ========================= */
 // ✅ base64 → Blob helper (video용)
 function b64ToBlob(b64, mime){
@@ -1704,11 +1706,12 @@ function b64ToBlob(b64, mime){
 
   // 1) queue
   // 1) queue
-const qRes = await fetch("/api/video", {
+const qRes = await fetch("/api/video2", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     action: "queue",
+    orderID: lastVideoOrderID,
     duration,
     imageDataUrl: selectedImageDataUrl,
     prompt: extraPrompt || ""
@@ -1739,7 +1742,7 @@ if (!qRes.ok){
   while (Date.now() - startedAt < maxMs){
     await new Promise(r => setTimeout(r, pollEveryMs));
 
-    const rRes = await fetch("/api/video", {
+    const rRes = await fetch("/api/video2", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
