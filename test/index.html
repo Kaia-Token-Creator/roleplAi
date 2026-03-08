@@ -1021,6 +1021,15 @@ body.modalOpen{
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+
+/* action description style */
+.chatMsg .text .action{
+  display:block;
+  font-style:italic;
+  font-size:13px;
+  opacity:0.75;
+  margin-bottom:8px;
+}
     
     
   </style>
@@ -2642,7 +2651,7 @@ function formatMessage(text){
     .replace(/>/g, "&gt;");
 
   // *action* → italic
-  const italic = escaped.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  const italic = escaped.replace(/\*([^*]+)\*/g, '<em class="action">$1</em>');
 
   // 줄바꿈 유지
   return italic.replace(/\n/g, "<br>");
@@ -3472,6 +3481,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
