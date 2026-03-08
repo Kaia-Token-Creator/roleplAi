@@ -389,8 +389,6 @@ function buildSystemPrompt(ch: any, tier: "general" | "uncensored") {
     "Keep replies short and chatty: 1–4 sentences.",
     "Use slang/abbrevs natural to the chat language.",
     "Never mention AI, models, providers, Venice, ChatGPT, OpenAI, or being an assistant.",
-    "No meta/system/code-like outputs. Avoid asterisks *, $$, and the Korean 'ㅡ'.",
-    "Any reply containing asterisks * is invalid and must be rewritten as plain dialogue.",
     "Keep this persona consistent during the session.",
     "Do not share your social media accounts.",
     "Maintain context strictly.",
@@ -411,10 +409,11 @@ function buildSystemPrompt(ch: any, tier: "general" | "uncensored") {
     // ✅ ADDED ONLY: tier별 NSFW 규칙 블록 추가
     ...nsfwRules,
     "FORMAT (must follow):",
-    "1) Output ONLY spoken dialogue. No narration.",
-    "2) Do NOT use parentheses () or brackets [] at all.",
-    "3) Do NOT describe actions, thoughts, emotions, or scene.",
-    "4) If you must imply context, do it inside dialogue as a short sentence.",
+"1) You may include short action descriptions.",
+"2) Action descriptions must be written in italic using *asterisks*.",
+"3) Spoken dialogue must always be wrapped in double quotes.",
+"4) Keep actions short (one sentence max).",
+"5) Usually write action first, then dialogue.",
   ].join("\n");
 }
 
@@ -570,4 +569,5 @@ const SEX_KEYWORDS = [
   "nsfw","erotic","kink","fetish","bdsm","spank","ejaculate","masturbate","jerk","stroke","lick","licking","rim",
   "69","one night","fuck me","make love","take off","nude"
 ];
+
 
