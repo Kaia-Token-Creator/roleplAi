@@ -2698,9 +2698,11 @@ who.innerHTML = (role === "assistant")
     }
 
     async function typeWriter(targetEl, text, speed = 18){
-  targetEl.textContent = "";
+  targetEl.innerHTML = "";
+
   for (let i = 0; i < text.length; i++){
-    targetEl.textContent += text[i];
+    const partial = text.slice(0, i + 1);
+    targetEl.innerHTML = formatMessage(partial);
     $("#chatBox").scrollTop = $("#chatBox").scrollHeight;
     await new Promise(r => setTimeout(r, speed));
   }
@@ -3481,6 +3483,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
