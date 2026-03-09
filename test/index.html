@@ -1550,105 +1550,116 @@ Deleting browser data will erase your character, chat history, and access permis
 
 <!-- Live Video Info Modal -->
 <div id="liveVideoModal" class="modalOverlay" role="dialog" aria-modal="true">
-  <div class="modal">
-    <div class="modalHeader">
-      <h3 style="font-size:14px;">Sweetdream.ai VS roleplay-chat.com<br>Which experience do you want?</h3>
+  <div class="modal" style="display:flex; flex-direction:column; max-height:86dvh;">
+    
+    <div class="modalHeader" style="flex:0 0 auto;">
+      <h3 style="font-size:12px; line-height:1.35; margin:0;">
+        Sweetdream.ai VS roleplay-chat.com<br>
+        Which experience do you want?
+      </h3>
       <button class="xBtn" id="closeLiveVideoModal" type="button">Close</button>
     </div>
 
-    <div class="modalBody">
+    <div class="modalBody" style="flex:1 1 auto; min-height:0; overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;">
 
-<p class="warn" style="line-height:1.55; font-size:13px;">
+      <p class="warn" style="line-height:1.55; font-size:13px; margin:0;">
 
-Alright, quick heads up before you jump in 👀  
+        Alright, quick heads up before you jump in 👀
 
-The service we’re about to send you to is  
-<b style="color:#ff4fd8;">sweetdream.ai</b>.  
-It’s a different platform from  
-<b style="color:#FFD600;">roleplay-chat.com</b>.
+        <br><br>
 
-<br><br>
+        The service we’re about to send you to is
+        <b style="color:#ff7ad9;">sweetdream.ai</b>.
+        It’s a different platform from
+        <b style="color:#FFD600;">roleplay-chat.com</b>.
 
-<b style="color:#ff4fd8;">sweetdream.ai</b> focuses on a  
-<b>live video call style experience</b> —  
-more like chatting with someone face-to-face.
+        <br><br>
 
-<br><br>
+        <b style="color:#ff7ad9;">sweetdream.ai</b> focuses on a
+        <b>live video call style experience</b> —
+        more like chatting with someone face-to-face.
 
-Meanwhile here at  
-<b style="color:#FFD600;">roleplay-chat.com</b>,  
-we lean heavily into <b>roleplay</b>.
+        <br><br>
 
-Our <b>Image & Video Chat</b> generates visuals based on  
-the conversation and scenario, so the images and videos  
-evolve naturally with the story.
+        Meanwhile here at
+        <b style="color:#FFD600;">roleplay-chat.com</b>,
+        we lean heavily into <b>roleplay</b>.
 
-<br><br>
+        Our <b>Image & Video Chat</b> generates visuals based on
+        the conversation and scenario, so the images and videos
+        evolve naturally with the story.
 
-Different vibe.  
-Different experience.
+        <br><br>
 
-<br><br>
+        Different vibe.
+        Different experience.
 
-Personally… I kinda prefer the roleplay immersion here 😂  
-but plenty of people love the live-video concept at  
-<b style="color:#ff4fd8;">sweetdream.ai</b>.
+        <br><br>
 
-<br><br>
+        Personally… I kinda prefer the roleplay immersion here 😂
+        but plenty of people love the live-video concept at
+        <b style="color:#ff7ad9;">sweetdream.ai</b>.
 
-Some users stick with  
-<b style="color:#FFD600;">roleplay-chat.com</b>.
+        <br><br>
 
-Some prefer  
-<b style="color:#ff4fd8;">sweetdream.ai</b>.
+        Some users stick with
+        <b style="color:#FFD600;">roleplay-chat.com</b>.
 
-And honestly… a lot of people use both.
+        Some prefer
+        <b style="color:#ff7ad9;">sweetdream.ai</b>.
 
-<br><br>
+        And honestly… a lot of people use both.
 
-So if you're curious —  
-we're happy to introduce it.
+        <br><br>
 
-Give it a try.  
-<b style="color:#ff4fd8;">sweetdream.ai</b> is actually pretty fun.
+        So if you're curious —
+        we’re happy to introduce it.
 
-<br><br>
+        Give it a try.
+        <b style="color:#ff7ad9;">sweetdream.ai</b> is actually pretty fun.
 
-💡 Tip: Many users open <b style="color:#ff4fd8;">sweetdream.ai</b> in a new tab  
-while continuing <b style="color:#FFD600;">roleplay-chat.com</b> here.
+        <br><br>
 
-</p>
+        💡 Tip: Many users open <b style="color:#ff7ad9;">sweetdream.ai</b> in a new tab
+        while continuing <b style="color:#FFD600;">roleplay-chat.com</b> here.
 
-<div style="display:flex; flex-direction:column; gap:10px; margin-top:14px;">
+      </p>
+    </div>
 
-<a href="https://sweetdream.ai?via=roleplay-chat70"
-   target="_blank"
-   rel="noopener noreferrer"
-   class="btn"
-   style="
-   background:#ff2fcf;
-   border:1px solid #ff12b8;
-   color:#000;
-   font-weight:900;
-   font-size:13px;
-   ">
-   Try sweetdream.ai (open new tab)
-</a>
+    <div style="flex:0 0 auto; display:flex; flex-direction:column; gap:10px; margin-top:0; padding:14px 16px 16px; border-top:1px solid rgba(255,255,255,.10); background:rgba(10,10,10,.96);">
+      
+      <a href="https://sweetdream.ai?via=roleplay-chat70"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="btn"
+         style="
+         background:#ff7ad9;
+         border:1px solid #ff62d1;
+         color:#000;
+         font-weight:900;
+         font-size:13px;
+         text-align:center;
+         text-decoration:none;
+         display:flex;
+         align-items:center;
+         justify-content:center;
+         ">
+         Try sweetdream.ai (new tab)
+      </a>
 
-<button class="btn"
-        id="stayHereBtn"
-        type="button"
-        style="
-        background:#e0b400;
-        border:1px solid #c9a200;
-        color:#000;
-        font-weight:900;
-        font-size:13px;
-        ">
-   Stay on roleplay-chat.com 😎
-</button>
-
-</div>
+      <button class="btn"
+              id="stayHereBtn"
+              type="button"
+              style="
+              background:#e0b400;
+              border:1px solid #c9a200;
+              color:#000;
+              font-weight:900;
+              font-size:13px;
+              text-align:center;
+              ">
+         Stay on roleplay-chat.com 😎
+      </button>
 
     </div>
   </div>
@@ -3610,6 +3621,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
