@@ -1548,6 +1548,73 @@ Deleting browser data will erase your character, chat history, and access permis
   </div>
 </div>
 
+<!-- Live Video Info Modal -->
+<div id="liveVideoModal" class="modalOverlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalHeader">
+      <h3>Live Video Chat Option</h3>
+      <button class="xBtn" id="closeLiveVideoModal" type="button">Close</button>
+    </div>
+
+    <div class="modalBody">
+
+<p class="warn">
+
+Alright, quick heads up before you jump in 👀  
+
+The service we’re about to send you to is <b>sweetdream.ai</b>.  
+It’s a different platform from <b>roleplay-chat.com</b>.
+
+Sweetdream focuses on a <b>live video call style experience</b> —  
+more like chatting with someone face-to-face.
+
+Meanwhile here at <b>roleplay-chat.com</b>, we lean heavily into <b>roleplay</b>.  
+Our <b>Image & Video Chat</b> generates visuals based on the conversation and scenario,  
+so the images and videos evolve with the story.
+
+Different vibe, different experience.
+
+Personally… I kinda prefer the roleplay immersion here 😂  
+but plenty of people love the live-video concept at sweetdream.
+
+Some users stick with roleplay-chat.  
+Some prefer sweetdream.  
+And honestly a lot of people use both.
+
+So if you’re curious —  
+we’re happy to introduce it.
+
+Give it a try.  
+sweetdream.ai is actually pretty fun.
+
+💡 Tip: Many users open sweetdream in new tab
+while continuing roleplay-chat here.  
+
+</p>
+
+<div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
+
+<a href="https://sweetdream.ai?via=roleplay-chat70"
+   target="_blank"
+   rel="noopener noreferrer"
+   class="btn"
+   style="background:#ff4fd8;border:1px solid #ff2fce;color:#000;font-weight:900;">
+   Enjoy sweetdream.ai (new tab)
+</a>
+
+<button class="btn"
+        id="stayHereBtn"
+        type="button"
+        style="background:#e0b400;border:1px solid #c9a200;color:#000;font-weight:900;">
+   I’ll stay on roleplay-chat.com 😎 (close)
+</button>
+
+</div>
+
+    </div>
+  </div>
+</div>
+
 
 
   <script>
@@ -3004,14 +3071,35 @@ resetBtn.addEventListener("click", () => {
 
 
 const liveVideoBtn = document.getElementById("liveVideoBtn");
+const liveVideoModal = document.getElementById("liveVideoModal");
+const closeLiveVideoModal = document.getElementById("closeLiveVideoModal");
+const stayHereBtn = document.getElementById("stayHereBtn");
+
+function openLiveVideoModal(){
+  if (liveVideoModal) liveVideoModal.classList.add("active");
+  document.body.classList.add("modalOpen");
+}
+
+function closeLiveVideoModalFn(){
+  if (liveVideoModal) liveVideoModal.classList.remove("active");
+  document.body.classList.remove("modalOpen");
+}
 
 if (liveVideoBtn){
-  liveVideoBtn.addEventListener("click", () => {
-    window.open(
-      "https://sweetdream.ai?via=roleplay-chat70",
-      "_blank",
-      "noopener,noreferrer"
-    );
+  liveVideoBtn.addEventListener("click", openLiveVideoModal);
+}
+
+if (closeLiveVideoModal){
+  closeLiveVideoModal.addEventListener("click", closeLiveVideoModalFn);
+}
+
+if (stayHereBtn){
+  stayHereBtn.addEventListener("click", closeLiveVideoModalFn);
+}
+
+if (liveVideoModal){
+  liveVideoModal.addEventListener("click", (e)=>{
+    if (e.target === liveVideoModal) closeLiveVideoModalFn();
   });
 }
 
@@ -3483,6 +3571,7 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
+
 
 
 
