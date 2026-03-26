@@ -903,13 +903,14 @@ body.chatMode #viewChat .chatFooter{
 }
 
 .aa-url{
-  margin: 14px 0;
-  padding: 12px;
-  border-radius: 12px;
+  margin: 8px 0;            /* 바깥 여백 줄이기 */
+  padding: 6px 8px;         /* 안쪽 여백 줄이기 */
+  border-radius: 8px;       /* 둥근 정도 살짝 줄이기 */
   background: rgba(255,204,0,.12);
   border: 1px solid rgba(255,204,0,.55);
   color: #ffcc00;
-  font-weight: 800;
+  font-weight: 700;         /* 너무 두꺼우면 살짝 낮추기 */
+  font-size: 13px;          /* 글자 크기 줄이기 (핵심) */
   word-break: break-all;
   cursor: pointer;
 }
