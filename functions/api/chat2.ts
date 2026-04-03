@@ -35,8 +35,8 @@ export const onRequestPost: PagesFunction<{
     };
 
     // ---------------- LIMITS (3~4 lines-ish) ----------------
-    const MAX_MESSAGE_CHARS = 600; // user input cap (그대로 둬도 OK)
-    const MAX_REPLY_CHARS = 500; // reply cap (그대로 둬도 OK)
+    const MAX_MESSAGE_CHARS = 400; // user input cap (그대로 둬도 OK)
+    const MAX_REPLY_CHARS = 600; // reply cap (그대로 둬도 OK)
 
     // base
     const BASE_PROMPT_CHARS = 9000;
@@ -47,8 +47,8 @@ export const onRequestPost: PagesFunction<{
     const UNCENSORED_HISTORY_BONUS = 30; // ex: 30+30 => 60개
 
     // token caps (이미 tier별로 다르니 OK)
-    const MAX_TOKENS_DEEPSEEK = 300;
-    const MAX_TOKENS_VENICE = 450;
+    const MAX_TOKENS_DEEPSEEK = 400;
+    const MAX_TOKENS_VENICE = 600;
     // ---------------------------------------------------------
 
     const body = await request.json<{
