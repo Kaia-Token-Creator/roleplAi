@@ -540,7 +540,7 @@ async function callVeniceChat(apiKey: string, messages: any[], maxTokens: number
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "venice-uncensored-role-play",
+      model: "e2ee-venice-uncensored-24b-p",
       messages,
       stream: false,
       temperature: 0.95,
