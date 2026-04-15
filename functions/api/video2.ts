@@ -234,7 +234,7 @@ export const onRequestPost: PagesFunction = async (ctx) => {
         prompt,
         duration,                  // "5s" | "10s"
         image_url: b.imageDataUrl, // URL or data URL (docs)
-        resolution: "480p",
+        resolution: "720p",
         negative_prompt: "low resolution, error, worst quality, low quality, defects",
       };
 
