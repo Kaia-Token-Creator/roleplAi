@@ -1022,6 +1022,7 @@ body.modalOpen{
   overscroll-behavior: contain;
 }
 
+/* action description style */
 .chatMsg .text .action{
   display:block;
   font-style:italic;
@@ -1352,7 +1353,7 @@ body.modalOpen{
   ">
     🎁 Secret Gift Included
   </span>
-      <span style="
+       <span style="
   color:#FFD700;
   font-size:10px;
   margin-left:4px;
@@ -1388,7 +1389,7 @@ body.modalOpen{
   <span style="opacity:.8;">
     <span style="color:#fff;">When you create a character, a unique URL is generated that is available only in your device’s browser.</span><br>
 You can continue chatting with your character using this unique URL.<br>
-Always open a character using its unique URL in a <b>'new tab'</b>.<br>    
+Always open a character using its unique URL in a <b>'new tab'</b>.<br>
 As long as you do not clear your browser data, it will remain accessible for a lifetime. (except for image chat for 24hrs option)
 <br>This is an anonymous chat and is not stored on the server.<br>
 <br>💡 <span style="color:#FFD600; font-weight:600;">Tip 1 : </span>
@@ -1548,7 +1549,6 @@ Deleting browser data will erase your character, chat history, and access permis
   </div>
 </div>
 
-
 <!-- Live Video Info Modal -->
 <div id="liveVideoModal" class="modalOverlay" role="dialog" aria-modal="true">
   <div class="modal" style="display:flex; flex-direction:column; max-height:86dvh;">
@@ -1662,7 +1662,7 @@ Deleting browser data will erase your character, chat history, and access permis
 
     </div>
   </div>
-</div>  
+</div>
 
 <!-- Image & Video Suggestion Modal -->
 <div id="mediaSuggestModal" class="modalOverlay" role="dialog" aria-modal="true">
@@ -1719,6 +1719,7 @@ text-decoration:none;">
 
   </div>
 </div>  
+
 
 
   <script>
@@ -1780,6 +1781,7 @@ const chatAvatar = $("#chatAvatar");
     
     const resetBtn = $("#resetBtn");
     const unlockBtn = $("#unlockBtn");
+
     const STORAGE_KEY = "roleplay-chat_session_v1";
     const STORAGE_TABID_KEY = STORAGE_KEY + "_tabid";
     const HISTORY_KEY = "roleplay-chat_history_v1";
@@ -1796,6 +1798,11 @@ function TAB_HISTORY_KEY(){
     const MAX_HISTORY = 120;
     const IMAGECHAT_PAID_KEY = "roleplay-chat_imagechat_paid_v1";
     const IMAGECHAT_UNLIMITED_PAID_KEY = "roleplay-chat_imagechat_unlimited_paid_v1";
+    let pendingPaymentSession = null;
+
+let paypalTextMounted = false;
+let paypalImageMounted = false;
+let paypalUnlimitedMounted = false;
 
 
 // ✅ 외부에서 ?tabID= 로 들어온 경우: 그 값을 window.name에 고정해서 이후 저장키가 절대 안 꼬이게 함
@@ -2395,10 +2402,10 @@ async function enterChat(session){
   // ✅ 화면 전환
   show(viewChat);
 
-  // ⭐ 채팅 최초 진입 팝업
+// ⭐ 채팅 최초 진입 팝업
 setTimeout(()=>{
   openMediaSuggestModal(session.name);
-},3500);
+},3500);  
 
 setUnlockUIVisibility();
 
@@ -2561,12 +2568,24 @@ function mountPayPalButtonsImageChat(onSuccess, priceUsd = "6.90", description =
           onSuccess();
         }, 600);
       }catch(err){
-        if (imgPayErr){
-          imgPayErr.textContent = "Payment capture failed. Please try again.";
-          imgPayErr.style.display = "block";
-        }
-        if (imgPayOk) imgPayOk.style.display = "none";
-      }
+
+  console.error("PayPal IMAGE capture error:", err);
+
+  let msg =
+    err?.details?.[0]?.issue ||
+    err?.name ||
+    err?.message ||
+    "Unknown error";
+
+  if (imgPayErr){
+    imgPayErr.textContent =
+      "Payment capture failed: " + msg;
+
+    imgPayErr.style.display = "block";
+  }
+
+  if (imgPayOk) imgPayOk.style.display = "none";
+}
     },
     onCancel: () => {
       if (imgPayErr){
@@ -2619,12 +2638,25 @@ function mountPayPalButtonsImageChatUnlimited(onSuccess, priceUsd = "25.00", des
           onSuccess();
         }, 600);
       }catch(err){
-        if (imgUnlimitedPayErr){
-          imgUnlimitedPayErr.textContent = "Payment capture failed. Please try again.";
-          imgUnlimitedPayErr.style.display = "block";
-        }
-        if (imgUnlimitedPayOk) imgUnlimitedPayOk.style.display = "none";
-      }
+
+  console.error("PayPal UNLIMITED capture error:", err);
+
+  let msg =
+    err?.details?.[0]?.issue ||
+    err?.name ||
+    err?.message ||
+    "Unknown error";
+
+  if (imgUnlimitedPayErr){
+    imgUnlimitedPayErr.textContent =
+      "Payment capture failed: " + msg;
+
+    imgUnlimitedPayErr.style.display = "block";
+  }
+
+  if (imgUnlimitedPayOk)
+    imgUnlimitedPayOk.style.display = "none";
+}
     },
     onCancel: () => {
       if (imgUnlimitedPayErr){
@@ -2674,11 +2706,22 @@ function mountPayPalButtons(onSuccess, priceUsd = "2.00", description = "Playing
           closePayModal();
           onSuccess();
         }, 600);
-      }catch(err){
-        payErr.textContent = "Payment capture failed. Please try again.";
-        payErr.style.display = "block";
-        payOk.style.display = "none";
-      }
+     }catch(err){
+
+  console.error("PayPal capture error:", err);
+
+  let msg =
+    err?.details?.[0]?.issue ||
+    err?.name ||
+    err?.message ||
+    "Unknown error";
+
+  payErr.textContent =
+    "Payment capture failed: " + msg;
+
+  payErr.style.display = "block";
+  payOk.style.display = "none";
+}
     },
     onCancel: () => {
       payErr.textContent = "Payment cancelled.";
@@ -3093,36 +3136,42 @@ if (!nicknameVal){
 
 
   if (tier === "uncensored"){
-    // ✅ 유료(uncensored)는 결제 전까지 저장 금지 (pending)
-    savePending(session);
+  savePending(session);
 
-    openPayModal();
-    mountPayPalButtons(() => {
-      paymentStatus = "paid";
-      setPaid(PAYMENT_KEY, "paid");
+  openPayModal();
+  mountPayPalButtons(() => {
+    paymentStatus = "paid";
+    setPaid(PAYMENT_KEY, "paid");
 
-      // ✅ 결제 성공 시점에만 저장
-      session.tier = "uncensored";
-      try{
-        saveSession(session);
-      }catch(e){
-        console.error(e);
-        session.avatarDataUrl = "";
-        try{ saveSession(session); }catch(_){}
-      }
+    session.tier = "uncensored";
+    try{
+      saveSession(session);
+    }catch(e){
+      console.error(e);
+      session.avatarDataUrl = "";
+      try{ saveSession(session); }catch(_){}
+    }
 
-      clearPending();
-      const tabID = getCurrentTabID();   // ✅ 기존 tabID 유지
-window.location.href = "/?tabID=" + tabID;
-    }, "2.00", "Playing game");
-    return;
-  }
+    clearPending();
+    const tabID = getCurrentTabID();
+    window.location.href = "/?tabID=" + tabID;
+  }, "2.00", "Playing game");
+  return;
+}
 
   if (tier === "imagechat"){
-    savePending(session);
+  savePending(session);
+  pendingPaymentSession = session;
 
-    openImgPayModal();
+  openImgPayModal();
+
+  if (!paypalImageMounted){
+    paypalImageMounted = true;
+
     mountPayPalButtonsImageChat(() => {
+      const session = pendingPaymentSession;
+      if (!session) return;
+
       setPaid(IMAGECHAT_PAID_KEY, "paid");
 
       session.tier = "imagechat";
@@ -3136,16 +3185,26 @@ window.location.href = "/?tabID=" + tabID;
 
       clearPending();
       const tabID = generateTabID();
-window.location.href = "/imagechat/?tabID=" + tabID;
+      window.location.href = "/imagechat/?tabID=" + tabID;
     }, "6.90", "playing image game");
-    return;
   }
 
-  if (tier === "imagechat_unlimited"){
-    savePending(session);
+  return;
+}
 
-    openImgUnlimitedPayModal();
+  if (tier === "imagechat_unlimited"){
+  savePending(session);
+  pendingPaymentSession = session;
+
+  openImgUnlimitedPayModal();
+
+  if (!paypalUnlimitedMounted){
+    paypalUnlimitedMounted = true;
+
     mountPayPalButtonsImageChatUnlimited(() => {
+      const session = pendingPaymentSession;
+      if (!session) return;
+
       setPaid(IMAGECHAT_UNLIMITED_PAID_KEY, "paid");
 
       session.tier = "imagechat_unlimited";
@@ -3158,12 +3217,13 @@ window.location.href = "/imagechat/?tabID=" + tabID;
       }
 
       clearPending();
-clearPending();
-const tabID = generateTabID();
-window.location.href = "/imagechat_unlimited/?tabID=" + tabID;
+      const tabID = generateTabID();
+      window.location.href = "/imagechat_unlimited/?tabID=" + tabID;
     }, "25.00", "Upgrade game");
-    return;
   }
+
+  return;
+}
 });
 
 // ✅ submit 밖으로 빼야 정상 동작하는 버튼들
@@ -3176,6 +3236,7 @@ resetBtn.addEventListener("click", () => {
   a.click();
   a.remove();
 });
+
 
 const liveVideoBtn = document.getElementById("liveVideoBtn");
 const liveVideoModal = document.getElementById("liveVideoModal");
@@ -3711,37 +3772,6 @@ function setupKeyboardBar(){
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
