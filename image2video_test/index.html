@@ -153,10 +153,11 @@
     h1{
       margin:0 0 8px;
       font-family:"Baloo 2", Inter, sans-serif;
-      font-size:clamp(28px, 7vw, 44px);
-      line-height:.98;
+      font-size:clamp(21px, 6.1vw, 44px);
+      line-height:1;
       color:var(--yellow);
-      letter-spacing:.2px;
+      letter-spacing:.1px;
+      white-space:nowrap;
     }
     .lead{
       margin:0;
@@ -442,6 +443,66 @@
     }
     .smallHint{ margin-top:10px; font-size:11px; color:rgba(255,255,255,.65); line-height:1.45; }
 
+
+    /* ===== Roleplay-chat promo ===== */
+    .rpAd{
+      margin-top:18px;
+      border:1px solid rgba(255,204,0,.22);
+      background:linear-gradient(180deg, rgba(255,204,0,.08), rgba(255,255,255,.045));
+      border-radius:22px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      text-align:center;
+    }
+    .rpAdTitle{
+      display:inline-block;
+      margin:0 0 8px;
+      font-family:"Baloo 2", Inter, sans-serif;
+      font-size:clamp(23px, 6.4vw, 42px);
+      line-height:1;
+      color:var(--yellow);
+      letter-spacing:.1px;
+      text-decoration:none;
+    }
+    .rpAdTitle:hover{ opacity:.9; }
+    .rpAdText{
+      margin:0 auto 12px;
+      max-width:560px;
+      color:rgba(255,255,255,.82);
+      font-size:13px;
+      line-height:1.55;
+    }
+    .rpAdImageLink{
+      display:block;
+      margin:0 auto 12px;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.16);
+      background:#050505;
+      text-decoration:none;
+    }
+    .rpAdImage{
+      display:block;
+      width:100%;
+      max-height:58dvh;
+      object-fit:cover;
+    }
+    .rpAdBtn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      min-height:50px;
+      border-radius:16px;
+      padding:12px 14px;
+      background:var(--yellow2);
+      border:1px solid #c9a200;
+      color:#000;
+      font-weight:1000;
+      text-decoration:none;
+    }
+    .rpAdBtn:hover{ background:#f0c800; }
+
     @media (min-width:700px){
       main{ padding-top:22px; }
       .actions{ flex-direction:row; align-items:center; }
@@ -499,7 +560,7 @@
 
       <div style="display:flex; align-items:flex-start; justify-content:space-between; width:100%;">
         <sup style="color:#ffcc00; font-size:10px; font-weight:bold; user-select:none;">
-          Image to Video Generator.<br>Download your video before leaving this page.
+          This is just Image to Video Generator page<br>(Not for roleplaying).
         </sup>
 
         <div align="right">
@@ -522,13 +583,13 @@
   <main>
     <section class="hero">
       <h1>Image to Video Generator</h1>
-      <p class="lead">Upload one image, add an optional prompt, choose 5 seconds or 10 seconds, and turn it into a short video.</p>
+      <p class="lead">Upload one image and turn it into a short video.</p>
     </section>
 
     <section class="panel">
       <div class="uploadBox" id="uploadBox">
         <div class="uploadIcon">＋</div>
-        <label class="fileLabel" for="imageInput">Upload Image</label>
+        <label class="fileLabel" for="imageInput" id="fileLabelText">Upload Image</label>
         <input id="imageInput" type="file" accept="image/*" />
         <div class="hint">JPG, PNG, WEBP, or mobile photos are supported. For best results, use a clear portrait or scene.</div>
       </div>
@@ -545,7 +606,6 @@
 
       <div class="actions">
         <button class="convertBtn" id="convertBtn" type="button" disabled>Convert to Video</button>
-        <div class="hint">The Convert button becomes available after you upload an image.</div>
       </div>
 
       <div class="statusBox" id="statusBox"></div>
@@ -564,6 +624,16 @@
         <button class="nextBtn" id="nextClipBtn" type="button">Make the next video from this scene</button>
       </div>
     </section>
+
+    <section class="rpAd" aria-label="Roleplay-chat promotion">
+      <a class="rpAdTitle" href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer">Or, wanna roleplay?</a>
+      <p class="rpAdText">roleplay-chat.com is actually a private AI roleplay chat site. Create a character, start a scene, and let images and videos appear naturally as your story unfolds. Try it once and enjoy the vibe.</p>
+      <a class="rpAdImageLink" href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer" aria-label="Go to roleplay-chat.com">
+        <img class="rpAdImage" src="https://roleplay-chat.com/videoexample.jpg" alt="Roleplay-chat video example" loading="lazy" />
+      </a>
+      <a class="rpAdBtn" href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer">Go to roleplay-chat.com</a>
+    </section>
+
   </main>
 </div>
 
@@ -628,6 +698,7 @@
   const previewWrap = document.getElementById("previewWrap");
   const previewImg = document.getElementById("previewImg");
   const fileName = document.getElementById("fileName");
+  const fileLabelText = document.getElementById("fileLabelText");
   const removeImageBtn = document.getElementById("removeImageBtn");
   const convertBtn = document.getElementById("convertBtn");
   const statusBox = document.getElementById("statusBox");
@@ -775,6 +846,7 @@
     selectedImageName = file.name || "uploaded-image";
     previewImg.src = selectedImageDataUrl;
     fileName.textContent = selectedImageName;
+    if (fileLabelText) fileLabelText.textContent = "Upload a New Image";
     previewWrap.classList.add("active");
     convertBtn.disabled = false;
     clearStatus();
@@ -802,6 +874,7 @@
     imageInput.value = "";
     previewImg.removeAttribute("src");
     previewWrap.classList.remove("active");
+    if (fileLabelText) fileLabelText.textContent = "Upload Image";
     convertBtn.disabled = true;
     clearStatus();
   });
@@ -1005,6 +1078,7 @@
       selectedImageName = "last-scene.jpg";
       previewImg.src = selectedImageDataUrl;
       fileName.textContent = "Last scene loaded";
+      if (fileLabelText) fileLabelText.textContent = "Upload a New Image";
       previewWrap.classList.add("active");
       convertBtn.disabled = false;
       setStatus("<b>Last scene loaded.</b><br>You can generate the next clip from this image.");
