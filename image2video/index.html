@@ -1,0 +1,1132 @@
+<!-- 
+이 페이지는 비디오생성에 결제 검증이 필요하지 않은 video.ts로 연결돼 있으며
+실제 페이지로 코드를 백업할 때는 결제 검증이 필요한 video2.ts로 바꿔야함.
+그리고 현재 페이지는 sandbox용 paypal key가 적용돼있음.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image to Video Generator | roleplay-chat.com</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Same PayPal SDK style as the uploaded page -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AW41UQ3EzJV10FZHqYPy8yqdlDbklB4VjuT6hzu7DVoS-G9cJgKx9nHfxCRZpVSgs1dczhkPj4oM0VXv&currency=USD&intent=capture"></script>
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.14);
+      --shadow:0 14px 36px rgba(0,0,0,.55);
+      --yellow:#ffcc00;
+      --yellow2:#e0b400;
+      --pink:#ff2f92;
+      --muted:rgba(255,255,255,.68);
+      --soft:rgba(255,255,255,.08);
+      --danger:#ff4d4d;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; margin:0; }
+    body{
+      background:radial-gradient(circle at top, rgba(255,204,0,.08), transparent 32%), var(--bg);
+      color:var(--fg);
+      font-family:Inter, system-ui, sans-serif;
+      overflow-x:hidden;
+    }
+
+    .wrap{
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* ===== Header copied to match the uploaded page style ===== */
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 14px;
+      border-bottom:1px solid var(--border);
+      background:rgba(0,0,0,.6);
+    }
+
+    .logo{
+      text-decoration:none;
+      font-family:"Baloo 2", Inter, sans-serif;
+      font-weight:700;
+      letter-spacing:.3px;
+      font-size:clamp(16px, 3.6vw, 24px);
+      padding:5px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 10px 22px rgba(0,0,0,.45);
+      user-select:none;
+    }
+    .logoRole{ color:#ffcc00; }
+    .logoDot{ color:rgba(255,255,255,.95); font-size:.5em; vertical-align:baseline; }
+    .logo span{ opacity:.95; }
+
+    .shareWrap{ display:flex; align-items:center; gap:6px; }
+    .bookmarkHint{
+      font-size:10px;
+      line-height:1.1;
+      text-align:right;
+      color:rgba(255,255,255,.55);
+      user-select:none;
+      white-space:nowrap;
+    }
+    .shareBtn{
+      width:36px;
+      height:36px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      box-shadow:var(--shadow);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:.15s ease;
+      flex:0 0 auto;
+    }
+    .shareBtn:hover{ background:rgba(255,255,255,.10); transform:translateY(-1px); }
+    .shareBtn:active{ transform:translateY(0); }
+    .shareBtn svg{
+      width:16px;
+      height:16px;
+      fill:none;
+      stroke:rgba(255,255,255,.92);
+      stroke-width:2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    .infoMenu{
+      position:absolute;
+      top:calc(100% + 8px);
+      right:0;
+      min-width:220px;
+      background:rgba(10,10,10,.92);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      padding:6px;
+      display:none;
+      z-index:99999;
+    }
+    .infoMenu.active{ display:block; }
+    .infoMenu a{
+      display:block;
+      padding:10px;
+      border-radius:12px;
+      text-decoration:none;
+      color:rgba(255,255,255,.92);
+      font-size:13px;
+    }
+    .infoMenu a:hover{ background:rgba(255,255,255,.08); }
+
+    main{
+      width:min(760px, 100%);
+      margin:0 auto;
+      padding:16px 14px 36px;
+      flex:1;
+    }
+
+    .hero{
+      margin:10px 0 14px;
+      padding:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.055);
+      border-radius:20px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+    }
+    h1{
+      margin:0 0 8px;
+      font-family:"Baloo 2", Inter, sans-serif;
+      font-size:clamp(21px, 6.1vw, 44px);
+      line-height:1;
+      color:var(--yellow);
+      letter-spacing:.1px;
+      white-space:nowrap;
+    }
+    .lead{
+      margin:0;
+      color:rgba(255,255,255,.82);
+      font-size:13px;
+      line-height:1.55;
+    }
+
+    .panel{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.055);
+      border-radius:20px;
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+
+    .uploadBox{
+      border:1px dashed rgba(255,204,0,.45);
+      background:rgba(255,204,0,.055);
+      border-radius:18px;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      min-height:156px;
+    }
+    .uploadBox.dragover{ background:rgba(255,204,0,.12); border-color:rgba(255,204,0,.8); }
+    .uploadIcon{
+      width:46px;
+      height:46px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid rgba(255,204,0,.35);
+      background:rgba(255,204,0,.12);
+      color:var(--yellow);
+      font-size:24px;
+    }
+    .fileLabel{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      border:none;
+      border-radius:14px;
+      background:var(--yellow2);
+      border:1px solid #c9a200;
+      color:#000;
+      font-weight:900;
+      padding:12px 14px;
+      cursor:pointer;
+      width:100%;
+      max-width:320px;
+      min-height:46px;
+    }
+    .fileLabel:hover{ background:#f0c800; }
+    #imageInput{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+    .hint{ color:rgba(255,255,255,.62); font-size:11px; line-height:1.4; }
+
+    .previewWrap{ display:none; margin-top:14px; }
+    .previewWrap.active{ display:block; }
+    .previewCard{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:18px;
+      background:rgba(0,0,0,.25);
+      overflow:hidden;
+    }
+    .previewCard img{
+      display:block;
+      width:100%;
+      max-height:58dvh;
+      object-fit:contain;
+      background:#050505;
+    }
+    .previewMeta{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:10px;
+      font-size:12px;
+      color:rgba(255,255,255,.72);
+    }
+    .smallBtn{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:12px;
+      background:rgba(255,255,255,.07);
+      color:#fff;
+      font-weight:800;
+      padding:9px 10px;
+      cursor:pointer;
+    }
+    .smallBtn:hover{ background:rgba(255,255,255,.12); }
+
+    .actions{
+      margin-top:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .convertBtn{
+      width:100%;
+      min-height:52px;
+      border:none;
+      border-radius:16px;
+      background:var(--yellow2);
+      color:#000;
+      font-weight:1000;
+      font-size:15px;
+      cursor:pointer;
+      box-shadow:0 14px 28px rgba(224,180,0,.12);
+    }
+    .convertBtn:disabled{
+      background:rgba(255,255,255,.13);
+      color:rgba(255,255,255,.34);
+      border:1px solid rgba(255,255,255,.12);
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+    .statusBox{
+      display:none;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.35);
+      border-radius:16px;
+      padding:12px;
+      color:rgba(255,255,255,.82);
+      font-size:12px;
+      line-height:1.5;
+    }
+    .statusBox.active{ display:block; }
+    .statusBox b{ color:var(--yellow); }
+    .error{ color:var(--danger); }
+
+    .result{
+      display:none;
+      margin-top:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.055);
+      border-radius:20px;
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+    .result.active{ display:block; }
+    .sectionTitle{
+      font-family:"Baloo 2", Inter, sans-serif;
+      font-size:18px;
+      color:var(--yellow);
+      margin:0 0 10px;
+    }
+    video{
+      width:100%;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);
+      background:#000;
+      display:block;
+    }
+    .downloadNotice{
+      margin:10px 0;
+      color:var(--yellow);
+      font-size:12px;
+      line-height:1.5;
+      font-weight:800;
+    }
+    .downloadBtn, .nextBtn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      border-radius:16px;
+      min-height:48px;
+      padding:12px 14px;
+      font-weight:1000;
+      text-decoration:none;
+      cursor:pointer;
+      border:1px solid rgba(255,204,0,.35);
+      background:rgba(255,204,0,.14);
+      color:var(--yellow);
+    }
+    .downloadBtn:hover, .nextBtn:hover{ background:rgba(255,204,0,.20); }
+    .lastFrameWrap{ display:none; margin-top:16px; }
+    .lastFrameWrap.active{ display:block; }
+    .lastFrameWrap img{
+      width:100%;
+      display:block;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);
+      background:#050505;
+    }
+    .lastFrameText{ color:rgba(255,255,255,.78); font-size:12px; line-height:1.5; margin:10px 0; }
+
+    /* ===== PayPal Video Modal, matching uploaded page structure ===== */
+    .videoPayModal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.62);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:110000;
+      backdrop-filter:blur(6px);
+      overflow:auto;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+      padding:14px;
+    }
+    .videoPayModal.active{ display:flex; }
+    .videoPayCard{
+      width:min(520px, calc(100vw - 28px));
+      background:rgba(10,10,10,.92);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:14px 14px 12px;
+      max-height:calc(100dvh - 28px);
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+    }
+    .videoPayTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .videoPayTitle{
+      font-family:"Baloo 2", Inter, sans-serif;
+      font-weight:900;
+      font-size:16px;
+      color:var(--yellow);
+    }
+    .videoPayX{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.9);
+      cursor:pointer;
+    }
+    .videoPayX:hover{ background:rgba(255,255,255,.10); }
+    .videoPayBody{ margin-top:10px; font-size:12px; line-height:1.35; color:rgba(255,255,255,.88); }
+    .optionBox{
+      margin-top:10px;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .optRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px;
+      border-radius:12px;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .optLeft{ display:flex; align-items:center; gap:10px; }
+    .optLabel{ font-weight:900; color:#fff; }
+    .optPrice{ font-weight:900; color:var(--yellow); }
+    .promptBox{ margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+    .promptBox label{ color:rgba(255,255,255,.75); font-size:11px; }
+    .promptInput{
+      width:100%;
+      min-height:42px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:#000;
+      color:#fff;
+      padding:10px;
+      font-size:12px;
+      font-family:Inter, system-ui, sans-serif;
+      resize:vertical;
+    }
+    .paypalArea{
+      margin-top:12px;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+    }
+    .smallHint{ margin-top:10px; font-size:11px; color:rgba(255,255,255,.65); line-height:1.45; }
+
+
+    /* ===== Roleplay-chat promo ===== */
+    .rpAd{
+      margin-top:18px;
+      border:1px solid rgba(255,204,0,.22);
+      background:linear-gradient(180deg, rgba(255,204,0,.08), rgba(255,255,255,.045));
+      border-radius:22px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      text-align:center;
+    }
+    .rpAdTitle{
+      display:inline-block;
+      margin:0 0 8px;
+      font-family:"Baloo 2", Inter, sans-serif;
+      font-size:clamp(23px, 6.4vw, 42px);
+      line-height:1;
+      color:var(--yellow);
+      letter-spacing:.1px;
+      text-decoration:none;
+    }
+    .rpAdTitle:hover{ opacity:.9; }
+    .rpAdText{
+      margin:0 auto 12px;
+      max-width:560px;
+      color:rgba(255,255,255,.82);
+      font-size:13px;
+      line-height:1.55;
+    }
+    .rpAdImageLink{
+      display:block;
+      margin:0 auto 12px;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.16);
+      background:#050505;
+      text-decoration:none;
+    }
+    .rpAdImage{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:none;
+  object-fit:contain;
+}
+    .rpAdBtn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      min-height:50px;
+      border-radius:16px;
+      padding:12px 14px;
+      background:var(--yellow2);
+      border:1px solid #c9a200;
+      color:#000;
+      font-weight:1000;
+      text-decoration:none;
+    }
+    .rpAdBtn:hover{ background:#f0c800; }
+
+    @media (min-width:700px){
+      main{ padding-top:22px; }
+      .actions{ flex-direction:row; align-items:center; }
+      .convertBtn{ max-width:280px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div style="display:block; width:100%;">
+      <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+        <a href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer" class="logo">
+          <span class="logoRole">Roleplay-chat</span><span class="logoDot">.com</span>
+        </a>
+
+        <div class="shareWrap" style="position:relative;">
+          <div class="bookmarkHint">Bookmark<br>&amp; Share</div>
+
+          <button class="shareBtn" id="shareBtn" type="button" aria-label="Share">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <path d="M8.6 13.5l6.8 3.9"></path>
+              <path d="M15.4 6.6L8.6 10.5"></path>
+            </svg>
+          </button>
+
+          <button class="shareBtn" id="infoBtn" type="button" aria-label="Menu" title="Menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 8h12"></path>
+              <path d="M6 12h12"></path>
+              <path d="M6 16h12"></path>
+            </svg>
+          </button>
+
+          <div class="infoMenu" id="infoMenu" role="menu" aria-label="Info menu">
+            <a href="https://sweetdream.ai?via=roleplay-chat70" target="_blank" rel="noopener noreferrer" style="color:#FF69B4; font-weight:bold; text-decoration:none;">Live Video Chat with girls</a>
+            <a href="https://roleplay-chat.com/human" target="_blank" rel="noopener noreferrer" style="color:#FFD700; font-weight:bold; text-decoration:none;">Chat with real human</a>
+            <a href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer">Home</a>
+            <a href="https://roleplay-chat.com/characters" target="_blank" rel="noopener noreferrer" style="color:#FFD700; font-weight:bold; text-decoration:none;">Featured Characters</a>
+            <a href="https://roleplay-chat.com/how" target="_blank" rel="noopener noreferrer">How to use</a>
+            <a href="https://roleplay-chat.com/about" target="_blank" rel="noopener noreferrer">About</a>
+            <a href="https://roleplay-chat.com/pricing" target="_blank" rel="noopener noreferrer">Pricing</a>
+            <a href="https://roleplay-chat.com/all_access_purchase" target="_blank" rel="noopener noreferrer">All-access pass</a>
+            <a href="https://roleplay-chat.com/policy" target="_blank" rel="noopener noreferrer">Policy</a>
+            <a href="https://roleplay-chat.com/faq" target="_blank" rel="noopener noreferrer">FAQ</a>
+            <a href="mailto:showmetheaitools@gmail.com">Contact</a>
+            <a href="https://2048global.com" target="_blank" rel="noopener noreferrer" style="color:#FFD700; font-weight:bold; text-decoration:none;">Game</a>
+            <a href="https://roleplay-chat.com/VPN" target="_blank" rel="noopener noreferrer" style="color:#FFD700; font-weight:bold; text-decoration:none;">VPN</a>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; width:100%;">
+        <sup style="color:#ffcc00; font-size:10px; font-weight:bold; user-select:none;">
+          This is just Image to Video Generator page<br>(Not for roleplaying).
+        </sup>
+
+        <div align="right">
+          <sup>
+            <a href="https://roleplay-chat.com/human" target="_blank" style="text-decoration:none">
+              <font size="1" color="#ffcc00"><b>Live user chat</b></font>
+            </a>
+          </sup>
+
+          <script id="cid0020000430144912743" data-cfasync="false" async
+            src="https://st.chatango.com/js/gz/emb.js"
+            style="width:200px;height:300px;">
+            {"handle":"roleplay-chat-com","arch":"js","styles":{"a":"000000","b":100,"c":"FFFFFF","d":"FFFFFF","k":"000000","l":"000000","m":"000000","n":"FFFFFF","p":"10","q":"000000","r":100,"cv":1,"cvfntsz":"10px","cvbg":"000000","cvfg":"ffcc00","cvw":49,"cvh":18}}
+          </script>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Image to Video Generator</h1>
+      <p class="lead">Upload one image and turn it into a short video.</p>
+      <p class="lead">Upload one image and turn it into a short video.</p>
+<p class="lead" style="margin-top:8px; color:rgba(255,255,255,.72);">
+  No sign-up, no login, no account required. For your privacy, images and videos are not stored on our servers.
+</p>
+    </section>
+
+    <section class="panel">
+      <div class="uploadBox" id="uploadBox">
+        <div class="uploadIcon">＋</div>
+        <label class="fileLabel" for="imageInput" id="fileLabelText">Upload Image</label>
+        <input id="imageInput" type="file" accept="image/*" />
+        <div class="hint">JPG, PNG, WEBP, or mobile photos are supported. For best results, use a clear portrait or scene.</div>
+      </div>
+
+      <div class="previewWrap" id="previewWrap">
+        <div class="previewCard">
+          <img id="previewImg" alt="Uploaded image preview" />
+          <div class="previewMeta">
+            <span id="fileName">Image loaded</span>
+            <button class="smallBtn" id="removeImageBtn" type="button">Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="convertBtn" id="convertBtn" type="button" disabled>Convert to Video</button>
+      </div>
+
+      <div class="statusBox" id="statusBox"></div>
+    </section>
+
+    <section class="result" id="resultBox">
+      <h2 class="sectionTitle">Your video is ready</h2>
+      <video id="resultVideo" controls playsinline></video>
+      <div class="downloadNotice">Please download it now. If you leave this page or refresh, the video may disappear.</div>
+      <a class="downloadBtn" id="downloadBtn" href="#" download="roleplay-chat-video.mp4">Download Video</a>
+
+      <div class="lastFrameWrap" id="lastFrameWrap">
+        <h2 class="sectionTitle" style="margin-top:16px;">Last scene</h2>
+        <img id="lastFrameImg" alt="Last frame preview" />
+        <p class="lastFrameText">Want to make the next video? Open a new page with this last scene already uploaded as the starting image.</p>
+        <button class="nextBtn" id="nextClipBtn" type="button">Make the next video from this scene</button>
+      </div>
+    </section>
+
+    <section class="rpAd" aria-label="Roleplay-chat promotion">
+      <a class="rpAdTitle" href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer">Or, wanna roleplay?</a>
+      <p class="rpAdText">
+  <a href="https://roleplay-chat.com"
+     target="_blank"
+     rel="noopener noreferrer"
+     style="color:#ffcc00; font-weight:900; text-decoration:none;">
+    roleplay-chat.com
+  </a>
+  is actually a private AI roleplay chat site. Create a character, start a scene, and let images and videos appear naturally as your story unfolds. Try it once and enjoy the vibe.
+</p>
+      <a class="rpAdImageLink" href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer" aria-label="Go to roleplay-chat.com">
+        <img class="rpAdImage" src="https://roleplay-chat.com/videoexample.jpg" alt="Roleplay-chat video example" loading="lazy" />
+      </a>
+      <a class="rpAdBtn" href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer">Go to roleplay-chat.com</a>
+    </section>
+
+  </main>
+</div>
+
+<div class="videoPayModal" id="videoPayModal" aria-hidden="true">
+  <div class="videoPayCard" role="dialog" aria-modal="true" aria-label="Generate Video Payment">
+    <div class="videoPayTop">
+      <div class="videoPayTitle">Generate video</div>
+      <button class="videoPayX" id="videoPayCloseX" type="button" aria-label="Close">✕</button>
+    </div>
+
+    <div class="videoPayBody">
+      <div style="color:rgba(255,255,255,.75); font-size:12px; margin-top:4px;">Choose video length and pay with PayPal.</div>
+
+      <div class="optionBox" role="radiogroup" aria-label="Video length options">
+        <div class="optRow">
+          <div class="optLeft">
+            <input type="radio" name="vidLen" id="vid5" value="5s" checked />
+            <label for="vid5" class="optLabel">5s</label>
+          </div>
+          <div class="optPrice">$1.5</div>
+        </div>
+
+        <div class="optRow">
+          <div class="optLeft">
+            <input type="radio" name="vidLen" id="vid10" value="10s" />
+            <label for="vid10" class="optLabel">10s</label>
+          </div>
+          <div class="optPrice">$2</div>
+        </div>
+      </div>
+
+      <div class="promptBox">
+        <label for="vidPrompt"><span style="color:#ffcc00;"><b>Additional prompt</b></span> (optional)</label>
+        <textarea id="vidPrompt" class="promptInput" rows="3" maxlength="2500" placeholder="e.g. cinematic camera move, gentle wind, natural motion"></textarea>
+      </div>
+
+      <div class="smallHint">
+        The final frame is provided as an image and can be reused as the starting frame for the next video, letting you connect clips into longer videos.<br><br>
+        After payment, video generation may take a few minutes. Please do not refresh or leave this page.
+      </div>
+
+      <div class="paypalArea">
+        <div id="paypalButtons"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /******************************************************************
+   * API endpoint
+   * Test page:       /api/video   -> no server-side PayPal verification.
+   * Production page: /api/video2  -> PayPal orderID is verified on the server.
+   *
+   * To switch between test and production, change only this path.
+   * Keep the PayPal SDK client-id in the <head> matched to sandbox/live.
+   ******************************************************************/
+  const VIDEO_API_ENDPOINT = "/api/video2";
+
+  const imageInput = document.getElementById("imageInput");
+  const uploadBox = document.getElementById("uploadBox");
+  const previewWrap = document.getElementById("previewWrap");
+  const previewImg = document.getElementById("previewImg");
+  const fileName = document.getElementById("fileName");
+  const fileLabelText = document.getElementById("fileLabelText");
+  const removeImageBtn = document.getElementById("removeImageBtn");
+  const convertBtn = document.getElementById("convertBtn");
+  const statusBox = document.getElementById("statusBox");
+  const resultBox = document.getElementById("resultBox");
+  const resultVideo = document.getElementById("resultVideo");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const lastFrameWrap = document.getElementById("lastFrameWrap");
+  const lastFrameImg = document.getElementById("lastFrameImg");
+  const nextClipBtn = document.getElementById("nextClipBtn");
+
+  const videoPayModal = document.getElementById("videoPayModal");
+  const videoPayCloseX = document.getElementById("videoPayCloseX");
+  const paypalButtonsWrap = document.getElementById("paypalButtons");
+  const vidPrompt = document.getElementById("vidPrompt");
+
+  let selectedImageDataUrl = "";
+  let selectedImageName = "";
+  let lastVideoOrderID = "";
+  let currentVideoObjectUrl = "";
+  let currentLastFrameDataUrl = "";
+
+  function prettyErr(e){
+    try{
+      if (!e) return "Unknown error";
+      if (e instanceof Error) return e.message || String(e);
+      if (typeof e === "object"){
+        const code = e.code ? `code=${e.code}` : "";
+        const status = e.status ? `status=${e.status}` : "";
+        const veniceMsg =
+          (typeof e?.venice?.message === "string" && e.venice.message) ||
+          (typeof e?.venice?.error === "string" && e.venice.error) ||
+          (typeof e?.venice?.detail === "string" && e.venice.detail) || "";
+        const mainMsg =
+          (typeof e.message === "string" && e.message) ||
+          (typeof e.error === "string" && e.error) ||
+          (typeof e.detail === "string" && e.detail) || "";
+        const msg = veniceMsg || mainMsg || JSON.stringify(e);
+        const meta = [code, status].filter(Boolean).join(", ");
+        return meta ? `${msg} (${meta})` : msg;
+      }
+      return String(e);
+    }catch(_){ return String(e); }
+  }
+
+  function setStatus(html, isError=false){
+    statusBox.classList.add("active");
+    statusBox.innerHTML = isError ? `<span class="error">${escapeHtml(html)}</span>` : html;
+  }
+  function clearStatus(){ statusBox.classList.remove("active"); statusBox.innerHTML = ""; }
+  function escapeHtml(s){
+    return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  }
+
+  function getSelectedDuration(){
+    const el = document.querySelector('input[name="vidLen"]:checked');
+    return el ? el.value : "5s";
+  }
+  function getSelectedPrice(){ return getSelectedDuration() === "10s" ? "2.00" : "1.50"; }
+
+  function openVideoPayModal(){
+    if (!selectedImageDataUrl) return;
+    videoPayModal.classList.add("active");
+    videoPayModal.setAttribute("aria-hidden", "false");
+    renderPayPalButtons();
+  }
+  function closeVideoPayModal(){
+    videoPayModal.classList.remove("active");
+    videoPayModal.setAttribute("aria-hidden", "true");
+  }
+
+  videoPayCloseX.addEventListener("click", closeVideoPayModal);
+  videoPayModal.addEventListener("click", (e)=>{ if (e.target === videoPayModal) closeVideoPayModal(); });
+  document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeVideoPayModal(); });
+
+  function renderPayPalButtons(){
+    paypalButtonsWrap.innerHTML = "";
+    if (!window.paypal || !window.paypal.Buttons){
+      paypalButtonsWrap.innerHTML = '<div style="color:rgba(255,255,255,.75); font-size:12px;">PayPal SDK not loaded.</div>';
+      return;
+    }
+
+    window.paypal.Buttons({
+      style:{ layout:"vertical", shape:"pill", label:"pay" },
+      createOrder:(data, actions)=>{
+        const value = getSelectedPrice();
+        const duration = getSelectedDuration();
+        return actions.order.create({
+          purchase_units:[{
+            description:"video game",
+            amount:{ value },
+            custom_id:`image2video_${duration}`
+          }]
+        });
+      },
+      onApprove:async (data, actions)=>{
+        let capture;
+        try{
+          capture = await actions.order.capture();
+          lastVideoOrderID = data.orderID || "";
+        }catch(e){
+          setStatus(`PayPal capture error: ${escapeHtml(prettyErr(e))}`, true);
+          throw e;
+        }
+
+        closeVideoPayModal();
+
+        const duration = getSelectedDuration();
+        const extraPrompt = vidPrompt.value ? String(vidPrompt.value).trim() : "";
+
+        setStatus(`<b>Recording in progress...</b><br>This may take a few minutes. Please do not refresh or leave this page.`);
+        convertBtn.disabled = true;
+
+        setTimeout(()=>{
+          generateVideoFromSelectedImage({ duration, extraPrompt })
+            .catch(e=>{
+              setStatus(`Error: ${escapeHtml(prettyErr(e))}`, true);
+              convertBtn.disabled = !selectedImageDataUrl;
+            });
+        }, 0);
+
+        return capture;
+      },
+      onError:(err)=>{ setStatus(`PayPal error: ${escapeHtml(prettyErr(err))}`, true); }
+    }).render(paypalButtonsWrap);
+  }
+
+  document.addEventListener("change", (e)=>{
+    if (e.target && e.target.name === "vidLen") renderPayPalButtons();
+  });
+
+  convertBtn.addEventListener("click", ()=>{
+    if (!selectedImageDataUrl) return;
+    clearStatus();
+    openVideoPayModal();
+  });
+
+  async function handleFile(file){
+    if (!file || !file.type || !file.type.startsWith("image/")){
+      setStatus("Please upload a valid image file.", true);
+      return;
+    }
+
+    const dataUrl = await fileToDataUrl(file);
+    selectedImageDataUrl = dataUrl;
+    selectedImageName = file.name || "uploaded-image";
+    previewImg.src = selectedImageDataUrl;
+    fileName.textContent = selectedImageName;
+    if (fileLabelText) fileLabelText.textContent = "Upload a New Image";
+    previewWrap.classList.add("active");
+    convertBtn.disabled = false;
+    clearStatus();
+    resultBox.classList.remove("active");
+    lastFrameWrap.classList.remove("active");
+  }
+
+  function fileToDataUrl(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>resolve(String(reader.result || ""));
+      reader.onerror = ()=>reject(new Error("Image read failed"));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  imageInput.addEventListener("change", (e)=>{
+    const file = e.target.files && e.target.files[0];
+    handleFile(file).catch(err=>setStatus(prettyErr(err), true));
+  });
+
+  removeImageBtn.addEventListener("click", ()=>{
+    selectedImageDataUrl = "";
+    selectedImageName = "";
+    imageInput.value = "";
+    previewImg.removeAttribute("src");
+    previewWrap.classList.remove("active");
+    if (fileLabelText) fileLabelText.textContent = "Upload Image";
+    convertBtn.disabled = true;
+    clearStatus();
+  });
+
+  ["dragenter", "dragover"].forEach(type=>{
+    uploadBox.addEventListener(type, (e)=>{ e.preventDefault(); uploadBox.classList.add("dragover"); });
+  });
+  ["dragleave", "drop"].forEach(type=>{
+    uploadBox.addEventListener(type, (e)=>{ e.preventDefault(); uploadBox.classList.remove("dragover"); });
+  });
+  uploadBox.addEventListener("drop", (e)=>{
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    handleFile(file).catch(err=>setStatus(prettyErr(err), true));
+  });
+
+  function b64ToBlob(b64, mime){
+    const byteChars = atob(b64);
+    const chunks = [];
+    for (let offset = 0; offset < byteChars.length; offset += 8192){
+      const slice = byteChars.slice(offset, offset + 8192);
+      const nums = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) nums[i] = slice.charCodeAt(i);
+      chunks.push(new Uint8Array(nums));
+    }
+    return new Blob(chunks, { type:mime || "video/mp4" });
+  }
+
+  async function generateVideoFromSelectedImage({ duration, extraPrompt }){
+    if (!selectedImageDataUrl) throw new Error("No image selected.");
+    const queuePayload = {
+      action:"queue",
+      orderID:lastVideoOrderID, // /api/video ignores this, /api/video2 verifies it.
+      duration,
+      imageDataUrl:selectedImageDataUrl,
+      prompt:extraPrompt || ""
+    };
+
+    const qRes = await fetch(VIDEO_API_ENDPOINT, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify(queuePayload)
+    });
+
+    let qData = null;
+    try{ qData = await qRes.json(); }catch{ qData = null; }
+    if (!qRes.ok) throw (qData || { error:`HTTP ${qRes.status}` });
+
+    const model = qData && qData.model;
+    const queue_id = qData && qData.queue_id;
+    if (!model || !queue_id) throw new Error("Queue failed: missing model/queue_id");
+
+    const startedAt = Date.now();
+    const maxMs = 6 * 60 * 1000;
+    const pollEveryMs = 2500;
+    let pollCount = 0;
+
+    while (Date.now() - startedAt < maxMs){
+      await new Promise(r=>setTimeout(r, pollEveryMs));
+      pollCount += 1;
+      setStatus(`<b>Recording in progress...</b><br>Still working. Polling attempt ${pollCount}. Please keep this page open.`);
+
+      const rRes = await fetch(VIDEO_API_ENDPOINT, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ action:"retrieve", model, queue_id })
+      });
+
+      let rData = null;
+      try{ rData = await rRes.json(); }catch{ rData = null; }
+      if (!rRes.ok) throw (rData || { error:`HTTP ${rRes.status}` });
+
+      if (rData && rData.status === "PROCESSING") continue;
+
+      const videoInfo = await normalizeVideoResult(rData);
+      if (videoInfo && videoInfo.url){
+        await showVideoResult(videoInfo.url, videoInfo.mime || "video/mp4");
+        clearStatus();
+        convertBtn.disabled = false;
+        return;
+      }
+
+      throw new Error("Unexpected retrieve response.");
+    }
+
+    throw new Error("Video generation timed out.");
+  }
+
+  async function normalizeVideoResult(data){
+    if (!data) return null;
+
+    if (data.status === "COMPLETED" && data.video && data.video.b64){
+      const blob = b64ToBlob(data.video.b64, data.video.mime || "video/mp4");
+      const objectUrl = URL.createObjectURL(blob);
+      return { url:objectUrl, mime:data.video.mime || "video/mp4", objectUrl:true };
+    }
+
+    const possibleUrl =
+      data?.video?.url ||
+      data?.video_url ||
+      data?.url ||
+      data?.videos?.[0]?.url ||
+      data?.data?.video_url ||
+      data?.data?.url;
+
+    if (data.status === "COMPLETED" && possibleUrl){
+      try{
+        const res = await fetch(possibleUrl, { mode:"cors" });
+        if (res.ok){
+          const blob = await res.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          return { url:objectUrl, mime:blob.type || "video/mp4", objectUrl:true };
+        }
+      }catch(e){
+        // If CORS blocks fetching, still show the direct URL.
+      }
+      return { url:possibleUrl, mime:"video/mp4", objectUrl:false };
+    }
+
+    return null;
+  }
+
+  async function showVideoResult(videoUrl, mime){
+    if (currentVideoObjectUrl && currentVideoObjectUrl.startsWith("blob:")){
+      try{ URL.revokeObjectURL(currentVideoObjectUrl); }catch(e){}
+    }
+
+    currentVideoObjectUrl = videoUrl;
+    resultVideo.src = videoUrl;
+    resultVideo.load();
+    downloadBtn.href = videoUrl;
+    downloadBtn.download = `roleplay-chat-${Date.now()}.mp4`;
+
+    resultBox.classList.add("active");
+    resultBox.scrollIntoView({ behavior:"smooth", block:"start" });
+
+    try{
+      currentLastFrameDataUrl = await captureLastFrameDataUrl(resultVideo);
+      lastFrameImg.src = currentLastFrameDataUrl;
+      lastFrameWrap.classList.add("active");
+    }catch(e){
+      lastFrameWrap.classList.remove("active");
+      console.warn("Last frame capture failed:", e);
+    }
+  }
+
+  function waitForEventOnce(el, event, timeoutMs=15000){
+    return new Promise((resolve, reject)=>{
+      const t = setTimeout(()=>{
+        cleanup();
+        reject(new Error(`Timed out waiting for ${event}`));
+      }, timeoutMs);
+      function cleanup(){ clearTimeout(t); el.removeEventListener(event, onEvent); el.removeEventListener("error", onErr); }
+      function onEvent(){ cleanup(); resolve(); }
+      function onErr(){ cleanup(); reject(new Error(`Video ${event} failed`)); }
+      el.addEventListener(event, onEvent, { once:true });
+      el.addEventListener("error", onErr, { once:true });
+    });
+  }
+
+  async function captureLastFrameDataUrl(videoEl){
+    if (!videoEl.src) throw new Error("No video source.");
+    if (videoEl.readyState < 1) await waitForEventOnce(videoEl, "loadedmetadata");
+
+    const duration = Number(videoEl.duration || 0);
+    if (!isFinite(duration) || duration <= 0) throw new Error("Invalid video duration.");
+
+    const target = Math.max(0, duration - 0.08);
+    videoEl.pause();
+
+    const seekPromise = waitForEventOnce(videoEl, "seeked", 15000);
+    videoEl.currentTime = target;
+    await seekPromise;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = videoEl.videoWidth || 720;
+    canvas.height = videoEl.videoHeight || 720;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", 0.92);
+  }
+
+  nextClipBtn.addEventListener("click", ()=>{
+    if (!currentLastFrameDataUrl) return;
+    const key = "roleplay-chat_image2video_seed_" + Date.now();
+    try{ localStorage.setItem(key, currentLastFrameDataUrl); }catch(e){
+      setStatus("Could not store the last frame for the next tab. Please download the image manually.", true);
+      return;
+    }
+    const url = `${location.origin}${location.pathname}?seed=${encodeURIComponent(key)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  });
+
+  function bootSeedImage(){
+    try{
+      const params = new URLSearchParams(location.search);
+      const key = params.get("seed");
+      if (!key) return;
+      const dataUrl = localStorage.getItem(key);
+      if (!dataUrl || !dataUrl.startsWith("data:image/")) return;
+      selectedImageDataUrl = dataUrl;
+      selectedImageName = "last-scene.jpg";
+      previewImg.src = selectedImageDataUrl;
+      fileName.textContent = "Last scene loaded";
+      if (fileLabelText) fileLabelText.textContent = "Upload a New Image";
+      previewWrap.classList.add("active");
+      convertBtn.disabled = false;
+      setStatus("<b>Last scene loaded.</b><br>You can generate the next clip from this image.");
+    }catch(e){}
+  }
+
+  /* Header share/menu behavior */
+  const shareBtn = document.getElementById("shareBtn");
+  const infoBtn = document.getElementById("infoBtn");
+  const infoMenu = document.getElementById("infoMenu");
+
+  if (shareBtn){
+    shareBtn.addEventListener("click", async ()=>{
+      const shareData = { title:document.title, text:"Image to Video Generator", url:location.href };
+      try{
+        if (navigator.share) await navigator.share(shareData);
+        else{
+          await navigator.clipboard.writeText(location.href);
+          alert("Link copied.");
+        }
+      }catch(e){}
+    });
+  }
+
+  if (infoBtn && infoMenu){
+    infoBtn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      infoMenu.classList.toggle("active");
+    });
+    document.addEventListener("click", (e)=>{
+      if (!infoMenu.contains(e.target) && e.target !== infoBtn) infoMenu.classList.remove("active");
+    });
+  }
+
+  bootSeedImage();
+</script>
+</body>
+</html>
