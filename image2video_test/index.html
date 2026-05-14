@@ -1,3 +1,9 @@
+<!-- 
+이 페이지는 비디오생성에 결제 검증이 필요하지 않은 video.ts로 연결돼 있으며
+실제 페이지로 코드를 백업할 때는 결제 검증이 필요한 video2.ts로 바꿔야함.
+그리고 현재 페이지는 sandbox용 paypal key가 적용돼있음.
+-->
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -10,7 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
 
   <!-- Same PayPal SDK style as the uploaded page -->
-  <script src="https://www.paypal.com/sdk/js?client-id=AW41UQ3EzJV10FZHqYPy8yqdlDbklB4VjuT6hzu7DVoS-G9cJgKx9nHfxCRZpVSgs1dczhkPj4oM0VXv&currency=USD&intent=capture"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=AWMNyvXpo7AJVokhdranzsBYseGheJFuEg4vH73rU8PcXOd6Tr7zjRDoCtk5PLz1aqUUNRTjPSe-NUHR&currency=USD&intent=capture"></script>
 
   <style>
     :root{
@@ -608,12 +614,14 @@
 
 <script>
   /******************************************************************
-   * API SWITCH
-   * Production: /api/video2  -> PayPal verification required.
-   * Test:       /api/video   -> no PayPal verification on server.
+   * API endpoint
+   * Test page:       /api/video   -> no server-side PayPal verification.
+   * Production page: /api/video2  -> PayPal orderID is verified on the server.
+   *
+   * To switch between test and production, change only this path.
+   * Keep the PayPal SDK client-id in the <head> matched to sandbox/live.
    ******************************************************************/
-  const USE_TEST_VIDEO_API = false;
-  const VIDEO_API_ENDPOINT = USE_TEST_VIDEO_API ? "/api/video" : "/api/video2";
+  const VIDEO_API_ENDPOINT = "/api/video";
 
   const imageInput = document.getElementById("imageInput");
   const uploadBox = document.getElementById("uploadBox");
@@ -823,15 +831,13 @@
 
   async function generateVideoFromSelectedImage({ duration, extraPrompt }){
     if (!selectedImageDataUrl) throw new Error("No image selected.");
-    if (!USE_TEST_VIDEO_API && !lastVideoOrderID) throw new Error("Missing PayPal orderID.");
-
     const queuePayload = {
       action:"queue",
+      orderID:lastVideoOrderID, // /api/video ignores this, /api/video2 verifies it.
       duration,
       imageDataUrl:selectedImageDataUrl,
       prompt:extraPrompt || ""
     };
-    if (!USE_TEST_VIDEO_API) queuePayload.orderID = lastVideoOrderID;
 
     const qRes = await fetch(VIDEO_API_ENDPOINT, {
       method:"POST",
