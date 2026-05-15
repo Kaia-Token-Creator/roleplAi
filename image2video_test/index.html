@@ -767,6 +767,8 @@
       if (typeof e === "object"){
         const code = e.code ? `code=${e.code}` : "";
         const status = e.status ? `status=${e.status}` : "";
+        const userMessage =
+          (typeof e?.userMessage === "string" && e.userMessage) || "";
         const veniceMsg =
           (typeof e?.venice?.message === "string" && e.venice.message) ||
           (typeof e?.venice?.error === "string" && e.venice.error) ||
@@ -775,7 +777,7 @@
           (typeof e.message === "string" && e.message) ||
           (typeof e.error === "string" && e.error) ||
           (typeof e.detail === "string" && e.detail) || "";
-        const msg = veniceMsg || mainMsg || JSON.stringify(e);
+        const msg = userMessage || veniceMsg || mainMsg || JSON.stringify(e);
         const meta = [code, status].filter(Boolean).join(", ");
         return meta ? `${msg} (${meta})` : msg;
       }
@@ -964,17 +966,22 @@
 
     const model = qData && qData.model;
     const queue_id = qData && qData.queue_id;
+    const download_url = qData && qData.download_url;
+
     if (!model || !queue_id) throw new Error("Queue failed: missing model/queue_id");
 
+    console.log("Video queued:", { model, queue_id, download_url, qData });
+
     const startedAt = Date.now();
-    const maxMs = 6 * 60 * 1000;
-    const pollEveryMs = 2500;
+    const maxMs = 15 * 60 * 1000;
+    const pollEveryMs = 5000;
     let pollCount = 0;
 
     while (Date.now() - startedAt < maxMs){
       await new Promise(r=>setTimeout(r, pollEveryMs));
       pollCount += 1;
-      setStatus(`<b>Recording in progress...</b><br>Still working. Polling attempt ${pollCount}. Please keep this page open.`);
+      setStatus(`<b>Creating your video...</b><br>Still working. This may take several minutes. Please keep this page open.`);
+      console.log("Polling attempt", pollCount);
 
       const rRes = await fetch(VIDEO_API_ENDPOINT, {
         method:"POST",
@@ -986,9 +993,26 @@
       try{ rData = await rRes.json(); }catch{ rData = null; }
       if (!rRes.ok) throw (rData || { error:`HTTP ${rRes.status}` });
 
-      if (rData && rData.status === "PROCESSING") continue;
+      if (rData && rData.status === "PROCESSING") {
+        console.log("Video still processing:", rData);
 
-      const videoInfo = await normalizeVideoResult(rData);
+        const avg = Number(rData.average_execution_time || 0);
+        const elapsed = Number(rData.execution_duration || 0);
+
+        if (avg > 0 && elapsed > 0) {
+          const avgSec = Math.round(avg / 1000);
+          const elapsedSec = Math.round(elapsed / 1000);
+          setStatus(`<b>Creating your video...</b><br>Still working. Estimated average: ${avgSec}s, elapsed: ${elapsedSec}s. Please keep this page open.`);
+        } else {
+          setStatus(`<b>Creating your video...</b><br>Still working. This may take several minutes. Please keep this page open.`);
+        }
+
+        continue;
+      }
+
+      console.log("Video retrieve response:", rData);
+
+      const videoInfo = await normalizeVideoResult(rData, download_url);
       if (videoInfo && videoInfo.url){
         await showVideoResult(videoInfo.url, videoInfo.mime || "video/mp4");
         clearStatus();
@@ -999,10 +1023,10 @@
       throw new Error("Unexpected retrieve response.");
     }
 
-    throw new Error("Video generation timed out.");
+    throw new Error("Video generation timed out. The video model is still processing or did not return a completed video within 15 minutes. Please try again with a different image or shorter/softer prompt.");
   }
 
-  async function normalizeVideoResult(data){
+  async function normalizeVideoResult(data, downloadUrl){
     if (!data) return null;
 
     if (data.status === "COMPLETED" && data.video && data.video.b64){
@@ -1017,7 +1041,8 @@
       data?.url ||
       data?.videos?.[0]?.url ||
       data?.data?.video_url ||
-      data?.data?.url;
+      data?.data?.url ||
+      downloadUrl;
 
     if (data.status === "COMPLETED" && possibleUrl){
       try{
