@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4VRNKXVX3J"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-4VRNKXVX3J');
+</script>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Share & Get 50% Off | roleplay-chat.com</title>
+  <meta name="description" content="Share roleplay-chat.com on SNS or Reddit, send us a screenshot, and receive a 50% discount link for all options by email." />
+  <meta name="theme-color" content="#000000" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --gold:#ffcc00;
+      --gold2:#ffd84d;
+      --muted:rgba(255,255,255,.75);
+      --muted2:rgba(255,255,255,.55);
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.09);
+      --border:rgba(255,255,255,.14);
+      --borderGold:rgba(255,204,0,.45);
+      --shadow: 0 14px 36px rgba(0,0,0,.55);
+      --radius:18px;
+      --radius2:24px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; margin:0; }
+
+    body{
+      background:
+        radial-gradient(900px 600px at 8% 0%, rgba(255,204,0,.10), transparent 56%),
+        radial-gradient(850px 580px at 94% 8%, rgba(255,255,255,.07), transparent 58%),
+        radial-gradient(700px 500px at 50% 100%, rgba(255,204,0,.055), transparent 58%),
+        var(--bg);
+      color:var(--fg);
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      line-height:1.45;
+    }
+
+    a{ color:inherit; }
+
+    .wrap{
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding:18px 14px 34px;
+    }
+
+    .shell{
+      width:min(940px, 100%);
+      display:grid;
+      gap:16px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:4px 6px 0;
+      gap:12px;
+    }
+
+    .logo{
+      text-decoration:none;
+      font-family:"Baloo 2", Inter, sans-serif;
+      font-weight:700;
+      letter-spacing:.3px;
+      font-size:clamp(16px, 3.6vw, 24px);
+      padding:5px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 10px 22px rgba(0,0,0,.45);
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    .logoRole{ color:var(--gold); }
+    .logoDot{
+      color:rgba(255,255,255,.95);
+      font-size:.5em;
+      vertical-align:baseline;
+    }
+
+    .shareWrap{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      position:relative;
+    }
+
+    .bookmarkHint{
+      font-size:10px;
+      line-height:1.1;
+      text-align:right;
+      color:rgba(255,255,255,.55);
+      user-select:none;
+      white-space:nowrap;
+    }
+
+    .shareBtn{
+      width:36px;
+      height:36px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      box-shadow:var(--shadow);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:.15s ease;
+      flex:0 0 auto;
+      padding:0;
+    }
+
+    .shareBtn:hover{
+      background:rgba(255,255,255,.10);
+      transform:translateY(-1px);
+    }
+
+    .shareBtn:active{ transform:translateY(0); }
+
+    .shareBtn svg{
+      width:16px;
+      height:16px;
+      fill:none;
+      stroke:rgba(255,255,255,.92);
+      stroke-width:2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+    }
+
+    #infoBtn{
+      border-color:rgba(255,204,0,.55);
+      box-shadow:
+        0 0 0 1px rgba(255,204,0,.25),
+        0 0 18px rgba(255,204,0,.35),
+        0 0 34px rgba(255,204,0,.22),
+        var(--shadow);
+    }
+
+    #infoBtn:hover{
+      border-color:rgba(255,204,0,.75);
+      box-shadow:
+        0 0 0 1px rgba(255,204,0,.35),
+        0 0 22px rgba(255,204,0,.45),
+        0 0 44px rgba(255,204,0,.28),
+        var(--shadow);
+    }
+
+    .infoMenu{
+      position:absolute;
+      top:calc(100% + 8px);
+      right:0;
+      min-width:220px;
+      background:rgba(10,10,10,.94);
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      padding:6px;
+      display:none;
+      z-index:99999;
+      backdrop-filter:blur(10px);
+    }
+
+    .infoMenu.active{ display:block; }
+
+    .infoMenu a{
+      display:block;
+      padding:10px 10px;
+      border-radius:12px;
+      text-decoration:none;
+      color:rgba(255,255,255,.92);
+      font-size:13px;
+    }
+
+    .infoMenu a:hover{ background:rgba(255,255,255,.08); }
+
+    .sub{
+      text-align:center;
+      margin-top:0;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border-radius:var(--radius2);
+      border:1px solid rgba(255,204,0,.25);
+      background:
+        linear-gradient(135deg, rgba(255,204,0,.12), rgba(255,255,255,.045) 38%, rgba(255,255,255,.025)),
+        rgba(255,255,255,.045);
+      box-shadow:
+        0 0 0 1px rgba(255,204,0,.08),
+        0 22px 60px rgba(0,0,0,.58);
+      padding:clamp(22px, 5vw, 46px);
+      text-align:center;
+    }
+
+    .hero:before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(500px 240px at 50% 0%, rgba(255,204,0,.18), transparent 62%),
+        radial-gradient(420px 260px at 15% 18%, rgba(255,255,255,.07), transparent 60%);
+      pointer-events:none;
+    }
+
+    .heroInner{
+      position:relative;
+      z-index:1;
+      display:grid;
+      gap:16px;
+      justify-items:center;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,204,0,.45);
+      background:rgba(255,204,0,.10);
+      color:var(--gold2);
+      font-weight:800;
+      font-size:13px;
+      box-shadow:0 0 28px rgba(255,204,0,.15);
+    }
+
+    .badgeDot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background:var(--gold);
+      box-shadow:0 0 16px rgba(255,204,0,.9);
+    }
+
+    h1{
+      margin:0;
+      font-family:"Baloo 2", Inter, sans-serif;
+      font-size:clamp(34px, 7vw, 68px);
+      line-height:.95;
+      letter-spacing:.2px;
+    }
+
+    .goldText{ color:var(--gold); }
+
+    .heroText{
+      max-width:720px;
+      margin:0;
+      color:rgba(255,255,255,.82);
+      font-size:clamp(15px, 2.4vw, 19px);
+    }
+
+    .heroText strong{ color:#fff; }
+
+    .ctaRow{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:10px;
+      margin-top:4px;
+    }
+
+    .btn{
+      appearance:none;
+      border:0;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:46px;
+      padding:12px 16px;
+      border-radius:15px;
+      font-weight:900;
+      font-size:14px;
+      transition:.15s ease;
+      white-space:nowrap;
+    }
+
+    .btnPrimary{
+      color:#000;
+      background:linear-gradient(180deg, #ffe071, var(--gold));
+      box-shadow:
+        0 0 0 1px rgba(255,204,0,.35),
+        0 12px 28px rgba(255,204,0,.24);
+    }
+
+    .btnPrimary:hover{
+      transform:translateY(-1px);
+      filter:brightness(1.03);
+    }
+
+    .btnGhost{
+      color:#fff;
+      background:rgba(255,255,255,.075);
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow:var(--shadow);
+    }
+
+    .btnGhost:hover{
+      transform:translateY(-1px);
+      background:rgba(255,255,255,.11);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:12px;
+    }
+
+    .card{
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      overflow:hidden;
+    }
+
+    .step{
+      display:grid;
+      gap:10px;
+      min-height:100%;
+    }
+
+    .stepNum{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#000;
+      background:var(--gold);
+      font-weight:900;
+      box-shadow:0 0 24px rgba(255,204,0,.26);
+    }
+
+    .step h2{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
+    }
+
+    .step p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .panel{
+      display:grid;
+      gap:14px;
+      border:1px solid rgba(255,204,0,.22);
+      background:
+        linear-gradient(135deg, rgba(255,204,0,.07), rgba(255,255,255,.04)),
+        rgba(255,255,255,.04);
+      border-radius:var(--radius2);
+      padding:18px;
+      box-shadow:var(--shadow);
+    }
+
+    .panelTitle{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .panel h2{
+      margin:0;
+      font-size:22px;
+      line-height:1.2;
+    }
+
+    .panel p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .socialGrid{
+      display:grid;
+      grid-template-columns:repeat(5, 1fr);
+      gap:8px;
+    }
+
+    .socialBtn{
+      min-height:44px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.07);
+      color:#fff;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+
+    .socialBtn:hover{
+      background:rgba(255,255,255,.12);
+      transform:translateY(-1px);
+    }
+
+    .exampleBox{
+      display:grid;
+      gap:10px;
+    }
+
+    .example{
+      border:1px solid rgba(255,255,255,.13);
+      background:rgba(0,0,0,.28);
+      border-radius:16px;
+      padding:14px;
+      display:grid;
+      gap:10px;
+    }
+
+    .exampleTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .exampleTitle{
+      color:var(--gold);
+      font-weight:900;
+      font-size:13px;
+    }
+
+    .copyBtn{
+      border:1px solid rgba(255,204,0,.35);
+      color:var(--gold);
+      background:rgba(255,204,0,.08);
+      border-radius:999px;
+      padding:7px 10px;
+      font-weight:900;
+      font-size:12px;
+      cursor:pointer;
+    }
+
+    .copyBtn:hover{ background:rgba(255,204,0,.13); }
+
+    .exampleText{
+      margin:0;
+      color:rgba(255,255,255,.84);
+      font-size:14px;
+      white-space:pre-wrap;
+    }
+
+    .emailBox{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      border:1px solid rgba(255,255,255,.13);
+      background:rgba(255,255,255,.045);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .emailText{
+      display:grid;
+      gap:3px;
+      min-width:220px;
+    }
+
+    .emailLabel{
+      color:var(--muted2);
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.5px;
+    }
+
+    .emailAddress{
+      color:var(--gold);
+      font-size:15px;
+      font-weight:900;
+      word-break:break-all;
+    }
+
+    .note{
+      color:var(--muted2);
+      font-size:12px;
+      text-align:center;
+      padding:0 8px;
+    }
+
+    .bottomNav{
+      display:flex;
+      justify-content:center;
+      padding:4px 0 0;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%) translateY(20px);
+      opacity:0;
+      pointer-events:none;
+      background:rgba(15,15,15,.94);
+      border:1px solid rgba(255,204,0,.35);
+      color:#fff;
+      border-radius:999px;
+      padding:10px 14px;
+      box-shadow:var(--shadow);
+      font-size:13px;
+      font-weight:800;
+      transition:.2s ease;
+      z-index:999999;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+
+    @media (max-width:760px){
+      .grid{ grid-template-columns:1fr; }
+      .socialGrid{ grid-template-columns:repeat(2, 1fr); }
+      .hero{ padding:24px 16px; }
+      .panel{ padding:15px; }
+      .bookmarkHint{ display:none; }
+      .btn{ width:100%; }
+      .ctaRow{ width:100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="shell">
+
+      <header>
+        <div style="display:block; width:100%;">
+
+          <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+            <a href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer" class="logo">
+              <span class="logoRole">Roleplay-chat</span><span class="logoDot">.com</span>
+            </a>
+
+            <div class="shareWrap">
+              <div class="bookmarkHint">
+                Bookmark<br>&amp; Share
+              </div>
+
+              <button class="shareBtn" id="shareBtn" type="button" aria-label="Share" title="Share">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="18" cy="5" r="3"></circle>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="19" r="3"></circle>
+                  <path d="M8.6 13.5l6.8 3.9"></path>
+                  <path d="M15.4 6.6L8.6 10.5"></path>
+                </svg>
+              </button>
+
+              <button class="shareBtn" id="infoBtn" type="button" aria-label="Menu" title="Menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 8h12"></path>
+                  <path d="M6 12h12"></path>
+                  <path d="M6 16h12"></path>
+                </svg>
+              </button>
+
+              <div class="infoMenu" id="infoMenu" role="menu" aria-label="Info menu">
+                <a href="https://sweetdream.ai?via=roleplay-chat70" target="_blank" rel="noopener noreferrer" style="color:#FF69B4; font-weight:bold; text-decoration:none;">Live Video Chat with girls</a>
+                <a href="https://roleplay-chat.com/human" target="_blank" rel="noopener noreferrer" style="color:#FFD700; font-weight:bold; text-decoration:none;">Chat with real human</a>
+                <a href="https://roleplay-chat.com" target="_blank" rel="noopener noreferrer">Home</a>
+                <a href="https://roleplay-chat.com/characters" target="_blank" rel="noopener noreferrer" style="color:#FFD700; font-weight:bold; text-decoration:none;">Featured Characters</a>
+                <a href="https://roleplay-chat.com/how" target="_blank" rel="noopener noreferrer">How to use</a>
+                <a href="https://roleplay-chat.com/about" target="_blank" rel="noopener noreferrer">About</a>
+                <a href="https://roleplay-chat.com/pricing" target="_blank" rel="noopener noreferrer">Pricing</a>
+                <a href="https://roleplay-chat.com/all_access_purchase" target="_blank" rel="noopener noreferrer">All-access pass</a>
+                <a href="https://roleplay-chat.com/policy" target="_blank" rel="noopener noreferrer">Policy</a>
+                <a href="https://roleplay-chat.com/faq" target="_blank" rel="noopener noreferrer">FAQ</a>
+                <a href="mailto:showmetheaitools@gmail.com">Contact</a>
+                <a href="https://roleplay-chat.com/image2video" target="_blank" rel="noopener noreferrer" style="color:#FFD700; font-weight:bold; text-decoration:none;">Image to Video generator</a>
+              </div>
+            </div>
+          </div>
+
+          <div align="right">
+            <sup>
+              <a href="https://roleplay-chat.com/human" target="_blank" style="text-decoration:none">
+                <font size="1" color="#ffcc00"><b>Live user chat</b></font>
+              </a>
+            </sup>
+
+            <script
+              id="cid0020000430144912743"
+              data-cfasync="false"
+              async
+              src="https://st.chatango.com/js/gz/emb.js"
+              style="width:200px;height:300px;"
+            >
+              {"handle":"roleplay-chat-com","arch":"js","styles":{"a":"000000","b":100,"c":"FFFFFF","d":"FFFFFF","k":"000000","l":"000000","m":"000000","n":"FFFFFF","p":"10","q":"000000","r":100,"cv":1,"cvfntsz":"10px","cvbg":"000000","cvfg":"ffcc00","cvw":49,"cvh":18}}
+            </script>
+          </div>
+
+        </div>
+      </header>
+
+      <div class="sub">
+        Create the most human-like character. Enjoy private AI roleplay.<br>
+        No login. No account. Private &amp; safe.
+      </div>
+
+      <main>
+        <section class="hero">
+          <div class="heroInner">
+            <div class="badge">
+              <span class="badgeDot"></span>
+              SNS Share Event
+            </div>
+
+            <h1>
+              Share Roleplay-chat<br>
+              Get <span class="goldText">50% Off</span>
+            </h1>
+
+            <p class="heroText">
+              Share <strong>roleplay-chat.com</strong> on X, Facebook, Instagram, Threads, Reddit, or any SNS/community.
+              Send us a screenshot, and we will email you a <strong>50% discount link for all options</strong>.
+            </p>
+
+            <div class="ctaRow">
+              <button class="btn btnPrimary" id="mainShareBtn" type="button">
+                Share roleplay-chat.com
+              </button>
+              <a class="btn btnGhost" id="emailBtn" href="mailto:showmetheaitools@gmail.com?subject=SNS%20Share%20Event%20Screenshot&body=Hello%2C%0A%0AI%20shared%20roleplay-chat.com%20on%20SNS.%0APlease%20find%20my%20screenshot%20attached.%0A%0AThank%20you.">
+                Send Screenshot by Email
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid" style="margin-top:12px;">
+          <div class="card step">
+            <div class="stepNum">1</div>
+            <h2>Share us anywhere</h2>
+            <p>
+              Post about roleplay-chat.com on X, Facebook, Instagram, Threads, Reddit, or another social platform.
+            </p>
+          </div>
+
+          <div class="card step">
+            <div class="stepNum">2</div>
+            <h2>Take a screenshot</h2>
+            <p>
+              Capture your post after it is published. Reddit posts, SNS posts, and community shares are all welcome.
+            </p>
+          </div>
+
+          <div class="card step">
+            <div class="stepNum">3</div>
+            <h2>Receive 50% off</h2>
+            <p>
+              Email the screenshot to us. We will send you a 50% discount link for all options by email.
+            </p>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:12px;">
+          <div class="panelTitle">
+            <div>
+              <h2>Share instantly</h2>
+              <p>Choose a platform or copy the event text below.</p>
+            </div>
+          </div>
+
+          <div class="socialGrid">
+            <a class="socialBtn" id="xShare" target="_blank" rel="noopener noreferrer">X</a>
+            <a class="socialBtn" id="facebookShare" target="_blank" rel="noopener noreferrer">Facebook</a>
+            <a class="socialBtn" id="threadsShare" target="_blank" rel="noopener noreferrer">Threads</a>
+            <a class="socialBtn" id="redditShare" target="_blank" rel="noopener noreferrer">Reddit</a>
+            <button class="socialBtn" id="copyShareText" type="button">Copy Text</button>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:12px;">
+          <div class="panelTitle">
+            <div>
+              <h2>Example posts</h2>
+              <p>You can copy and edit these before posting.</p>
+            </div>
+          </div>
+
+          <div class="exampleBox">
+            <div class="example">
+              <div class="exampleTop">
+                <div class="exampleTitle">Example 1: Simple SNS post</div>
+                <button class="copyBtn" type="button" data-copy-target="example1">Copy</button>
+              </div>
+              <p class="exampleText" id="example1">I found a private AI roleplay chat site with no login and no account needed.
+
+You can create your own character and enjoy immersive roleplay safely in your browser.
+
+https://roleplay-chat.com</p>
+            </div>
+
+            <div class="example">
+              <div class="exampleTop">
+                <div class="exampleTitle">Example 2: Privacy-focused post</div>
+                <button class="copyBtn" type="button" data-copy-target="example2">Copy</button>
+              </div>
+              <p class="exampleText" id="example2">roleplay-chat.com is an AI character roleplay site designed around privacy.
+
+No signup. No login. Your chat stays in your browser, not on a public profile.
+
+Try it here:
+https://roleplay-chat.com</p>
+            </div>
+
+            <div class="example">
+              <div class="exampleTop">
+                <div class="exampleTitle">Example 3: Reddit/community style</div>
+                <button class="copyBtn" type="button" data-copy-target="example3">Copy</button>
+              </div>
+              <p class="exampleText" id="example3">For anyone looking for a no-login AI roleplay chat site, I tried roleplay-chat.com.
+
+It lets you create a character and start chatting right away, without making an account. The privacy-first setup is pretty nice too.
+
+https://roleplay-chat.com</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:12px;">
+          <div class="panelTitle">
+            <div>
+              <h2>Send your screenshot</h2>
+              <p>Attach your SNS or Reddit post screenshot and email it to us.</p>
+            </div>
+          </div>
+
+          <div class="emailBox">
+            <div class="emailText">
+              <div class="emailLabel">Email address</div>
+              <div class="emailAddress">showmetheaitools@gmail.com</div>
+            </div>
+
+            <div class="ctaRow" style="margin:0;">
+              <button class="btn btnGhost" id="copyEmailBtn" type="button">Copy Email</button>
+              <a class="btn btnPrimary" href="mailto:showmetheaitools@gmail.com?subject=SNS%20Share%20Event%20Screenshot&body=Hello%2C%0A%0AI%20shared%20roleplay-chat.com%20on%20SNS.%0APlease%20find%20my%20screenshot%20attached.%0A%0AThank%20you.">
+                Open Email
+              </a>
+            </div>
+          </div>
+
+          <div class="note">
+            After we review your screenshot, we will send the 50% discount link to your email.
+          </div>
+        </section>
+
+        <div class="bottomNav">
+          <a class="btn btnGhost" href="https://roleplay-chat.com">
+            Back to roleplay-chat.com
+          </a>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+  <script>
+    const SITE_URL = "https://roleplay-chat.com";
+    const EVENT_TEXT = `I found a private AI roleplay chat site with no login and no account needed.
+
+You can create your own character and enjoy immersive roleplay safely in your browser.
+
+${SITE_URL}`;
+
+    function showToast(message){
+      const toast = document.querySelector("#toast");
+      if (!toast) return;
+      toast.textContent = message || "Copied!";
+      toast.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+      }, 1400);
+    }
+
+    async function copyText(text, message){
+      try{
+        await navigator.clipboard.writeText(text);
+        showToast(message || "Copied!");
+      }catch(e){
+        const temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+        showToast(message || "Copied!");
+      }
+    }
+
+    async function nativeShare(){
+      try{
+        if (navigator.share){
+          await navigator.share({
+            title: "Share & Get 50% Off | roleplay-chat.com",
+            text: "Share roleplay-chat.com and get a 50% discount link.",
+            url: SITE_URL
+          });
+        }else{
+          await copyText(SITE_URL, "Link copied!");
+        }
+      }catch(e){
+        /* user cancelled */
+      }
+    }
+
+    // Header share button
+    const shareBtn = document.querySelector("#shareBtn");
+    if (shareBtn){
+      shareBtn.addEventListener("click", nativeShare);
+    }
+
+    // Main share button
+    const mainShareBtn = document.querySelector("#mainShareBtn");
+    if (mainShareBtn){
+      mainShareBtn.addEventListener("click", nativeShare);
+    }
+
+    // Info dropdown
+    const infoBtn = document.querySelector("#infoBtn");
+    const infoMenu = document.querySelector("#infoMenu");
+
+    function closeInfoMenu(){
+      if (infoMenu) infoMenu.classList.remove("active");
+    }
+
+    if (infoBtn && infoMenu){
+      infoBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        infoMenu.classList.toggle("active");
+      });
+
+      infoMenu.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+
+      document.addEventListener("click", closeInfoMenu);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeInfoMenu();
+      });
+    }
+
+    // Social share links
+    const encodedUrl = encodeURIComponent(SITE_URL);
+    const encodedText = encodeURIComponent(EVENT_TEXT);
+    const encodedTitle = encodeURIComponent("Private AI roleplay chat with no login");
+
+    const xShare = document.querySelector("#xShare");
+    const facebookShare = document.querySelector("#facebookShare");
+    const threadsShare = document.querySelector("#threadsShare");
+    const redditShare = document.querySelector("#redditShare");
+
+    if (xShare){
+      xShare.href = `https://twitter.com/intent/tweet?text=${encodedText}`;
+    }
+
+    if (facebookShare){
+      facebookShare.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+    }
+
+    if (threadsShare){
+      threadsShare.href = `https://www.threads.net/intent/post?text=${encodedText}`;
+    }
+
+    if (redditShare){
+      redditShare.href = `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`;
+    }
+
+    // Copy share text
+    const copyShareText = document.querySelector("#copyShareText");
+    if (copyShareText){
+      copyShareText.addEventListener("click", () => {
+        copyText(EVENT_TEXT, "Share text copied!");
+      });
+    }
+
+    // Copy examples
+    document.querySelectorAll("[data-copy-target]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-copy-target");
+        const target = document.getElementById(id);
+        if (target){
+          copyText(target.innerText, "Example copied!");
+        }
+      });
+    });
+
+    // Copy email
+    const copyEmailBtn = document.querySelector("#copyEmailBtn");
+    if (copyEmailBtn){
+      copyEmailBtn.addEventListener("click", () => {
+        copyText("showmetheaitools@gmail.com", "Email copied!");
+      });
+    }
+  </script>
+</body>
+</html>
