@@ -1030,6 +1030,66 @@ body.modalOpen{
   opacity:0.75;
   margin-bottom:0px;
 }
+
+    .eventDiscountLink{
+  display:block;
+  width:100%;
+  margin: 0 0 10px;
+  padding: 11px 13px;
+  border-radius: 15px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.25;
+  color: #000;
+  background: linear-gradient(120deg, #ffcc00, #ffd84d, #ffb700);
+  border: 1px solid rgba(255, 204, 0, .9);
+  box-shadow:
+    0 0 0 1px rgba(255, 204, 0, .32),
+    0 0 18px rgba(255, 204, 0, .38),
+    0 0 34px rgba(255, 204, 0, .20),
+    var(--shadow);
+  animation: eventDiscountPulse 2s ease-in-out infinite;
+}
+
+.eventDiscountLink:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow:
+    0 0 0 2px rgba(255, 204, 0, .55),
+    0 0 26px rgba(255, 204, 0, .62),
+    0 0 54px rgba(255, 204, 0, .32),
+    var(--shadow);
+}
+
+.eventDiscountLink:active{
+  transform: scale(.99);
+}
+
+@keyframes eventDiscountPulse{
+  0%{
+    box-shadow:
+      0 0 0 1px rgba(255,204,0,.28),
+      0 0 14px rgba(255,204,0,.32),
+      0 0 28px rgba(255,204,0,.16),
+      var(--shadow);
+  }
+  50%{
+    box-shadow:
+      0 0 0 2px rgba(255,204,0,.55),
+      0 0 25px rgba(255,204,0,.65),
+      0 0 55px rgba(255,204,0,.32),
+      var(--shadow);
+  }
+  100%{
+    box-shadow:
+      0 0 0 1px rgba(255,204,0,.28),
+      0 0 14px rgba(255,204,0,.32),
+      0 0 28px rgba(255,204,0,.16),
+      var(--shadow);
+  }
+}
     
     
   </style>
@@ -1317,6 +1377,12 @@ body.modalOpen{
 
             <div class="span2">
               <label>Chat Option</label>
+              <a href="https://roleplay-chat.com/event"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="eventDiscountLink">
+    Want 50% off every option?
+  </a>              
               <div class="pillGroup" role="radiogroup" aria-label="Chat option">
                 <label class="pill">
                   <input type="radio" name="tier" value="general" checked/>
