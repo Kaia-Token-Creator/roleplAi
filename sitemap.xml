@@ -56,6 +56,11 @@
     <priority>0.5</priority>
   </url>
 
+  <url>
+    <loc>https://roleplay-chat.com/event</loc>
+    <priority>0.5</priority>
+  </url>
+
 </urlset>
 
 
